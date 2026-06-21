@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppContext} from "./Context/AppContext";
+import { AppContext} from "../Context/AppContext";
 import { RoomCard } from '../components/RoomCard';
 import { Search, Sparkles, MapPin, Award, CheckCircle, Shield, ArrowRight } from 'lucide-react';
 
