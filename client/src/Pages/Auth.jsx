@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AppContext } from '../Context/AppContext';
+import { AppContext} from "../Context/AppContext";
 import { Home, Sparkles, Shield, User, Lock, Mail, Phone, ChevronRight } from 'lucide-react';
 
 export const Auth = () => {

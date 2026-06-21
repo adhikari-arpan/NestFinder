@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { AppContext } from '..D:\NestFinder\NestFinder\client\src\Context\AppContext.jsx';
+import { AppContext} from "../Context/AppContext";
 import { MapPin, Heart, Wifi, Car, Sofa, Flame, CheckCircle, Sparkles, User } from 'lucide-react';
 
 export const RoomCard = ({ room, score }) => {

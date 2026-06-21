@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-export const AppContext = createContext();
+export const AppContext = createContext(); //an empty global container like a empty ware house to store eveything that we want to share across the app.
 
 // Mock Initial Listings in Kathmandu Valley
 const initialListings = [
@@ -219,9 +219,11 @@ const initialListings = [
   }
 ];
 
-export const AppContextProvider = ({ children }) => {
+
+
+export const AppContextProvider = ({ children }) => {   //childern= app and provider supplies data to app and everything that is inside app.
   // Database States
-  const [listings, setListings] = useState(initialListings);
+  const [listings, setListings] = useState(initialListings);//automatically store listings & updates in case of new listings.
   const [inquiries, setInquiries] = useState([
     {
       id: 1,
@@ -290,7 +292,7 @@ export const AppContextProvider = ({ children }) => {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute('data-theme', theme); //runs when theme changes
   }, [theme]);
 
   // Actions
@@ -298,6 +300,8 @@ export const AppContextProvider = ({ children }) => {
     setTheme(prev => prev === "light" ? "dark" : "light");
   };
 
+
+  //user login process is simulated here. In a real app, you would call an API to verify credentials and get user data.
   const loginUser = (email, password, role) => {
     let mockUser = {
       id: role === 'tenant' ? 1 : (role === 'landlord' ? 2 : 3),
@@ -317,6 +321,8 @@ export const AppContextProvider = ({ children }) => {
   const logoutUser = () => {
     setCurrentUser(null);
   };
+
+
 
   const toggleSaveListing = (id) => {
     setSavedListings(prev => 
@@ -486,7 +492,7 @@ export const AppContextProvider = ({ children }) => {
   };
 
   return (
-    <AppContext.Provider
+    <AppContext.Provider  //everything thing inside this is available everywhere in the app. It is like a global store for the app.
       value={{
         listings,
         setListings,

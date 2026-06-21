@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { AppContext } from '..D:\NestFinder\NestFinder\client\src\Context\AppContext.jsx';
+import { AppContext } from "../Context/AppContext";
 import { 
   Home, 
   Map, 

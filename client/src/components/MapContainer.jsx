@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useContext } from 'react';
-import { AppContext } from '..D:\NestFinder\NestFinder\client\src\Context\AppContext.jsx';
+import { AppContext } from "../Context/AppContext";
 import L from 'leaflet';
 
 export const MapContainer = ({ listings = [], activeListingId = null, highlightListingId = null, onMarkerClick = null, showPOIRadius = false, currentCenter = null }) => {
