@@ -24,15 +24,9 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
       zoomControl: true
     });
 
-    // Add Tile Layer
-    // Standard OSM Tile
-    const tileUrl = theme === 'dark' 
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
-      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-      
-    const tileAttribution = theme === 'dark'
-      ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-      : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    // CHANGED: Force standard, detailed OpenStreetMap tiles for all themes (improves visibility)
+    const tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const tileAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
     L.tileLayer(tileUrl, {
       attribution: tileAttribution,
@@ -43,8 +37,24 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
     markersGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
     circlesGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
 
+    // CHANGED: Invalidate size after layout completes (fixes grey area / misaligned tiles rendering bug)
+    setTimeout(() => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    }, 250);
+
+    // CHANGED: Add event listener for container resizing
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
     // Clean up map on unmount
     return () => {
+      window.removeEventListener('resize', handleResize);
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
@@ -52,30 +62,14 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
     };
   }, []); // Run once on mount
 
-  // React to Theme Changes (Swap tiles)
+  // CHANGED: Invalidate size when listings or active selection changes to trigger tile updates
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
-
-    // Remove old layers
-    mapInstanceRef.current.eachLayer(layer => {
-      if (layer instanceof L.TileLayer) {
-        mapInstanceRef.current.removeLayer(layer);
-      }
-    });
-
-    const tileUrl = theme === 'dark' 
-      ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png' 
-      : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-
-    const tileAttribution = theme === 'dark'
-      ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-      : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-    L.tileLayer(tileUrl, {
-      attribution: tileAttribution,
-      maxZoom: 19
-    }).addTo(mapInstanceRef.current);
-  }, [theme]);
+    if (mapInstanceRef.current) {
+      setTimeout(() => {
+        mapInstanceRef.current.invalidateSize();
+      }, 150);
+    }
+  }, [listings, activeListingId]);
 
   // React to Center Changes
   useEffect(() => {

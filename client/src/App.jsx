@@ -13,8 +13,8 @@ import { Auth } from './pages/Auth';
 
 // Dashboards
  import { LandlordDashboard } from './pages/Dashboard/LandlordDashboard';
- //import { TenantDashboard } from './pages/Dashboard/TenantDashboard';
- //import { AdminDashboard } from './pages/Dashboard/AdminDashboard';
+ import { TenantDashboard } from './pages/Dashboard/TenantDashboard';
+ import { AdminDashboard } from './pages/Dashboard/AdminDashboard';
 
 import './App.css';
 
@@ -36,8 +36,8 @@ function App() {
             
             {/* Role Dashboards */}
             <Route path="/dashboard/landlord" element={<LandlordDashboard />} />
-            {/* <Route path="/dashboard/tenant" element={<TenantDashboard />} />
-            <Route path="/dashboard/admin" element={<AdminDashboard />} /> */}
+            <Route path="/dashboard/tenant" element={<TenantDashboard />} />
+            <Route path="/dashboard/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
 

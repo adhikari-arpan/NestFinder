@@ -30,7 +30,7 @@ export const Auth = () => {
     e.preventDefault();
     if (activeTab === 'login') {
       // Mock Login
-      loginUser(email || `${selectedRole}@nestfinder.com`, password || 'password', selectedRole);
+      loginUser(email || `${selectedRole}@nestfinder.com`, 'password', selectedRole);
     } else {
       // Mock Signup
       if (!name || !email || !password || !phone) {
@@ -181,45 +181,41 @@ export const Auth = () => {
                 style={{ width: '100%', paddingLeft: '2.5rem' }} 
               />
             </div>
-            {activeTab === 'login' && (
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', textAlign: 'left', display: 'block', marginTop: '0.25rem' }}>
-                💡 Leave empty to auto-fill mock credentials for quick evaluation.
-              </span>
-            )}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Phone Number</label>
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
+              <input 
+                type="tel" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="98XXXXXXXX" 
+                required={activeTab === 'signup'}
+                className="form-input" 
+                style={{ width: '100%', paddingLeft: '2.5rem' }} 
+              />
+            </div>
           </div>
 
           {activeTab === 'signup' && (
             <div className="form-group">
-              <label className="form-label">Phone Number</label>
+              <label className="form-label">Password</label>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
+                <Lock size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
                 <input 
-                  type="tel" 
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="98XXXXXXXX" 
-                  required 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••" 
+                  required
                   className="form-input" 
                   style={{ width: '100%', paddingLeft: '2.5rem' }} 
                 />
               </div>
             </div>
           )}
-
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Lock size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••" 
-                className="form-input" 
-                style={{ width: '100%', paddingLeft: '2.5rem' }} 
-              />
-            </div>
-          </div>
 
           {/* Submit Action */}
           <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>

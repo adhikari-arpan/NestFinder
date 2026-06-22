@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { AppContext} from "./Context/AppContext";
-import { RoomCard } from '../components/RoomCard';
+import { AppContext} from "../../Context/AppContext";
+import { RoomCard } from '../../components/RoomCard';
 import { 
   Heart, 
   Sparkles, 

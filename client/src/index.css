@@ -471,3 +471,332 @@ p {
     height: 400px;
   }
 }
+
+/* =======================================================
+   NestFinder Redesign UI Enhancements & Micro-animations
+   ======================================================= */
+
+.glow-btn {
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  animation: pulse-glow 2.5s infinite ease-in-out;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glow-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: all 0.8s ease;
+  z-index: -1;
+}
+
+.glow-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.6);
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #6d28d9 100%);
+}
+
+.glow-btn:hover::before {
+  left: 100%;
+}
+
+.glow-btn:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(124, 58, 237, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+  }
+}
+
+.role-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.role-radio-card {
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.role-radio-card:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-3px);
+}
+
+.role-radio-card.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.role-icon-lg {
+  font-size: 2.2rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Glass login container */
+.glass-login-container {
+  animation: modal-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Welcome Banner */
+.welcome-banner-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.welcome-banner-card::after {
+  content: '🏠';
+  position: absolute;
+  right: -10px;
+  bottom: -20px;
+  font-size: 7.5rem;
+  opacity: 0.04;
+  pointer-events: none;
+  transform: rotate(-15deg);
+}
+
+/* Highlighted Map Container */
+.highlight-map-container {
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-normal);
+}
+
+.highlight-map-container:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-xl);
+}
+
+.map-badge-helper {
+  background: var(--primary);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+/* Custom Facility Toggle Button */
+.facility-pill {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.facility-pill:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.facility-pill.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 3px 8px rgba(99, 102, 241, 0.3);
+}
+
+.search-split-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1024px) {
+  .search-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   ADDED FOR REDESIGN: Modal Popups, Feature Grid, and Animated Abstract SVG Art
+   ========================================================================== */
+
+/* 1. Modal Overlay Backdrop (Covers entire screen, blurs background) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(9, 13, 22, 0.65); /* Sleek dark tint */
+  backdrop-filter: blur(10px); /* Modern blur effect */
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000; /* Ensures it floats above navbar */
+  padding: 1.5rem;
+  animation: fade-in-backdrop 0.3s ease-out forwards;
+}
+
+@keyframes fade-in-backdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 2. Features Grid & Cards (Explaining "Why NestFinder" before login) */
+.features-section-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-top: 5rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, var(--text-main) 40%, var(--primary) 100%);
+  WebkitBackgroundClip: 'text';
+  WebkitTextFillColor: 'transparent';
+}
+
+.features-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.feature-redesign-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  text-align: left;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature-redesign-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-lg);
+}
+
+.feature-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+/* 3. SVG Abstract Art Keyframe Animations (Creating smooth motion representing features) */
+
+/* Slow rotation representing the AI recommendation matching orbit */
+@keyframes spin-slow-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Vertical floating representing location pins searching on maps */
+@keyframes float-y-slowly {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes float-y-quickly {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Pulsing opacity/scale for AI connecting nodes */
+@keyframes node-pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Drawing line dash effect for mapping lines */
+@keyframes line-dash-flow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+/* CSS classes mapping to the SVG abstract art elements */
+.art-spin-bg {
+  transform-origin: center;
+  animation: spin-slow-cw 35s linear infinite;
+}
+
+.art-float-pin-1 {
+  animation: float-y-slowly 4.5s ease-in-out infinite;
+}
+
+.art-float-pin-2 {
+  animation: float-y-quickly 3.5s ease-in-out infinite;
+}
+
+.art-pulse-dot {
+  transform-origin: center;
+  animation: node-pulse-glow 2.5s infinite ease-in-out;
+}
+
+.art-line-flow {
+  stroke-dasharray: 8, 4;
+  animation: line-dash-flow 2s linear infinite;
+}
+
+
