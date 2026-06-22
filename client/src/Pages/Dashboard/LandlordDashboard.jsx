@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AppContext} from "../Context/AppContext";
+import { AppContext} from "../../Context/AppContext";
 import { 
   Building, 
   MessageSquare, 
