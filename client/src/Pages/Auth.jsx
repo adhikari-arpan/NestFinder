@@ -310,7 +310,7 @@ export const Auth = () => {
 
         {/* Role selector */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          {[{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }].map(r => (
+          {[{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }, { val: 'admin', label: '🛡️ Admin' }].map(r => (
             <button key={r.val} type="button" onClick={() => setSelectedRole(r.val)} style={{
               flex: 1, padding: '0.5rem', border: `1px solid ${selectedRole === r.val ? 'rgba(99,102,241,0.7)' : 'rgba(255,255,255,0.1)'}`,
               borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', transition: 'all 0.2s',

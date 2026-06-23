@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { RoomCard } from '../components/RoomCard';
@@ -18,124 +18,166 @@ import {
   Filter, 
   Check, 
   ArrowLeft,
-  X
+  X,
+  Lock,
+  Eye,
+  EyeOff,
+  Home as HomeIcon,   // renamed to avoid conflict with exported 'Home' component
+  ChevronDown
 } from 'lucide-react';
 
 // ==========================================================================
-// REDESIGNED ABSTRACT ART COMPONENT: Custom animated SVG representing features
+// FULL-SCREEN ABSTRACT ART BACKGROUND (Canvas-based, covers entire hero)
 // ==========================================================================
-const AbstractArt = () => {
+const FullScreenArt = () => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Particle nodes representing platform features
+    const particles = Array.from({ length: 80 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2.5 + 1,
+      // Random color: indigo / emerald / amber
+      hue: [260, 160, 45][Math.floor(Math.random() * 3)],
+      opacity: Math.random() * 0.6 + 0.2,
+    }));
+
+    // Floating feature labels
+    const labels = [
+      { text: '🗺️ Map Discovery', x: 0.15, y: 0.18, speed: 0.0008 },
+      { text: '✨ AI Matching',    x: 0.75, y: 0.25, speed: 0.001  },
+      { text: '🔒 Verified Rooms', x: 0.55, y: 0.7,  speed: 0.0007 },
+      { text: '💰 Budget Filter',  x: 0.2,  y: 0.65, speed: 0.0009 },
+      { text: '📍 Pin & Explore',  x: 0.8,  y: 0.6,  speed: 0.0006 },
+      { text: '🏠 Broker-Free',    x: 0.4,  y: 0.12, speed: 0.0011 },
+    ];
+
+    // Floating orbs for ambient glow effect
+    const orbs = [
+      { cx: 0.25, cy: 0.3, r: 180, color: 'rgba(99,102,241,0.07)', phase: 0 },
+      { cx: 0.75, cy: 0.6, r: 220, color: 'rgba(16,185,129,0.05)', phase: 1.5 },
+      { cx: 0.5,  cy: 0.8, r: 150, color: 'rgba(245,158,11,0.05)', phase: 3  },
+    ];
+
+    let frame;
+    let t = 0;
+
+    const draw = () => {
+      t += 0.01;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw ambient glowing orbs
+      orbs.forEach(o => {
+        const px = o.cx * canvas.width + Math.sin(t * 0.3 + o.phase) * 40;
+        const py = o.cy * canvas.height + Math.cos(t * 0.2 + o.phase) * 30;
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, o.r);
+        grad.addColorStop(0, o.color);
+        grad.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(px, py, o.r, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+      });
+
+      // Draw connection lines between nearby particles
+      particles.forEach((a, i) => {
+        particles.slice(i + 1).forEach(b => {
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (dist < 130) {
+            const alpha = (1 - dist / 130) * 0.25;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = isDark ? `rgba(99,102,241,${alpha})` : `rgba(99,102,241,${alpha * 1.5})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        });
+      });
+
+      // Draw and move particles
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `hsla(${p.hue}, 70%, 65%, ${p.opacity})`;
+        ctx.fill();
+      });
+
+      // Draw floating feature text labels with gentle oscillation
+      labels.forEach((lb, i) => {
+        const px = lb.x * canvas.width;
+        const py = lb.y * canvas.height + Math.sin(t * lb.speed * 100 + i) * 12;
+
+        // Pill background
+        const metrics = ctx.measureText(lb.text);
+        const textW = metrics.width + 28;
+        const textH = 32;
+        const rx = px - textW / 2;
+        const ry = py - textH / 2;
+
+        ctx.beginPath();
+        ctx.roundRect(rx, ry, textW, textH, 16);
+        ctx.fillStyle = isDark ? 'rgba(15, 23, 42, 0.55)' : 'rgba(255, 255, 255, 0.85)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(99,102,241,0.35)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.font = '13px "Inter", sans-serif';
+        ctx.fillStyle = isDark ? 'rgba(248,250,252,0.85)' : 'rgba(30, 27, 75, 0.9)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(lb.text, px, py);
+      });
+
+      frame = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('resize', resize);
+    };
+  }, []);
+
   return (
-    <svg 
-      viewBox="0 0 500 500" 
-      width="100%" 
-      height="100%" 
-      style={{ maxHeight: '480px', overflow: 'visible' }}
-    >
-      <defs>
-        {/* Gradients for glowing shapes */}
-        <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-        </radialGradient>
-        
-        <linearGradient id="pinGradBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#818cf8" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-
-        <linearGradient id="pinGradGreen" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#34d399" />
-          <stop offset="100%" stopColor="#059669" />
-        </linearGradient>
-
-        <linearGradient id="pinGradAmber" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#d97706" />
-        </linearGradient>
-      </defs>
-
-      {/* Background Glow */}
-      <circle cx="250" cy="250" r="220" fill="url(#glowGrad)" />
-
-      {/* 1. Map Grid Visualizer */}
-      <g stroke="var(--border-color)" strokeWidth="1" fill="none" opacity="0.3">
-        <path d="M 50 150 L 450 350" />
-        <path d="M 50 230 L 450 430" />
-        <path d="M 50 310 L 450 510" />
-        <path d="M 50 350 L 450 150" />
-        <path d="M 50 430 L 450 230" />
-        <path d="M 50 510 L 450 310" />
-        <rect x="180" y="180" width="80" height="80" rx="8" transform="rotate(45 220 220)" strokeWidth="1.5" />
-        <rect x="300" y="240" width="60" height="60" rx="6" transform="rotate(45 330 270)" strokeWidth="1.5" />
-      </g>
-
-      {/* 2. Concentric AI Match Engine Rings */}
-      <g className="art-spin-bg" stroke="var(--primary)" strokeWidth="1.5" fill="none" opacity="0.4" style={{ transformOrigin: '250px 250px' }}>
-        <circle cx="250" cy="250" r="160" strokeDasharray="15, 35, 45, 20" />
-        <circle cx="250" cy="250" r="110" strokeDasharray="30, 20" stroke="var(--secondary)" />
-        <circle cx="250" cy="250" r="60" strokeDasharray="5, 10" />
-      </g>
-
-      {/* 3. Connection Flow Paths */}
-      <path 
-        d="M 120 180 C 200 130, 220 320, 310 270" 
-        fill="none" 
-        stroke="var(--primary)" 
-        strokeWidth="2" 
-        className="art-line-flow" 
-      />
-      <path 
-        d="M 230 140 C 270 240, 290 280, 380 200" 
-        fill="none" 
-        stroke="var(--secondary)" 
-        strokeWidth="2" 
-        className="art-line-flow" 
-        opacity="0.8" 
-      />
-
-      {/* 4. Connection Nodes */}
-      <circle cx="210" cy="215" r="5" fill="var(--primary)" className="art-pulse-dot" />
-      <circle cx="310" cy="270" r="6" fill="var(--secondary)" className="art-pulse-dot" />
-      <circle cx="288" cy="188" r="4.5" fill="var(--accent)" className="art-pulse-dot" />
-
-      {/* 5. Floating Location Pins */}
-      {/* Pin 1: Blue */}
-      <g className="art-float-pin-1" style={{ transformOrigin: '120px 180px' }}>
-        <path 
-          d="M120 180 C105 180, 100 160, 100 145 C100 120, 140 120, 140 145 C140 160, 135 180, 120 180 Z" 
-          fill="url(#pinGradBlue)" 
-          filter="drop-shadow(0px 4px 8px rgba(99, 102, 241, 0.4))"
-        />
-        <polygon points="115,145 125,145 125,152 115,152" fill="white" />
-        <polygon points="112,145 120,137 128,145" fill="white" />
-      </g>
-
-      {/* Pin 2: Green */}
-      <g className="art-float-pin-2" style={{ transformOrigin: '380px 200px' }}>
-        <path 
-          d="M380 200 C365 200, 360 180, 360 165 C360 140, 400 140, 400 165 C400 180, 395 200, 380 200 Z" 
-          fill="url(#pinGradGreen)" 
-          filter="drop-shadow(0px 4px 8px rgba(16, 185, 129, 0.4))"
-        />
-        <polygon points="375,165 385,165 385,172 375,172" fill="white" />
-        <polygon points="372,165 380,157 388,165" fill="white" />
-      </g>
-
-      {/* Pin 3: Amber */}
-      <g className="art-float-pin-1" style={{ transformOrigin: '230px 140px' }}>
-        <path 
-          d="M230 140 C215 140, 210 120, 210 105 C210 80, 250 80, 250 105 C250 120, 245 140, 230 140 Z" 
-          fill="url(#pinGradAmber)" 
-          filter="drop-shadow(0px 4px 8px rgba(245, 158, 11, 0.4))"
-        />
-        <polygon points="225,105 235,105 235,112 225,112" fill="white" />
-        <polygon points="222,105 230,97 238,105" fill="white" />
-      </g>
-    </svg>
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        pointerEvents: 'none',
+        zIndex: 0,
+      }}
+    />
   );
 };
 
+// ==========================================================================
+// MAIN HOME COMPONENT
+// ==========================================================================
 export const Home = () => {
   const navigate = useNavigate();
   const { 
@@ -145,23 +187,31 @@ export const Home = () => {
     calculateRecommendationScore 
   } = useContext(AppContext);
 
+  // ==== Modal / Auth States ====
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('signin');         // 'signin' | 'create'
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [selectedRole, setSelectedRole] = useState('tenant');
+  const [fullName, setFullName] = useState('');               // Create account: full name
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('tenant'); // tenant | landlord | admin
 
-  // Tenant Workspace States
+  // Reset form when modal is closed or mode switches
+  const resetForm = () => { setEmail(''); setPhone(''); setPassword(''); setFullName(''); setShowPassword(false); };
+
+  // ==== Tenant Workspace States ====
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [maxBudget, setMaxBudget] = useState(25000);
   const [selectedAmenities, setSelectedAmenities] = useState(['WiFi', 'Hot Water']);
   
-  // Tenant Map Interactive States
+  // ==== Tenant Map Interactive States ====
   const [activeListingId, setActiveListingId] = useState(null);
   const [highlightListingId, setHighlightListingId] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
 
-  // Redirect Landlords and Administrators
+  // Redirect Landlords and Administrators away from the home page
   useEffect(() => {
     if (currentUser) {
       if (currentUser.role === 'landlord') {
@@ -172,54 +222,11 @@ export const Home = () => {
     }
   }, [currentUser, navigate]);
 
-  // Animated network background canvas (guest view only)
-  useEffect(() => {
-    if (currentUser) return;
-    const canvas = document.getElementById('networkCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    
-    const dots = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.5,
-      vy: (Math.random() - 0.5) * 0.5,
-      r: Math.random() * 3 + 1
-    }));
-    let frame;
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      dots.forEach(d => {
-        d.x += d.vx; d.y += d.vy;
-        if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
-        if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
-        ctx.fillStyle = '#6366f1';
-        ctx.fill();
-      });
-      dots.forEach((a, i) => dots.slice(i + 1).forEach(b => {
-        const dist = Math.hypot(a.x - b.x, a.y - b.y);
-        if (dist < 120) {
-          ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(99,102,241,${1 - dist / 120})`;
-          ctx.lineWidth = 0.5;
-          ctx.stroke();
-        }
-      }));
-      frame = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => cancelAnimationFrame(frame);
-  }, [currentUser]);
-
+  // Handle sign-in form submission
   const handleSignInSubmit = (e) => {
     e.preventDefault();
-    loginUser(email || `${selectedRole}@nestfinder.com`, 'password', selectedRole);
+    // Pass email (or phone fallback) and password to loginUser
+    loginUser(email || `${selectedRole}@nestfinder.com`, password || 'password', selectedRole);
     setIsModalOpen(false);
   };
 
@@ -262,205 +269,320 @@ export const Home = () => {
     return { ...listing, matchScore: score };
   }).sort((a, b) => b.matchScore - a.matchScore);
 
-  // ----------------------------------------------------
-  // GUEST LANDING VIEW
-  // ----------------------------------------------------
+  // ============================================================
+  // GUEST LANDING VIEW — Full-Screen Art + Centered CTA
+  // ============================================================
   if (!currentUser) {
     return (
       <div style={{ 
         display: 'flex', 
-        flexDirection: 'column', 
+        flexDirection: 'column',
         background: 'var(--bg-app)',
         color: 'var(--text-main)',
-        minHeight: 'calc(100vh - 70px)',
-        position: 'relative',
-        overflow: 'hidden'
+        minHeight: '100vh',
+        overflow: 'hidden auto',
       }}>
 
-        {/* Animated network background */}
-        <canvas id="networkCanvas" style={{
-          position: 'absolute', top: 0, left: 0,
-          width: '100%', height: '100%',
-          opacity: 0.15, pointerEvents: 'none', zIndex: 0
-        }} />
+        {/* ──────────────────────────────────────────────────────
+            SECTION 1: Full-Screen Hero with Art Background
+        ────────────────────────────────────────────────────── */}
+        <section 
+          id="hero-section"
+          style={{ 
+            position: 'relative',
+            height: '100vh',   /* exactly one screen tall */
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Abstract animated art fills the entire section */}
+          <FullScreenArt />
 
-        {/* Glowing Blurred Orbs */}
-        <div style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.15)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '15%', right: '5%', width: '350px', height: '350px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.08)', filter: 'blur(100px)', pointerEvents: 'none' }} />
+          {/* Adaptive gradient overlay:
+              Dark mode → dark tint so white text is readable over the art
+              Light mode → lighter tint with slight brightness so it still feels vivid */}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'var(--hero-overlay)',
+            zIndex: 1,
+            pointerEvents: 'none',
+          }} />
 
-        {/* 1. Main Hero Container */}
-        <div className="container" style={{ 
-          display: 'grid', 
-          gridTemplateColumns: '1.1fr 0.9fr', 
-          gap: '3rem', 
-          alignItems: 'center', 
-          paddingTop: '5rem',
-          paddingBottom: '4rem',
-          zIndex: 5
-        }}>
-          {/* Hero text side */}
-          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '1.5rem' }}>
-            <span className="badge badge-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', letterSpacing: '0.05em' }}>
-              ⚡ DISCOVER BROKER-FREE RENTING
-            </span>
-            
-            <h1 style={{ 
-              fontSize: '3.1rem', 
-              fontWeight: 800, 
-              lineHeight: 1.15, 
-              fontFamily: 'var(--font-display)',
-              background: 'linear-gradient(135deg, var(--text-main) 30%, var(--primary) 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              maxWidth: '650px'
-            }}>
-              NestFinder: Discover broker-free, verified rooms and flats in Nepal with smart AI matching.
+          {/* Hero content: centred vertically and horizontally */}
+          <div className="hero-center-content" style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '0 1.5rem' }}>
+
+            {/* Badge */}
+            <div className="hero-badge animate-fade-in">
+              ⚡ DISCOVER BROKER-FREE RENTING IN NEPAL
+            </div>
+
+            {/* Main headline */}
+            <h1 className="hero-headline animate-fade-in-up">
+              Find Your <span className="gradient-text">Perfect Nest</span>
             </h1>
-            
-            <p style={{ fontSize: '1.2rem', color: 'var(--text-muted)', maxWidth: '580px', lineHeight: 1.6 }}>
-              Browse verified rooms directly on interactive map visualization layouts. Connect immediately with landlords, apply customized budgets, and let AI matches score rooms according to your academic vicinity.
+
+            {/* Sub tagline — minimal text */}
+            <p className="hero-sub animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
+              AI-powered room discovery. Verified landlords. Zero brokers.
             </p>
 
-            {/* Get Started button — styled to match navbar sign in */}
-            <button 
-              onClick={() => setIsModalOpen(true)} 
-              className="btn btn-primary btn-lg"
-              style={{ 
-                padding: '0.85rem 2rem', 
-                borderRadius: 'var(--radius-md)', 
-                fontSize: '1rem', 
-                fontWeight: 700, 
-                display: 'inline-flex', 
-                alignItems: 'center', 
-                gap: '0.5rem', 
-                background: 'var(--primary)',
-                boxShadow: '0 4px 15px rgba(99,102,241,0.4)',
-                marginTop: '0.5rem'
-              }}
+            {/* PRIMARY CTA — centered, glowing, interactive */}
+            <button
+              id="hero-signin-btn"
+              onClick={() => setIsModalOpen(true)}
+              className="hero-cta-btn animate-fade-in-up"
+              style={{ animationDelay: '0.3s' }}
             >
               <span>Get Started • Sign In</span>
-              <ArrowRight size={18} />
+              <ArrowRight size={20} />
             </button>
+
+            {/* Subtle scroll hint */}
+            <div className="scroll-hint animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              <ChevronDown size={22} />
+              <span>Scroll to explore features</span>
+            </div>
           </div>
+        </section>
 
-          {/* Animated SVG Abstract Art */}
-          <div className="animate-fade-in" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
-            <AbstractArt />
-          </div>
-        </div>
+        {/* ──────────────────────────────────────────────────────
+            SECTION 2: Scrollable Feature Highlights
+        ────────────────────────────────────────────────────── */}
+        <section 
+          id="features-section"
+          style={{ 
+            background: 'var(--bg-app)',
+            padding: '6rem 0 4rem',
+            position: 'relative',
+            zIndex: 5
+          }}
+        >
+          {/* Ambient orbs for features section */}
+          <div style={{ position: 'absolute', top: '-60px', left: '10%', width: '350px', height: '350px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.07)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', bottom: '-40px', right: '10%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.06)', filter: 'blur(80px)', pointerEvents: 'none' }} />
 
-        {/* 2. Features Grid */}
-        <div className="container" style={{ zIndex: 5, paddingBottom: '6rem' }}>
-          <h2 className="features-section-title">
-            Why NestFinder is Helpful
-          </h2>
+          <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+            {/* Section label */}
+            <p style={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
+              WHY NESTFINDER
+            </p>
+            <h2 style={{ 
+              textAlign: 'center',
+              fontSize: '2.5rem',
+              fontWeight: 800,
+              fontFamily: 'var(--font-display)',
+              marginBottom: '1rem',
+              lineHeight: 1.2,
+            }}>
+              Everything you need to find<br />your ideal room
+            </h2>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '4rem', maxWidth: '560px', margin: '0 auto 4rem' }}>
+              NestFinder combines interactive maps, AI matching, and verified listings so you can find your perfect place — fast.
+            </p>
 
-          <div className="features-grid-layout">
-            
-            <div className="feature-redesign-card">
-              <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
-                <Map size={24} />
+            {/* Feature cards grid */}
+            <div className="features-grid-layout">
+              
+              {/* Feature 1: Map */}
+              <div className="feature-redesign-card">
+                <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
+                  <Map size={24} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Map-Based Discovery</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
+                  Browse rooms visually on our interactive OpenStreetMap overlay. Choose places instantly based on proximity to your college or transit point.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Map-Based Room Discovery</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
-                Locate flats, rooms, and sharing configurations visually on our interactive open map overlay. Select places instantly based on proximity to colleges and transit points.
-              </p>
+
+              {/* Feature 2: AI */}
+              <div className="feature-redesign-card">
+                <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
+                  <Sparkles size={24} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>AI Similarity Matching</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
+                  Set your budget, amenities, and location preference. Our algorithm scores every listing with a percentage match so you see the best first.
+                </p>
+              </div>
+
+              {/* Feature 3: Verified */}
+              <div className="feature-redesign-card">
+                <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--secondary-light)', color: 'var(--secondary)' }}>
+                  <Shield size={24} />
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Verified Direct Contact</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
+                  Every landlord is verified. Contact them directly with zero broker commissions and zero hidden service fees.
+                </p>
+              </div>
+
             </div>
 
-            <div className="feature-redesign-card">
-              <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
-                <Sparkles size={24} />
+            {/* Stats row */}
+            <div className="stats-row">
+              <div className="stat-item">
+                <span className="stat-number">500+</span>
+                <span className="stat-label">Verified Listings</span>
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>AI Similarity Matching</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
-                Specify your exact requirements for max budget, wifi networks, and amenities. Our customized matching algorithm immediately returns percentage scores for all available listings.
-              </p>
+              <div className="stat-divider" />
+              <div className="stat-item">
+                <span className="stat-number">0%</span>
+                <span className="stat-label">Broker Commission</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat-item">
+                <span className="stat-number">AI</span>
+                <span className="stat-label">Smart Matching</span>
+              </div>
+              <div className="stat-divider" />
+              <div className="stat-item">
+                <span className="stat-number">📍</span>
+                <span className="stat-label">Map Integrated</span>
+              </div>
             </div>
 
-            <div className="feature-redesign-card">
-              <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--secondary-light)', color: 'var(--secondary)' }}>
-                <Shield size={24} />
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Verified Direct Contact</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
-                Every landlord undergoes verification. Reach out directly via telephone or messages with zero broker commissions and zero hidden administrative service fees.
-              </p>
+            {/* CTA repeat at bottom of features */}
+            <div style={{ textAlign: 'center', marginTop: '4rem' }}>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="hero-cta-btn"
+                style={{ display: 'inline-flex' }}
+              >
+                <span>Start Searching Now</span>
+                <ArrowRight size={20} />
+              </button>
             </div>
 
           </div>
-        </div>
+        </section>
 
-        {/* 3. Modal Popup Overlay */}
+        {/* ──────────────────────────────────────────────────────
+            MODAL: Sign In / Sign Up Form
+            Animation matches the original navbar sign-in style
+            Now includes: Gmail, Phone Number, Password
+        ────────────────────────────────────────────────────── */}
+        {/* ════════════════════════════════════════════════════
+            MODAL: Sign In / Create Account
+            3 role options: Tenant, Landlord, Admin
+            Toggle between Sign In and Create Account
+        ════════════════════════════════════════════════════ */}
         {isModalOpen && (
           <div 
             className="modal-overlay"
-            onClick={() => setIsModalOpen(false)}
+            onClick={() => { setIsModalOpen(false); resetForm(); }}
           >
             <div 
               className="card glass-login-container glass shadow-xl" 
-              style={{ width: '100%', maxWidth: '460px', padding: '2.5rem', textAlign: 'left', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', position: 'relative' }}
+              style={{ 
+                width: '100%', 
+                maxWidth: '500px', 
+                padding: '2.5rem', 
+                textAlign: 'left', 
+                borderRadius: 'var(--radius-lg)', 
+                border: '1px solid var(--border-color)', 
+                position: 'relative',
+                maxHeight: '92vh',
+                overflowY: 'auto'
+              }}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close button */}
               <button 
                 type="button"
-                onClick={() => setIsModalOpen(false)} 
+                onClick={() => { setIsModalOpen(false); resetForm(); }} 
                 style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}
               >
                 <X size={20} />
               </button>
 
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Access NestFinder</h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '1.5rem' }}>Enter email and phone number to log in and start your search</p>
+              {/* Form header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
+                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <HomeIcon size={18} style={{ color: 'var(--primary)' }} />
+                </div>
+                <div>
+                  {/* Title changes based on mode */}
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2 }}>
+                    {authMode === 'signin' ? 'Welcome Back' : 'Join NestFinder'}
+                  </h2>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', marginTop: '0.15rem' }}>
+                    {authMode === 'signin' ? 'Sign in to continue your search' : 'Create your free account in seconds'}
+                  </p>
+                </div>
+              </div>
 
-              <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                
-                <div className="form-group" style={{ marginBottom: '0.25rem' }}>
-                  <label className="form-label">Select Your Role</label>
-                  <div className="role-card-grid">
+              <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
+
+                {/* ── 3-Option Role Selector ── */}
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ marginBottom: '0.6rem', display: 'block' }}>I am a...</label>
+                  {/* 3-column grid for all 3 roles */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.65rem' }}>
+
+                    {/* Tenant */}
                     <div 
                       className={`role-radio-card ${selectedRole === 'tenant' ? 'active' : ''}`}
                       onClick={() => setSelectedRole('tenant')}
                     >
                       <span className="role-icon-lg">🙋</span>
-                      <strong style={{ fontSize: '0.88rem' }}>I am a Tenant</strong>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>Looking for rooms</span>
+                      <strong style={{ fontSize: '0.8rem' }}>Tenant</strong>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>Find rooms</span>
                     </div>
 
+                    {/* Landlord */}
                     <div 
                       className={`role-radio-card ${selectedRole === 'landlord' ? 'active' : ''}`}
                       onClick={() => setSelectedRole('landlord')}
                     >
                       <span className="role-icon-lg">🏢</span>
-                      <strong style={{ fontSize: '0.88rem' }}>I am a Landlord</strong>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-light)' }}>Renting out flats</span>
+                      <strong style={{ fontSize: '0.8rem' }}>Landlord</strong>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>List rooms</span>
+                    </div>
+
+                    {/* Admin */}
+                    <div 
+                      className={`role-radio-card ${selectedRole === 'admin' ? 'active' : ''}`}
+                      onClick={() => setSelectedRole('admin')}
+                    >
+                      <span className="role-icon-lg">🛡️</span>
+                      <strong style={{ fontSize: '0.8rem' }}>Admin</strong>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>Manage site</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Email Address</label>
+                {/* ── Full Name — only shown on Create Account ── */}
+                {authMode === 'create' && (
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label className="form-label">Full Name</label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <User size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                      <input 
+                        type="text" 
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Your full name"
+                        required
+                        className="form-input" 
+                        style={{ width: '100%', paddingLeft: '2.5rem' }} 
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Gmail / Email ── */}
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Gmail / Email</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Mail size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
+                    <Mail size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
                     <input 
                       type="email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={`${selectedRole}@nestfinder.com`}
-                      className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem' }} 
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Phone Number</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
-                    <input 
-                      type="tel" 
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="98XXXXXXXX" 
+                      placeholder={`${selectedRole}@gmail.com`}
                       required
                       className="form-input" 
                       style={{ width: '100%', paddingLeft: '2.5rem' }} 
@@ -468,10 +590,87 @@ export const Home = () => {
                   </div>
                 </div>
 
-                <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                  <span>Sign In</span>
+                {/* ── Phone Number — only shown on Create Account ── */}
+                {authMode === 'create' && (
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Phone Number</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                    <input 
+                      type="tel" 
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="98XXXXXXXX" 
+                      className="form-input" 
+                      style={{ width: '100%', paddingLeft: '2.5rem' }} 
+                    />
+                  </div>
+                </div>
+                )}
+
+                {/* ── Password ── */}
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label">Password</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Lock size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                    <input 
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder={authMode === 'create' ? 'Create a strong password' : 'Enter your password'}
+                      required
+                      className="form-input" 
+                      style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '2.75rem' }} 
+                    />
+                    {/* Eye toggle */}
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(v => !v)}
+                      style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', padding: 0 }}
+                      aria-label="Toggle password visibility"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── Submit button ── */}
+                <button 
+                  type="submit" 
+                  className="btn btn-primary btn-lg glow-btn" 
+                  style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}
+                >
+                  <span>{authMode === 'signin' ? 'Sign In to NestFinder' : 'Create My Account'}</span>
                   <ArrowRight size={18} />
                 </button>
+
+                {/* ── Toggle between Sign In / Create Account ── */}
+                <div style={{ textAlign: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
+                  {authMode === 'signin' ? (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                      New here?{' '}
+                      <button 
+                        type="button"
+                        onClick={() => { setAuthMode('create'); resetForm(); }}
+                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
+                      >
+                        Let's create an account →
+                      </button>
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                      Already have an account?{' '}
+                      <button 
+                        type="button"
+                        onClick={() => { setAuthMode('signin'); resetForm(); }}
+                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
+                      >
+                        Sign in instead →
+                      </button>
+                    </p>
+                  )}
+                </div>
+
               </form>
             </div>
           </div>
@@ -480,18 +679,21 @@ export const Home = () => {
     );
   }
 
-  // ----------------------------------------------------
-  // TENANT WORKSPACE VIEW
-  // ----------------------------------------------------
+  // ============================================================
+  // TENANT WORKSPACE VIEW (logged-in tenant)
+  // ============================================================
   return (
     <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem 1.5rem' }}>
       
+      {/* Tenant Welcome Banner: shows username greeting + bold search headline */}
       <div className="welcome-banner-card animate-fade-in" style={{ marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.5rem' }}>
-          We are here to help you and make your room search efficient.
+        {/* Welcome greeting with username */}
+        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.3rem' }}>
+          Welcome, <span style={{ color: 'var(--primary)' }}>{currentUser.name}</span> 👋
         </h2>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.98rem' }}>
-          Welcome back, <strong>{currentUser.name}</strong>! Use the map visualizer below to explore rooms, adjust budget facility options, and choose your perfect place.
+        {/* Bold search begin headline */}
+        <p style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>
+          Let your search begin.
         </p>
       </div>
 
