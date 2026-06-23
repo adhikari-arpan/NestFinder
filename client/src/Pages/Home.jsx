@@ -58,7 +58,7 @@ const AbstractArt = () => {
       {/* Background Glow */}
       <circle cx="250" cy="250" r="220" fill="url(#glowGrad)" />
 
-      {/* 1. Map Grid Visualizer (Isometric lines representing search area overlay) */}
+      {/* 1. Map Grid Visualizer */}
       <g stroke="var(--border-color)" strokeWidth="1" fill="none" opacity="0.3">
         <path d="M 50 150 L 450 350" />
         <path d="M 50 230 L 450 430" />
@@ -66,19 +66,18 @@ const AbstractArt = () => {
         <path d="M 50 350 L 450 150" />
         <path d="M 50 430 L 450 230" />
         <path d="M 50 510 L 450 310" />
-        {/* Isometric city block outlines */}
         <rect x="180" y="180" width="80" height="80" rx="8" transform="rotate(45 220 220)" strokeWidth="1.5" />
         <rect x="300" y="240" width="60" height="60" rx="6" transform="rotate(45 330 270)" strokeWidth="1.5" />
       </g>
 
-      {/* 2. Concentric AI Match Engine Rings (Slow rotating concentric circles) */}
+      {/* 2. Concentric AI Match Engine Rings */}
       <g className="art-spin-bg" stroke="var(--primary)" strokeWidth="1.5" fill="none" opacity="0.4" style={{ transformOrigin: '250px 250px' }}>
         <circle cx="250" cy="250" r="160" strokeDasharray="15, 35, 45, 20" />
         <circle cx="250" cy="250" r="110" strokeDasharray="30, 20" stroke="var(--secondary)" />
         <circle cx="250" cy="250" r="60" strokeDasharray="5, 10" />
       </g>
 
-      {/* 3. Connection Flow Paths (Dashed lines showing search pathways) */}
+      {/* 3. Connection Flow Paths */}
       <path 
         d="M 120 180 C 200 130, 220 320, 310 270" 
         fill="none" 
@@ -95,44 +94,41 @@ const AbstractArt = () => {
         opacity="0.8" 
       />
 
-      {/* 4. Connection Nodes (Pulsing connection intersections representing AI computations) */}
+      {/* 4. Connection Nodes */}
       <circle cx="210" cy="215" r="5" fill="var(--primary)" className="art-pulse-dot" />
       <circle cx="310" cy="270" r="6" fill="var(--secondary)" className="art-pulse-dot" />
       <circle cx="288" cy="188" r="4.5" fill="var(--accent)" className="art-pulse-dot" />
 
-      {/* 5. Floating Cozy Nests/Location Pins (Visualizing verified room matches with floating motion) */}
-      {/* Pin 1: Blue Single Room near campus */}
+      {/* 5. Floating Location Pins */}
+      {/* Pin 1: Blue */}
       <g className="art-float-pin-1" style={{ transformOrigin: '120px 180px' }}>
         <path 
           d="M120 180 C105 180, 100 160, 100 145 C100 120, 140 120, 140 145 C140 160, 135 180, 120 180 Z" 
           fill="url(#pinGradBlue)" 
           filter="drop-shadow(0px 4px 8px rgba(99, 102, 241, 0.4))"
         />
-        {/* Mini house details inside pin */}
         <polygon points="115,145 125,145 125,152 115,152" fill="white" />
         <polygon points="112,145 120,137 128,145" fill="white" />
       </g>
 
-      {/* Pin 2: Green Private Flat */}
+      {/* Pin 2: Green */}
       <g className="art-float-pin-2" style={{ transformOrigin: '380px 200px' }}>
         <path 
           d="M380 200 C365 200, 360 180, 360 165 C360 140, 400 140, 400 165 C400 180, 395 200, 380 200 Z" 
           fill="url(#pinGradGreen)" 
           filter="drop-shadow(0px 4px 8px rgba(16, 185, 129, 0.4))"
         />
-        {/* Mini house details inside pin */}
         <polygon points="375,165 385,165 385,172 375,172" fill="white" />
         <polygon points="372,165 380,157 388,165" fill="white" />
       </g>
 
-      {/* Pin 3: Amber Studio Match */}
+      {/* Pin 3: Amber */}
       <g className="art-float-pin-1" style={{ transformOrigin: '230px 140px' }}>
         <path 
           d="M230 140 C215 140, 210 120, 210 105 C210 80, 250 80, 250 105 C250 120, 245 140, 230 140 Z" 
           fill="url(#pinGradAmber)" 
           filter="drop-shadow(0px 4px 8px rgba(245, 158, 11, 0.4))"
         />
-        {/* Mini house details inside pin */}
         <polygon points="225,105 235,105 235,112 225,112" fill="white" />
         <polygon points="222,105 230,97 238,105" fill="white" />
       </g>
@@ -149,7 +145,6 @@ export const Home = () => {
     calculateRecommendationScore 
   } = useContext(AppContext);
 
-  // CHANGED: Login Modal Popup Visibility State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -166,7 +161,7 @@ export const Home = () => {
   const [highlightListingId, setHighlightListingId] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
 
-  // Redirect Landlords and Administrators to their correct dashboard roots
+  // Redirect Landlords and Administrators
   useEffect(() => {
     if (currentUser) {
       if (currentUser.role === 'landlord') {
@@ -177,21 +172,63 @@ export const Home = () => {
     }
   }, [currentUser, navigate]);
 
-  // Submit mock credentials from homepage overlay
+  // Animated network background canvas (guest view only)
+  useEffect(() => {
+    if (currentUser) return;
+    const canvas = document.getElementById('networkCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    
+    const dots = Array.from({ length: 60 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: Math.random() * 3 + 1
+    }));
+    let frame;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      dots.forEach(d => {
+        d.x += d.vx; d.y += d.vy;
+        if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+        if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#6366f1';
+        ctx.fill();
+      });
+      dots.forEach((a, i) => dots.slice(i + 1).forEach(b => {
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(99,102,241,${1 - dist / 120})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }));
+      frame = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(frame);
+  }, [currentUser]);
+
   const handleSignInSubmit = (e) => {
     e.preventDefault();
     loginUser(email || `${selectedRole}@nestfinder.com`, 'password', selectedRole);
-    setIsModalOpen(false); // Close modal on successful sign-in
+    setIsModalOpen(false);
   };
 
-  // Toggle checklist facilities
   const handleAmenityToggle = (amenity) => {
     setSelectedAmenities(prev => 
       prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
     );
   };
 
-  // Focus specific room listing card upon clicking map marker pin
   const handleMarkerClick = (listingId) => {
     setActiveListingId(listingId);
     const element = document.getElementById(`tenant-room-card-${listingId}`);
@@ -200,24 +237,19 @@ export const Home = () => {
     }
   };
 
-  // Filter listings according to query parameters
   const filteredListings = listings.filter(item => {
     if (item.status !== 'verified') return false;
-
     const matchesQuery = searchQuery === '' || 
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.location.toLowerCase().includes(searchQuery.toLowerCase());
-
     const matchesType = selectedType === 'all' || item.type === selectedType;
     const matchesBudget = item.price <= maxBudget;
     const matchesAmenities = selectedAmenities.every(amenity => 
       item.amenities.includes(amenity)
     );
-
     return matchesQuery && matchesType && matchesBudget && matchesAmenities;
   });
 
-  // Score Listings dynamically in frontend with local context parameters
   const scoredListings = filteredListings.map(listing => {
     const score = calculateRecommendationScore(listing, {
       budget: maxBudget,
@@ -231,23 +263,32 @@ export const Home = () => {
   }).sort((a, b) => b.matchScore - a.matchScore);
 
   // ----------------------------------------------------
-  // GUEST LANDING VIEW (Restructured)
+  // GUEST LANDING VIEW
   // ----------------------------------------------------
   if (!currentUser) {
     return (
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        background: 'linear-gradient(135deg, var(--bg-app) 0%, var(--bg-card) 100%)',
+        background: 'var(--bg-app)',
+        color: 'var(--text-main)',
         minHeight: 'calc(100vh - 70px)',
         position: 'relative',
         overflow: 'hidden'
       }}>
-        {/* Glowing Blurred Orbs for premium look */}
+
+        {/* Animated network background */}
+        <canvas id="networkCanvas" style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '100%', height: '100%',
+          opacity: 0.15, pointerEvents: 'none', zIndex: 0
+        }} />
+
+        {/* Glowing Blurred Orbs */}
         <div style={{ position: 'absolute', top: '10%', left: '5%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.15)', filter: 'blur(90px)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '15%', right: '5%', width: '350px', height: '350px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.08)', filter: 'blur(100px)', pointerEvents: 'none' }} />
 
-        {/* 1. Main Hero Container (Tagline text + Animated Abstract SVG Art) */}
+        {/* 1. Main Hero Container */}
         <div className="container" style={{ 
           display: 'grid', 
           gridTemplateColumns: '1.1fr 0.9fr', 
@@ -280,24 +321,35 @@ export const Home = () => {
               Browse verified rooms directly on interactive map visualization layouts. Connect immediately with landlords, apply customized budgets, and let AI matches score rooms according to your academic vicinity.
             </p>
 
-            {/* Glowing Pulse Button triggers Sign In modal popup overlay */}
+            {/* Get Started button — styled to match navbar sign in */}
             <button 
               onClick={() => setIsModalOpen(true)} 
-              className="btn btn-lg glow-btn"
-              style={{ padding: '1.1rem 2.8rem', borderRadius: 'var(--radius-lg)', display: 'inline-flex', alignItems: 'center', gap: '0.75rem', fontSize: '1.1rem', fontWeight: 700, marginTop: '0.5rem' }}
+              className="btn btn-primary btn-lg"
+              style={{ 
+                padding: '0.85rem 2rem', 
+                borderRadius: 'var(--radius-md)', 
+                fontSize: '1rem', 
+                fontWeight: 700, 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                background: 'var(--primary)',
+                boxShadow: '0 4px 15px rgba(99,102,241,0.4)',
+                marginTop: '0.5rem'
+              }}
             >
               <span>Get Started • Sign In</span>
               <ArrowRight size={18} />
             </button>
           </div>
 
-          {/* Animated SVG Abstract Art representing Location and Match Connections */}
+          {/* Animated SVG Abstract Art */}
           <div className="animate-fade-in" style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
             <AbstractArt />
           </div>
         </div>
 
-        {/* 2. Helpful Features Grid ("Why NestFinder is helpful" - displayed before logging in) */}
+        {/* 2. Features Grid */}
         <div className="container" style={{ zIndex: 5, paddingBottom: '6rem' }}>
           <h2 className="features-section-title">
             Why NestFinder is Helpful
@@ -305,7 +357,6 @@ export const Home = () => {
 
           <div className="features-grid-layout">
             
-            {/* Feature 1: Map visualizer */}
             <div className="feature-redesign-card">
               <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
                 <Map size={24} />
@@ -316,7 +367,6 @@ export const Home = () => {
               </p>
             </div>
 
-            {/* Feature 2: AI Similarity */}
             <div className="feature-redesign-card">
               <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
                 <Sparkles size={24} />
@@ -327,7 +377,6 @@ export const Home = () => {
               </p>
             </div>
 
-            {/* Feature 3: Verified Connections */}
             <div className="feature-redesign-card">
               <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--secondary-light)', color: 'var(--secondary)' }}>
                 <Shield size={24} />
@@ -341,19 +390,17 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* 3. CHANGED: Modal Popup Overlay (Opens on backdrop click or close button) */}
+        {/* 3. Modal Popup Overlay */}
         {isModalOpen && (
           <div 
             className="modal-overlay"
-            onClick={() => setIsModalOpen(false)} // Dismiss modal when clicking backdrop
+            onClick={() => setIsModalOpen(false)}
           >
-            {/* Stops click propagation to prevent backdrop close */}
             <div 
               className="card glass-login-container glass shadow-xl" 
               style={{ width: '100%', maxWidth: '460px', padding: '2.5rem', textAlign: 'left', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', position: 'relative' }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Close Button in corner */}
               <button 
                 type="button"
                 onClick={() => setIsModalOpen(false)} 
@@ -365,10 +412,8 @@ export const Home = () => {
               <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.25rem' }}>Access NestFinder</h2>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '1.5rem' }}>Enter email and phone number to log in and start your search</p>
 
-              {/* Login Form Fields (Email, Phone, Role) */}
               <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 
-                {/* Switcher Cards for Selection Roles */}
                 <div className="form-group" style={{ marginBottom: '0.25rem' }}>
                   <label className="form-label">Select Your Role</label>
                   <div className="role-card-grid">
@@ -392,7 +437,6 @@ export const Home = () => {
                   </div>
                 </div>
 
-                {/* Email input field */}
                 <div className="form-group">
                   <label className="form-label">Email Address</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -408,7 +452,6 @@ export const Home = () => {
                   </div>
                 </div>
 
-                {/* Phone number input field */}
                 <div className="form-group">
                   <label className="form-label">Phone Number</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -425,7 +468,6 @@ export const Home = () => {
                   </div>
                 </div>
 
-                {/* Submit trigger button */}
                 <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                   <span>Sign In</span>
                   <ArrowRight size={18} />
@@ -439,12 +481,11 @@ export const Home = () => {
   }
 
   // ----------------------------------------------------
-  // TENANT WORKSPACE VIEW (Logged In as Tenant)
+  // TENANT WORKSPACE VIEW
   // ----------------------------------------------------
   return (
     <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem 1.5rem' }}>
       
-      {/* Welcoming Header Banner */}
       <div className="welcome-banner-card animate-fade-in" style={{ marginBottom: '2.5rem' }}>
         <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.5rem' }}>
           We are here to help you and make your room search efficient.
@@ -454,13 +495,11 @@ export const Home = () => {
         </p>
       </div>
 
-      {/* Map-Centric Tenant Dashboard grid */}
       <div className="search-split-layout">
         
-        {/* Left column: Search settings & AI matched listings */}
+        {/* Left column: Search & listings */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Controls Filters Board */}
           <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-color)' }}>
             <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
               <Filter size={18} style={{ color: 'var(--primary)' }} />
@@ -468,7 +507,6 @@ export const Home = () => {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {/* Keyword & Layout selection */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1rem' }}>
                 <div className="form-group" style={{ marginBottom: 0 }}>
                   <label className="form-label" style={{ fontSize: '0.7rem' }}>Search Zone</label>
@@ -500,7 +538,6 @@ export const Home = () => {
                 </div>
               </div>
 
-              {/* Price range selector */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                   <label className="form-label" style={{ fontSize: '0.7rem' }}>Max Budget Limit</label>
@@ -517,7 +554,6 @@ export const Home = () => {
                 />
               </div>
 
-              {/* Facility amenities pills */}
               <div style={{ textAlign: 'left' }}>
                 <label className="form-label" style={{ fontSize: '0.7rem', display: 'block', marginBottom: '0.5rem' }}>Facilities Required</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -540,7 +576,6 @@ export const Home = () => {
             </div>
           </div>
 
-          {/* Rooms Grid list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
@@ -570,7 +605,6 @@ export const Home = () => {
                       position: 'relative'
                     }}
                   >
-                    {/* Floating Match Score sticker */}
                     <div style={{ 
                       position: 'absolute', 
                       top: '12px', 
@@ -600,7 +634,7 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* Right column: Interactive discovery map overlay */}
+        {/* Right column: Map */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -611,7 +645,6 @@ export const Home = () => {
             </span>
           </div>
 
-          {/* Highlighted Map container */}
           <div className="highlight-map-container" style={{ height: '700px', position: 'relative' }}>
             <div className="map-badge-helper" style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 999 }}>
               <Map size={14} />
