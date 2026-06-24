@@ -72,64 +72,31 @@ export const Navbar = () => {
         </Link>
 
         {/* Desktop Navigation Links */}
-        <div style={{ display: 'none', md: 'flex', alignItems: 'center', gap: '1.5rem' }} className="desktop-links">
-          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
-          <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>Find Rooms</Link>
-          <Link to="/ai-recommend" className={`nav-link ${isActive('/ai-recommend') ? 'active' : ''}`}>
-            <Sparkles size={16} style={{ marginRight: '4px', verticalAlign: 'middle', display: 'inline', color: 'var(--accent)' }} />
-            AI Recommendations
-          </Link>
-          {currentUser?.role === 'tenant' && (
-            <Link to="/dashboard/tenant" className={`nav-link ${isActive('/dashboard/tenant') ? 'active' : ''}`}>My Dashboard</Link>
-          )}
-          {currentUser?.role === 'landlord' && (
-            <Link to="/dashboard/landlord" className={`nav-link ${isActive('/dashboard/landlord') ? 'active' : ''}`}>Landlord Hub</Link>
-          )}
-          {currentUser?.role === 'admin' && (
-            <Link to="/dashboard/admin" className={`nav-link ${isActive('/dashboard/admin') ? 'active' : ''}`}>
-              <ShieldAlert size={16} style={{ display: 'inline', marginRight: '4px' }} />
-              Admin
+        {currentUser && (
+          <div style={{ display: 'none', md: 'flex', alignItems: 'center', gap: '1.5rem' }} className="desktop-links">
+            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
+            <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>Find Rooms</Link>
+            <Link to="/ai-recommend" className={`nav-link ${isActive('/ai-recommend') ? 'active' : ''}`}>
+              <Sparkles size={16} style={{ marginRight: '4px', verticalAlign: 'middle', display: 'inline', color: 'var(--accent)' }} />
+              AI Recommendations
             </Link>
-          )}
-        </div>
+            {currentUser.role === 'tenant' && (
+              <Link to="/dashboard/tenant" className={`nav-link ${isActive('/dashboard/tenant') ? 'active' : ''}`}>My Dashboard</Link>
+            )}
+            {currentUser.role === 'landlord' && (
+              <Link to="/dashboard/landlord" className={`nav-link ${isActive('/dashboard/landlord') ? 'active' : ''}`}>Landlord Hub</Link>
+            )}
+            {currentUser.role === 'admin' && (
+              <Link to="/dashboard/admin" className={`nav-link ${isActive('/dashboard/admin') ? 'active' : ''}`}>
+                <ShieldAlert size={16} style={{ display: 'inline', marginRight: '4px' }} />
+                Admin
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* Right Action Icons & Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          
-          {/* Quick Tester Role Switcher */}
-          <div style={{ position: 'relative' }}>
-            <button 
-              onClick={() => setRoleMenuOpen(!roleMenuOpen)}
-              className="btn btn-outline btn-sm"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', padding: '0.35rem 0.6rem' }}
-            >
-              Role: <strong style={{ textTransform: 'capitalize', color: 'var(--primary)' }}>{currentUser ? currentUser.role : 'Guest'}</strong>
-              <ChevronDown size={12} />
-            </button>
-            
-            {roleMenuOpen && (
-              <div className="card shadow-lg" style={{ 
-                position: 'absolute', 
-                top: '120%', 
-                right: 0, 
-                width: '160px', 
-                zIndex: 1010,
-                padding: '0.5rem',
-                border: '1px solid var(--border-color)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.25rem'
-              }}>
-                <div style={{ fontSize: '0.7rem', fontWeight: 'bold', padding: '0.25rem 0.5rem', color: 'var(--text-light)', borderBottom: '1px solid var(--border-color)' }}>
-                  QUICK SWITCH ROLE:
-                </div>
-                <button onClick={() => handleRoleChange('tenant')} className="role-opt">Tenant</button>
-                <button onClick={() => handleRoleChange('landlord')} className="role-opt">Landlord</button>
-                <button onClick={() => handleRoleChange('admin')} className="role-opt">Admin</button>
-                <button onClick={() => handleRoleChange('guest')} className="role-opt">Guest (Logout)</button>
-              </div>
-            )}
-          </div>
 
           {/* Theme Selector */}
           <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle Theme">
@@ -137,59 +104,60 @@ export const Navbar = () => {
           </button>
 
           {/* Notifications Trigger */}
-          <div style={{ position: 'relative' }}>
-            <button onClick={() => setNotifOpen(!notifOpen)} className="icon-btn" aria-label="Notifications">
-              <Bell size={20} />
-              {unreadNotifs.length > 0 && (
-                <span className="notif-badge">{unreadNotifs.length}</span>
-              )}
-            </button>
+          {currentUser && (
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setNotifOpen(!notifOpen)} className="icon-btn" aria-label="Notifications">
+                <Bell size={20} />
+                {unreadNotifs.length > 0 && (
+                  <span className="notif-badge">{unreadNotifs.length}</span>
+                )}
+              </button>
 
-            {notifOpen && (
-              <div className="card shadow-xl notification-dropdown">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                  <h4 style={{ fontSize: '0.95rem' }}>Notifications</h4>
-                  {unreadNotifs.length > 0 && (
-                    <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>
-                      Mark all read
-                    </button>
-                  )}
+              {notifOpen && (
+                <div className="card shadow-xl notification-dropdown">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
+                    <h4 style={{ fontSize: '0.95rem' }}>Notifications</h4>
+                    {unreadNotifs.length > 0 && (
+                      <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  <div className="notif-list">
+                    {notifications.length === 0 ? (
+                      <p style={{ textAlign: 'center', fontSize: '0.85rem', padding: '1rem' }}>No notifications</p>
+                    ) : (
+                      notifications.map(n => (
+                        <div key={n.id} className={`notif-item ${n.read ? 'read' : 'unread'}`}>
+                          <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{n.title}</div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{n.message}</div>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-light)' }}>
+                            {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-                <div className="notif-list">
-                  {notifications.length === 0 ? (
-                    <p style={{ textAlign: 'center', fontSize: '0.85rem', padding: '1rem' }}>No notifications</p>
-                  ) : (
-                    notifications.map(n => (
-                      <div key={n.id} className={`notif-item ${n.read ? 'read' : 'unread'}`}>
-                        <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{n.title}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{n.message}</div>
-                        <span style={{ fontSize: '0.65rem', color: 'var(--text-light)' }}>
-                          {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Authenticated user UI / CTA buttons */}
-          {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              {currentUser.role === 'landlord' ? (
-                <Link to="/dashboard/landlord?action=post" className="btn btn-primary btn-sm btn-icon-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <PlusCircle size={16} />
-                  <span className="btn-text">Post Room</span>
-                </Link>
-              ) : (
+          {currentUser && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }} className="desktop-links">
+                Welcome, <span style={{ color: 'var(--primary)' }}>{currentUser.name}</span>
+              </span>
+              
+              {currentUser.role === 'tenant' && (
                 <Link to="/ai-recommend" className="btn btn-secondary btn-sm btn-icon-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                   <Sparkles size={16} />
                   <span className="btn-text">Find Match</span>
                 </Link>
               )}
               
-              <Link to={currentUser.role === 'tenant' ? '/dashboard/tenant' : (currentUser.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/admin')}>
+              <Link to={currentUser.role === 'tenant' ? '/dashboard/tenant' : (currentUser.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/admin')} style={{ display: 'flex', alignItems: 'center' }}>
                 <img 
                   src={currentUser.avatar} 
                   alt="avatar" 
@@ -197,8 +165,6 @@ export const Navbar = () => {
                 />
               </Link>
             </div>
-          ) : (
-            <Link to="/auth" className="btn btn-primary btn-sm">Sign In</Link>
           )}
 
           {/* Mobile Menu Icon */}
@@ -210,13 +176,18 @@ export const Navbar = () => {
         {/* Mobile Navigation Dropdown */}
         {mobileMenuOpen && (
           <div className="mobile-menu glass animate-fade-in">
-            <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-            <Link to="/search" onClick={() => setMobileMenuOpen(false)}>Find Rooms</Link>
-            <Link to="/ai-recommend" onClick={() => setMobileMenuOpen(false)}>AI Match Finder</Link>
-            {currentUser?.role === 'tenant' && <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)}>My Dashboard</Link>}
-            {currentUser?.role === 'landlord' && <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)}>Landlord Hub</Link>}
-            {currentUser?.role === 'admin' && <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>}
-            {!currentUser && <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>}
+            {currentUser ? (
+              <>
+                <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+                <Link to="/search" onClick={() => setMobileMenuOpen(false)}>Find Rooms</Link>
+                <Link to="/ai-recommend" onClick={() => setMobileMenuOpen(false)}>AI Match Finder</Link>
+                {currentUser.role === 'tenant' && <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)}>My Dashboard</Link>}
+                {currentUser.role === 'landlord' && <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)}>Landlord Hub</Link>}
+                {currentUser.role === 'admin' && <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>}
+              </>
+            ) : (
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>
+            )}
           </div>
         )}
       </div>

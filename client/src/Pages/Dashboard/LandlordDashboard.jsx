@@ -129,11 +129,28 @@ export const LandlordDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img src={currentUser?.avatar} alt="avatar" style={{ width: '60px', height: '60px', borderRadius: '50%', border: '3px solid var(--primary)', objectFit: 'cover' }} />
           <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Landlord Hub: {currentUser?.name}</h1>
-            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Moderate active tenant requests, reply to inquiries, and list properties.</p>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Welcome, {currentUser?.name}</h1>
+            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Landlord Hub: Moderate active tenant requests, reply to inquiries, and list properties.</p>
           </div>
         </div>
-        <button onClick={() => setIsPostModalOpen(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <button 
+          onClick={() => setIsPostModalOpen(true)} 
+          className="landlord-add-btn" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.35rem',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+            color: 'white',
+            fontWeight: 700,
+            border: 'none',
+            padding: '0.85rem 1.6rem',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
+            cursor: 'pointer',
+            transition: 'all 0.25s ease'
+          }}
+        >
           <Plus size={18} /> Add Room Listing
         </button>
       </div>
@@ -524,6 +541,11 @@ export const LandlordDashboard = () => {
       <style>{`
         .listing-table tr:hover, .poi-table tr:hover {
           background-color: var(--primary-light);
+        }
+        .landlord-add-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+          filter: brightness(1.1);
         }
         @media (max-width: 768px) {
           .form-row-three {

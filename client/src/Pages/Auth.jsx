@@ -157,7 +157,11 @@ export const Auth = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (activeTab === 'login') {
-      loginUser(email || `${selectedRole}@nestfinder.com`, password || 'password', selectedRole);
+      if (!email || !phone || !password) {
+        alert("Please fill in email, phone number and password.");
+        return;
+      }
+      loginUser(email, password, selectedRole);
     } else {
       if (!name || !email || !password || !phone) {
         alert("Please fill all signup fields.");
@@ -310,7 +314,11 @@ export const Auth = () => {
 
         {/* Role selector */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          {[{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }].map(r => (
+          {[
+            { val: 'tenant', label: '🙋 Tenant' }, 
+            { val: 'landlord', label: '🏢 Landlord' },
+            { val: 'admin', label: '🛡️ Admin' }
+          ].map(r => (
             <button key={r.val} type="button" onClick={() => setSelectedRole(r.val)} style={{
               flex: 1, padding: '0.5rem', border: `1px solid ${selectedRole === r.val ? 'rgba(99,102,241,0.7)' : 'rgba(255,255,255,0.1)'}`,
               borderRadius: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', transition: 'all 0.2s',
@@ -336,7 +344,13 @@ export const Auth = () => {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Mail size={15} style={{ position: 'absolute', left: '12px', color: 'rgba(255,255,255,0.35)' }} />
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="Email address" className="form-input" style={inputStyle} />
+              placeholder="Email address" required className="form-input" style={inputStyle} />
+          </div>
+
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Phone size={15} style={{ position: 'absolute', left: '12px', color: 'rgba(255,255,255,0.35)' }} />
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+              placeholder="Phone: 98XXXXXXXX" required className="form-input" style={inputStyle} />
           </div>
 
           {/* PASSWORD — shown on both login and signup */}
@@ -350,14 +364,6 @@ export const Auth = () => {
               {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
             </button>
           </div>
-
-          {activeTab === 'signup' && (
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Phone size={15} style={{ position: 'absolute', left: '12px', color: 'rgba(255,255,255,0.35)' }} />
-              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                placeholder="Phone: 98XXXXXXXX" required className="form-input" style={inputStyle} />
-            </div>
-          )}
 
           <button type="submit" style={{
             width: '100%', padding: '0.75rem', border: 'none', borderRadius: '10px', cursor: 'pointer',

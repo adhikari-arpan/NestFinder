@@ -280,13 +280,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
 
   // Auth User State
   // Roles: 'tenant', 'landlord', 'admin', null (Guest)
-  const [currentUser, setCurrentUser] = useState({
-    id: 1,
-    name: "Roshan Gurung",
-    email: "roshan@gmail.com",
-    role: "tenant", // 'tenant' or 'landlord' or 'admin'
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"
-  });
+  const [currentUser, setCurrentUser] = useState(null);
 
   // App Theme Style
   const [theme, setTheme] = useState("light");
