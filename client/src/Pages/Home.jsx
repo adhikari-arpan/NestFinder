@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';//hook import
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { RoomCard } from '../components/RoomCard';
@@ -29,13 +29,13 @@ import {
 // ==========================================================================
 // FULL-SCREEN ABSTRACT ART BACKGROUND (Canvas-based, covers entire hero)
 // ==========================================================================
-const FullScreenArt = () => {
+const FullScreenArt = () => {     //creates glowing components, particles, background animation
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');  //2D image banuna allow garxa like cirles, line and some animations
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
     const resize = () => {
@@ -46,7 +46,7 @@ const FullScreenArt = () => {
     window.addEventListener('resize', resize);
 
     // Particle nodes representing platform features
-    const particles = Array.from({ length: 80 }, () => ({
+    const particles = Array.from({ length: 80 }, () => ({  //created moving dots in the background animations
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
       vx: (Math.random() - 0.5) * 0.4,
@@ -77,7 +77,7 @@ const FullScreenArt = () => {
     let frame;
     let t = 0;
 
-    const draw = () => {
+    const draw = () => { //this acutally draws the particles, orbs, and labels on the canvas
       t += 0.01;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -186,23 +186,13 @@ export const Home = () => {
     listings, 
     calculateRecommendationScore,
     theme
-  } = useContext(AppContext);
+  } = useContext(AppContext);  //AppContext bata yo sabbai data yesma aauxa
 
-  // ==== Modal / Auth States ====
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('login');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [fullName, setFullName] = useState('');               // Create account: full name
-  const [showPassword, setShowPassword] = useState(false);
-  const [selectedRole, setSelectedRole] = useState('tenant'); // tenant | landlord | admin
-
-  // Reset form when modal is closed or mode switches
-  const resetForm = () => { setEmail(''); setPhone(''); setPassword(''); setFullName(''); setShowPassword(false); };
-
+  
+  //==============================================================
   // ==== Tenant Workspace States ====
+  //==============================================================
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [maxBudget, setMaxBudget] = useState(25000);
@@ -213,17 +203,21 @@ export const Home = () => {
   const [highlightListingId, setHighlightListingId] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
 
-  // Redirect Landlords and Administrators away from the home page
-  useEffect(() => {
-    if (currentUser) {
-      if (currentUser.role === 'landlord') {
-        navigate('/dashboard/landlord');
-      } else if (currentUser.role === 'admin') {
-        navigate('/dashboard/admin');
-      }
-    }
-  }, [currentUser, navigate]);
 
+  //==============================================================
+  // Redirect Landlords and Administrators away from the home page
+  //==============================================================
+useEffect(() => {
+  if (currentUser) {
+    if (currentUser.role === 'tenant') {
+      navigate('/dashboard/tenant');
+    } else if (currentUser.role === 'landlord') {
+      navigate('/dashboard/landlord');
+    } else if (currentUser.role === 'admin') {
+      navigate('/dashboard/admin');
+    }
+  }
+}, [currentUser, navigate]);
   // Animated network background canvas (guest view only)
   useEffect(() => {
     if (currentUser) return;
@@ -273,60 +267,9 @@ export const Home = () => {
     return () => cancelAnimationFrame(frame);
   }, [currentUser, theme]);
 
-  const handleSignInSubmit = (e) => {
-    e.preventDefault();
-    if (!email || !phone || !password) {
-      alert("Please fill in all fields.");
-      return;
-    }
-    loginUser(email, password, selectedRole);
-    setName('');
-    setEmail('');
-    setPhone('');
-    setPassword('');
-    setAuthMode('login');
-    setIsModalOpen(false);
-  };
 
-  const handleAmenityToggle = (amenity) => {
-    setSelectedAmenities(prev => 
-      prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
-    );
-  };
 
-  const handleMarkerClick = (listingId) => {
-    setActiveListingId(listingId);
-    const element = document.getElementById(`tenant-room-card-${listingId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  };
-
-  const filteredListings = listings.filter(item => {
-    if (item.status !== 'verified') return false;
-    const matchesQuery = searchQuery === '' || 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType === 'all' || item.type === selectedType;
-    const matchesBudget = item.price <= maxBudget;
-    const matchesAmenities = selectedAmenities.every(amenity => 
-      item.amenities.includes(amenity)
-    );
-    return matchesQuery && matchesType && matchesBudget && matchesAmenities;
-  });
-
-  const scoredListings = filteredListings.map(listing => {
-    const score = calculateRecommendationScore(listing, {
-      budget: maxBudget,
-      preferredCity: listing.city,
-      sharing: "Single",
-      roomType: selectedType === 'all' ? listing.type : selectedType,
-      essentialAmenities: selectedAmenities,
-      poiCollege: ""
-    });
-    return { ...listing, matchScore: score };
-  }).sort((a, b) => b.matchScore - a.matchScore);
-
+  
   // ============================================================
   // GUEST LANDING VIEW — Full-Screen Art + Centered CTA
   // ============================================================
@@ -349,7 +292,7 @@ export const Home = () => {
           opacity: isDark ? 0.35 : 0.65, pointerEvents: 'none', zIndex: 0
         }} />
 
-        {/* Glowing Blurred Orbs */}
+        {/* Glowing Blurred Orbs
         <div style={{ 
           position: 'absolute', 
           top: '10%', 
@@ -371,7 +314,7 @@ export const Home = () => {
           background: isDark ? 'rgba(16, 185, 129, 0.06)' : 'rgba(16, 185, 129, 0.03)', 
           filter: 'blur(100px)', 
           pointerEvents: 'none' 
-        }} />
+        }} /> */}
 
         {/* 1. Main Hero Container */}
         <div className="container" style={{ 
@@ -395,7 +338,7 @@ export const Home = () => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent'
               }}>
-                NestFinder
+                NestFinder🏠
               </h1>
 
               <h2 style={{
@@ -404,18 +347,15 @@ export const Home = () => {
                 color: 'var(--text-main)',
                 marginBottom: '1rem'
               }}>
-                Find your perfect Nest
+                Find your perfect Nest!!!
               </h2>
            </div>
             
-            <button 
-              onClick={() => setIsModalOpen(true)} 
-              className="btn btn-primary btn-sm"
-              style={{ 
-                marginTop: '0.5rem'
-              }}
+            <button
+                onClick={() => navigate("/auth")}
+                className="btn btn-primary"
             >
-              Sign In
+                Sign In
             </button>
 
             {/* Subtle scroll hint */}
@@ -445,7 +385,7 @@ export const Home = () => {
           <div className="container" style={{ position: 'relative', zIndex: 1 }}>
             {/* Section label */}
             <p style={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.12em', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
-              WHY NESTFINDER
+              WHY NESTFINDER?
             </p>
             <h2 style={{ 
               textAlign: 'center',
@@ -458,7 +398,7 @@ export const Home = () => {
               Everything you need to find<br />your ideal room
             </h2>
             <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '4rem', maxWidth: '560px', margin: '0 auto 4rem' }}>
-              NestFinder combines interactive maps, AI matching, and verified listings so you can find your perfect place — fast.
+              NestFinder combines interactive maps, AI recommendations and verified listings so you can find your perfect place — efficiently in safer way.
             </p>
 
           <div className="features-grid-layout">
@@ -496,431 +436,7 @@ export const Home = () => {
           </div>
         </div>
       </section>
-
-        {/* ──────────────────────────────────────────────────────
-            MODAL: Sign In / Sign Up Form
-            Animation matches the original navbar sign-in style
-            Now includes: Gmail, Phone Number, Password
-        ────────────────────────────────────────────────────── */}
-        {/* ════════════════════════════════════════════════════
-            MODAL: Sign In / Create Account
-            3 role options: Tenant, Landlord, Admin
-            Toggle between Sign In and Create Account
-        ════════════════════════════════════════════════════ */}
-        {isModalOpen && (
-          <div 
-            className="modal-overlay"
-            onClick={() => {
-              setIsModalOpen(false);
-              setAuthMode('login');
-            }}
-          >
-            <div 
-              className="card glass-login-container glass shadow-xl" 
-              style={{ 
-                width: '100%', 
-                maxWidth: '480px', 
-                padding: '2.5rem', 
-                textAlign: 'left', 
-                borderRadius: 'var(--radius-lg)', 
-                border: '1px solid var(--border-color)', 
-                position: 'relative',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close button */}
-              <button 
-                type="button"
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setAuthMode('login');
-                }} 
-                style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}
-              >
-                <X size={20} />
-              </button>
-
-              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.25rem', background: 'linear-gradient(135deg, var(--text-main) 60%, var(--primary) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                {authMode === 'login' ? 'Access NestFinder' : 'Create Account'}
-              </h2>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '1.5rem' }}>
-                {authMode === 'login' 
-                  ? 'Enter email and phone number to sign in' 
-                  : 'Register your details to start using NestFinder'}
-              </p>
-
-              <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                
-                {/* Role selection */}
-                <div className="form-group" style={{ marginBottom: '0.25rem' }}>
-                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Select Your Role</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
-                    {[
-                      { id: 'tenant', label: 'Tenant', icon: '🙋' },
-                      { id: 'landlord', label: 'Landlord', icon: '🏢' },
-                      { id: 'admin', label: 'Admin', icon: '🛡️' }
-                    ].map(role => (
-                      <div 
-                        key={role.id}
-                        className={`role-radio-card ${selectedRole === role.id ? 'active' : ''}`}
-                        onClick={() => setSelectedRole(role.id)}
-                        style={{
-                          padding: '0.75rem 0.5rem',
-                          borderRadius: 'var(--radius-md)',
-                          border: selectedRole === role.id ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                          background: selectedRole === role.id ? 'var(--primary-light)' : 'transparent',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '0.35rem',
-                          textAlign: 'center',
-                          transition: 'all var(--transition-fast)'
-                        }}
-                      >
-                        <span style={{ fontSize: '1.3rem' }}>{role.icon}</span>
-                        <strong style={{ fontSize: '0.82rem', color: selectedRole === role.id ? 'var(--primary)' : 'var(--text-main)' }}>{role.label}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Full name (only in signup mode) */}
-                {authMode === 'signup' && (
-                  <div className="form-group">
-                    <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Full Name</label>
-                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <User size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
-                      <input 
-                        type="text" 
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
-                        required
-                        className="form-input" 
-                        style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Email (both modes) */}
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Email Address</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Mail size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
-                    <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={`${selectedRole}@nestfinder.com`}
-                      required
-                      className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
-                    />
-                  </div>
-                </div>
-
-                {/* Phone (both modes) */}
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Phone Number</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
-                    <input 
-                      type="tel" 
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="98XXXXXXXX" 
-                      required
-                      className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
-                    />
-                  </div>
-                </div>
-
-                {/* Password (both modes) */}
-                <div className="form-group">
-                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Password</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Lock size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
-                    <input 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••" 
-                      required
-                      className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
-                    />
-                  </div>
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="btn btn-primary btn-lg" 
-                  style={{ 
-                    width: '100%', 
-                    display: 'flex', 
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '0.5rem', 
-                    marginTop: '0.5rem',
-                    height: '46px',
-                    borderRadius: '8px',
-                    fontWeight: 700
-                  }}
-                >
-                  <span>{authMode === 'login' ? 'Sign In' : 'Create Account'}</span>
-                  <ArrowRight size={18} />
-                </button>
-
-                {/* ── Toggle between Sign In / Create Account ── */}
-                <div style={{ textAlign: 'center', paddingTop: '0.5rem', borderTop: '1px solid var(--border-color)' }}>
-                  {authMode === 'signin' ? (
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                      New here?{' '}
-                      <button 
-                        type="button"
-                        onClick={() => { setAuthMode('create'); resetForm(); }}
-                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
-                      >
-                        Let's create an account →
-                      </button>
-                    </p>
-                  ) : (
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-                      Already have an account?{' '}
-                      <button 
-                        type="button"
-                        onClick={() => { setAuthMode('signin'); resetForm(); }}
-                        style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem', padding: 0 }}
-                      >
-                        Sign in instead →
-                      </button>
-                    </p>
-                  )}
-                </div>
-
-              </form>
-
-              {/* Tab Toggle Link */}
-              <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.88rem' }}>
-                {authMode === 'login' ? (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    New here?{' '}
-                    <button 
-                      type="button"
-                      onClick={() => setAuthMode('signup')} 
-                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
-                    >
-                      Let's create account
-                    </button>
-                  </span>
-                ) : (
-                  <span style={{ color: 'var(--text-muted)' }}>
-                    Already have an account?{' '}
-                    <button 
-                      type="button"
-                      onClick={() => setAuthMode('login')} 
-                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
-                    >
-                      Sign In
-                    </button>
-                  </span>
-                )}
-              </div>
-
-            </div>
-          </div>
-        )}
-      </div>
-    );
+      </div>);
   }
-
-  // ============================================================
-  // TENANT WORKSPACE VIEW (logged-in tenant)
-  // ============================================================
-  return (
-    <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem 1.5rem' }}>
-      
-      {/* Tenant Welcome Banner: shows username greeting + bold search headline */}
-      <div className="welcome-banner-card animate-fade-in" style={{ marginBottom: '2.5rem' }}>
-        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.5rem' }}>
-          Welcome, {currentUser.name}!
-        </h2>
-        <p style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)', margin: 0 }}>
-          Let your search begin
-        </p>
-      </div>
-
-      <div className="search-split-layout">
-        
-        {/* Left column: Search & listings */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          
-          <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-color)' }}>
-            <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              <Filter size={18} style={{ color: 'var(--primary)' }} />
-              <span>Refine Your Search</span>
-            </h3>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1rem' }}>
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.7rem' }}>Search Zone</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Search size={16} style={{ position: 'absolute', left: '10px', color: 'var(--text-light)' }} />
-                    <input 
-                      type="text" 
-                      placeholder="Baneshwor, Pulchowk, Kirtipur..." 
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="form-input"
-                      style={{ width: '100%', paddingLeft: '2.3rem', paddingTop: '0.5rem', paddingBottom: '0.5rem', fontSize: '0.9rem' }}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.7rem' }}>Room Type</label>
-                  <select 
-                    value={selectedType} 
-                    onChange={(e) => setSelectedType(e.target.value)} 
-                    className="form-input" 
-                    style={{ padding: '0.5rem', fontSize: '0.9rem' }}
-                  >
-                    <option value="all">All Types</option>
-                    <option value="Room">Single Room</option>
-                    <option value="Flat">Full Flat</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
-                  <label className="form-label" style={{ fontSize: '0.7rem' }}>Max Budget Limit</label>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>Rs. {maxBudget.toLocaleString('en-IN')}/mo</strong>
-                </div>
-                <input 
-                  type="range" 
-                  min="4000" 
-                  max="40000" 
-                  step="1000"
-                  value={maxBudget}
-                  onChange={(e) => setMaxBudget(Number(e.target.value))}
-                  style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: '100%' }}
-                />
-              </div>
-
-              <div style={{ textAlign: 'left' }}>
-                <label className="form-label" style={{ fontSize: '0.7rem', display: 'block', marginBottom: '0.5rem' }}>Facilities Required</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((amenity, i) => {
-                    const isChecked = selectedAmenities.includes(amenity);
-                    return (
-                      <button 
-                        key={i} 
-                        type="button"
-                        onClick={() => handleAmenityToggle(amenity)}
-                        className={`facility-pill ${isChecked ? 'active' : ''}`}
-                      >
-                        {isChecked && <Check size={12} />}
-                        <span>{amenity}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
-                We found <strong>{scoredListings.length}</strong> matching rooms
-              </span>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <Sparkles size={12} style={{ color: 'var(--accent)' }} /> Sorted by AI Match Score
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '550px', overflowY: 'auto', paddingRight: '0.25rem' }}>
-              {scoredListings.length === 0 ? (
-                <div className="card text-center" style={{ padding: '3rem 1rem' }}>
-                  <p style={{ color: 'var(--text-light)' }}>No active rooms match these filters.</p>
-                </div>
-              ) : (
-                scoredListings.map(listing => (
-                  <div 
-                    key={listing.id} 
-                    id={`tenant-room-card-${listing.id}`}
-                    onMouseEnter={() => setHighlightListingId(listing.id)}
-                    onMouseLeave={() => setHighlightListingId(null)}
-                    style={{ 
-                      borderRadius: 'var(--radius-lg)',
-                      border: activeListingId === listing.id ? '2px solid var(--primary)' : '2px solid transparent',
-                      transition: 'all 0.25s ease',
-                      position: 'relative'
-                    }}
-                  >
-                    <div style={{ 
-                      position: 'absolute', 
-                      top: '12px', 
-                      right: '12px', 
-                      zIndex: 10,
-                      backgroundColor: 'rgba(99, 102, 241, 0.95)',
-                      backdropFilter: 'blur(4px)',
-                      color: 'white',
-                      padding: '0.25rem 0.6rem',
-                      borderRadius: 'var(--radius-sm)',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.25rem',
-                      boxShadow: 'var(--shadow-sm)'
-                    }}>
-                      <Sparkles size={10} style={{ fill: 'white' }} />
-                      <span>{listing.matchScore}% Match</span>
-                    </div>
-
-                    <RoomCard room={listing} />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Right column: Map */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              🗺️ Use Map to Choose Place
-            </span>
-            <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
-              Click pins to review
-            </span>
-          </div>
-
-          <div className="highlight-map-container" style={{ height: '700px', position: 'relative' }}>
-            <div className="map-badge-helper" style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 999 }}>
-              <Map size={14} />
-              <span>Map Discovery Mode</span>
-            </div>
-            
-            <MapContainer 
-              listings={scoredListings} 
-              activeListingId={activeListingId} 
-              highlightListingId={highlightListingId}
-              onMarkerClick={handleMarkerClick}
-              currentCenter={mapCenter}
-            />
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-};
+      return null;
+};   
