@@ -141,7 +141,7 @@ export const Navbar = () => {
           )}
 
           {/* Authenticated user UI / CTA buttons */}
-          {currentUser && (
+          {currentUser ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }} className="desktop-links">
                 Welcome, <span style={{ color: 'var(--primary)' }}>{currentUser.name}</span>

@@ -20,7 +20,6 @@ import {
   Lock,
   ArrowLeft,
   X,
-  Lock,
   Eye,
   EyeOff,
   Home as HomeIcon,   // renamed to avoid conflict with exported 'Home' component
@@ -197,7 +196,6 @@ export const Home = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [fullName, setFullName] = useState('');               // Create account: full name
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState('tenant'); // tenant | landlord | admin
 
@@ -426,7 +424,7 @@ export const Home = () => {
               <span>Scroll to explore features</span>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* ──────────────────────────────────────────────────────
             SECTION 2: Scrollable Feature Highlights
@@ -496,7 +494,8 @@ export const Home = () => {
             </div>
 
           </div>
-        </section>
+        </div>
+      </section>
 
         {/* ──────────────────────────────────────────────────────
             MODAL: Sign In / Sign Up Form
