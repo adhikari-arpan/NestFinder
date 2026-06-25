@@ -68,52 +68,43 @@ export const Navbar = () => {
           <span>Nest<span style={{ color: 'var(--text-main)' }}>Finder</span></span>
         </Link>
 
-        {/* ── Desktop Navigation Links ── */}
-        <div style={{ display: 'none', md: 'flex', alignItems: 'center', gap: '1.5rem' }} className="desktop-links">
-          <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
-          <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>Find Rooms</Link>
-
-          {/* AI Recommendations — only for tenants (not admin) */}
-          {isTenant && (
+        {/* Desktop Navigation Links */}
+        {currentUser && (
+          <div style={{ display: 'none', md: 'flex', alignItems: 'center', gap: '1.5rem' }} className="desktop-links">
+            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
+            <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>Find Rooms</Link>
             <Link to="/ai-recommend" className={`nav-link ${isActive('/ai-recommend') ? 'active' : ''}`}>
               <Sparkles size={16} style={{ marginRight: '4px', verticalAlign: 'middle', display: 'inline', color: 'var(--accent)' }} />
               AI Recommendations
             </Link>
-          )}
-
-          {/* My Dashboard — tenant only */}
-          {isTenant && (
-            <Link to="/dashboard/tenant" className={`nav-link ${isActive('/dashboard/tenant') ? 'active' : ''}`}>My Dashboard</Link>
-          )}
-
-          {/* Landlord Hub — landlord only */}
-          {isLandlord && (
-            <Link to="/dashboard/landlord" className={`nav-link ${isActive('/dashboard/landlord') ? 'active' : ''}`}>Landlord Hub</Link>
-          )}
-
-          {/* Admin link */}
-          {isAdmin && (
-            <Link to="/dashboard/admin" className={`nav-link ${isActive('/dashboard/admin') ? 'active' : ''}`}>
-              <ShieldAlert size={16} style={{ display: 'inline', marginRight: '4px' }} />
-              Admin
-            </Link>
-          )}
-        </div>
+            {currentUser.role === 'tenant' && (
+              <Link to="/dashboard/tenant" className={`nav-link ${isActive('/dashboard/tenant') ? 'active' : ''}`}>My Dashboard</Link>
+            )}
+            {currentUser.role === 'landlord' && (
+              <Link to="/dashboard/landlord" className={`nav-link ${isActive('/dashboard/landlord') ? 'active' : ''}`}>Landlord Hub</Link>
+            )}
+            {currentUser.role === 'admin' && (
+              <Link to="/dashboard/admin" className={`nav-link ${isActive('/dashboard/admin') ? 'active' : ''}`}>
+                <ShieldAlert size={16} style={{ display: 'inline', marginRight: '4px' }} />
+                Admin
+              </Link>
+            )}
+          </div>
+        )}
 
         {/* ── Right Action Area ── */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
 
-          {/* ── Theme toggle — always visible ── */}
+          {/* Theme Selector */}
           <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle Theme">
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
 
-          {/* ── Notifications Bell — only for logged-in users (not guests) ── */}
-          {!isGuest && (
+          {/* Notifications Trigger */}
+          {currentUser && (
             <div style={{ position: 'relative' }}>
               <button onClick={() => setNotifOpen(!notifOpen)} className="icon-btn" aria-label="Notifications">
                 <Bell size={20} />
-                {/* Unread badge */}
                 {unreadNotifs.length > 0 && (
                   <span className="notif-badge">{unreadNotifs.length}</span>
                 )}
@@ -149,47 +140,21 @@ export const Navbar = () => {
             </div>
           )}
 
-          {/* ── Authenticated user UI ── */}
-          {currentUser ? (
+          {/* Authenticated user UI / CTA buttons */}
+          {currentUser && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              {/* Welcome text for all logged-in users */}
-              <span className="welcome-nav-text" style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
-                Welcome, <strong style={{ color: 'var(--primary)' }}>{currentUser.name}</strong>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }} className="desktop-links">
+                Welcome, <span style={{ color: 'var(--primary)' }}>{currentUser.name}</span>
               </span>
-
-              {/* Landlord: eye-catching Add Room Listing button */}
-              {isLandlord && (
-                <Link 
-                  to="/dashboard/landlord?action=post" 
-                  className="add-listing-btn"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #10b981 100%)',
-                    color: '#ffffff',
-                    padding: '0.5rem 1.1rem',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: '0.82rem',
-                    fontWeight: 700,
-                    fontFamily: 'var(--font-sans)',
-                    textDecoration: 'none',
-                    boxShadow: '0 3px 15px rgba(99,102,241,0.35), 0 0 0 0 rgba(16,185,129,0.3)',
-                    transition: 'all 0.25s ease',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  <Plus size={16} strokeWidth={2.5} />
-                  <span className="btn-text">Add Room Listing</span>
+              
+              {currentUser.role === 'tenant' && (
+                <Link to="/ai-recommend" className="btn btn-secondary btn-sm btn-icon-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <Sparkles size={16} />
+                  <span className="btn-text">Find Match</span>
                 </Link>
               )}
-
-              {/* Avatar link to dashboard */}
-              <Link to={
-                isTenant ? '/dashboard/tenant' 
-                : isLandlord ? '/dashboard/landlord' 
-                : '/dashboard/admin'
-              }>
+              
+              <Link to={currentUser.role === 'tenant' ? '/dashboard/tenant' : (currentUser.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/admin')}>
                 <img 
                   src={currentUser.avatar} 
                   alt="avatar" 
@@ -198,7 +163,6 @@ export const Navbar = () => {
               </Link>
             </div>
           ) : (
-            /* ── Guest: Sign In CTA ── */
             <Link to="/auth" className="btn btn-primary btn-sm">Sign In</Link>
           )}
 
@@ -213,11 +177,11 @@ export const Navbar = () => {
           <div className="mobile-menu glass animate-fade-in">
             <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
             <Link to="/search" onClick={() => setMobileMenuOpen(false)}>Find Rooms</Link>
-            {isTenant && <Link to="/ai-recommend" onClick={() => setMobileMenuOpen(false)}>AI Match Finder</Link>}
-            {isTenant && <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)}>My Dashboard</Link>}
-            {isLandlord && <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)}>Landlord Hub</Link>}
-            {isAdmin && <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>}
-            {isGuest && <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>}
+            <Link to="/ai-recommend" onClick={() => setMobileMenuOpen(false)}>AI Match Finder</Link>
+            {currentUser?.role === 'tenant' && <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)}>My Dashboard</Link>}
+            {currentUser?.role === 'landlord' && <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)}>Landlord Hub</Link>}
+            {currentUser?.role === 'admin' && <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>}
+            {!currentUser && <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>}
           </div>
         )}
       </div>

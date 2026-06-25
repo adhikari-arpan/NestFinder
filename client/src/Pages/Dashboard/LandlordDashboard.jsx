@@ -139,49 +139,29 @@ export const LandlordDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
           <img src={currentUser?.avatar} alt="avatar" style={{ width: '62px', height: '62px', borderRadius: '50%', border: '3px solid var(--primary)', objectFit: 'cover', boxShadow: '0 0 0 4px var(--primary-light)' }} />
           <div>
-            {/* Small welcome line */}
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: '0.2rem' }}>
-              Welcome back, <strong style={{ color: 'var(--primary)' }}>{currentUser?.name}</strong> 👋
-            </p>
-            {/* Large landlord hub title */}
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 900, lineHeight: 1.15 }}>
-              Your Landlord Hub
-            </h1>
-            <p style={{ color: 'var(--text-light)', fontSize: '0.82rem', marginTop: '0.2rem' }}>
-              Manage listings, respond to inquiries, and grow your portfolio.
-            </p>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Welcome, {currentUser?.name}</h1>
+            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Landlord Hub: Moderate active tenant requests, reply to inquiries, and list properties.</p>
           </div>
         </div>
-
-        {/* Right: Eye-catching Add Room Listing button */}
         <button 
           onClick={() => setIsPostModalOpen(true)} 
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            background: 'linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%)',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 'var(--radius-full)',
-            padding: '0.85rem 1.75rem',
-            fontSize: '0.95rem',
+          className="landlord-add-btn" 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.35rem',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+            color: 'white',
             fontWeight: 700,
-            fontFamily: 'var(--font-sans)',
+            border: 'none',
+            padding: '0.85rem 1.6rem',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
             cursor: 'pointer',
-            boxShadow: '0 4px 20px rgba(99, 102, 241, 0.45)',
-            transition: 'all 0.25s ease',
-            position: 'relative',
-            overflow: 'hidden',
-            animation: 'hero-btn-pulse 3s ease-in-out infinite',  /* reuse hero pulse from global CSS */
-            whiteSpace: 'nowrap',
-            alignSelf: 'center',
+            transition: 'all 0.25s ease'
           }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.04)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(99,102,241,0.65)'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(99, 102, 241, 0.45)'; }}
         >
-          <Plus size={20} />
-          <span>Add Room Listing</span>
+          <Plus size={18} /> Add Room Listing
         </button>
       </div>
 
@@ -571,6 +551,11 @@ export const LandlordDashboard = () => {
       <style>{`
         .listing-table tr:hover, .poi-table tr:hover {
           background-color: var(--primary-light);
+        }
+        .landlord-add-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45) !important;
+          filter: brightness(1.1);
         }
         @media (max-width: 768px) {
           .form-row-three {

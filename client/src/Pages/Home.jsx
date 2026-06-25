@@ -17,6 +17,7 @@ import {
   Map, 
   Filter, 
   Check, 
+  Lock,
   ArrowLeft,
   X,
   Lock,
@@ -184,12 +185,15 @@ export const Home = () => {
     currentUser, 
     loginUser, 
     listings, 
-    calculateRecommendationScore 
+    calculateRecommendationScore,
+    theme
   } = useContext(AppContext);
 
   // ==== Modal / Auth States ====
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState('signin');         // 'signin' | 'create'
+  const [authMode, setAuthMode] = useState('login');
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [fullName, setFullName] = useState('');               // Create account: full name
@@ -222,11 +226,67 @@ export const Home = () => {
     }
   }, [currentUser, navigate]);
 
-  // Handle sign-in form submission
+  // Animated network background canvas (guest view only)
+  useEffect(() => {
+    if (currentUser) return;
+    const canvas = document.getElementById('networkCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    
+    const isDark = theme === 'dark';
+    const dotColor = isDark ? '#818cf8' : '#4f46e5';
+    const baseLineAlpha = isDark ? 0.25 : 0.12;
+
+    const dots = Array.from({ length: 60 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: Math.random() * 3 + 1
+    }));
+    let frame;
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      dots.forEach(d => {
+        d.x += d.vx; d.y += d.vy;
+        if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+        if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = dotColor;
+        ctx.fill();
+      });
+      dots.forEach((a, i) => dots.slice(i + 1).forEach(b => {
+        const dist = Math.hypot(a.x - b.x, a.y - b.y);
+        if (dist < 120) {
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.strokeStyle = `rgba(99,102,241,${baseLineAlpha * (1 - dist / 120)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }));
+      frame = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => cancelAnimationFrame(frame);
+  }, [currentUser, theme]);
+
   const handleSignInSubmit = (e) => {
     e.preventDefault();
-    // Pass email (or phone fallback) and password to loginUser
-    loginUser(email || `${selectedRole}@nestfinder.com`, password || 'password', selectedRole);
+    if (!email || !phone || !password) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    loginUser(email, password, selectedRole);
+    setName('');
+    setEmail('');
+    setPhone('');
+    setPassword('');
+    setAuthMode('login');
     setIsModalOpen(false);
   };
 
@@ -273,71 +333,91 @@ export const Home = () => {
   // GUEST LANDING VIEW — Full-Screen Art + Centered CTA
   // ============================================================
   if (!currentUser) {
+    const isDark = theme === 'dark';
     return (
       <div style={{ 
         display: 'flex', 
-        flexDirection: 'column',
-        background: 'var(--bg-app)',
+        flexDirection: 'column', 
+        background: isDark ? 'linear-gradient(135deg, #090d16 0%, #0d1222 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #eef2f6 100%)',
         color: 'var(--text-main)',
         minHeight: '100vh',
         overflow: 'hidden auto',
       }}>
 
-        {/* ──────────────────────────────────────────────────────
-            SECTION 1: Full-Screen Hero with Art Background
-        ────────────────────────────────────────────────────── */}
-        <section 
-          id="hero-section"
-          style={{ 
-            position: 'relative',
-            height: '100vh',   /* exactly one screen tall */
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Abstract animated art fills the entire section */}
-          <FullScreenArt />
+        {/* Animated network background */}
+        <canvas id="networkCanvas" style={{
+          position: 'absolute', top: 0, left: 0,
+          width: '100%', height: '100%',
+          opacity: isDark ? 0.35 : 0.65, pointerEvents: 'none', zIndex: 0
+        }} />
 
-          {/* Adaptive gradient overlay:
-              Dark mode → dark tint so white text is readable over the art
-              Light mode → lighter tint with slight brightness so it still feels vivid */}
-          <div style={{
-            position: 'absolute', inset: 0,
-            background: 'var(--hero-overlay)',
-            zIndex: 1,
-            pointerEvents: 'none',
-          }} />
+        {/* Glowing Blurred Orbs */}
+        <div style={{ 
+          position: 'absolute', 
+          top: '10%', 
+          left: '5%', 
+          width: '300px', 
+          height: '300px', 
+          borderRadius: '50%', 
+          background: isDark ? 'rgba(99, 102, 241, 0.12)' : 'rgba(99, 102, 241, 0.05)', 
+          filter: 'blur(90px)', 
+          pointerEvents: 'none' 
+        }} />
+        <div style={{ 
+          position: 'absolute', 
+          bottom: '15%', 
+          right: '5%', 
+          width: '350px', 
+          height: '350px', 
+          borderRadius: '50%', 
+          background: isDark ? 'rgba(16, 185, 129, 0.06)' : 'rgba(16, 185, 129, 0.03)', 
+          filter: 'blur(100px)', 
+          pointerEvents: 'none' 
+        }} />
 
-          {/* Hero content: centred vertically and horizontally */}
-          <div className="hero-center-content" style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: '0 1.5rem' }}>
+        {/* 1. Main Hero Container */}
+        <div className="container" style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1.1fr 0.9fr', 
+          gap: '3rem', 
+          alignItems: 'center', 
+          paddingTop: '5rem',
+          paddingBottom: '4rem',
+          zIndex: 5
+        }}>
+          {/* Hero text side */}
+          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', gap: '1.5rem' }}>
+            <div>
+              <h1 style={{
+                fontSize: '4.5rem',
+                fontWeight: 900,
+                marginBottom: '0.5rem',
+                fontFamily: 'var(--font-display)',
+                background: 'linear-gradient(135deg, var(--primary) 20%, var(--secondary) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                NestFinder
+              </h1>
 
-            {/* Badge */}
-            <div className="hero-badge animate-fade-in">
-              ⚡ DISCOVER BROKER-FREE RENTING IN NEPAL
-            </div>
-
-            {/* Main headline */}
-            <h1 className="hero-headline animate-fade-in-up">
-              Find Your <span className="gradient-text">Perfect Nest</span>
-            </h1>
-
-            {/* Sub tagline — minimal text */}
-            <p className="hero-sub animate-fade-in-up" style={{ animationDelay: '0.15s' }}>
-              AI-powered room discovery. Verified landlords. Zero brokers.
-            </p>
-
-            {/* PRIMARY CTA — centered, glowing, interactive */}
-            <button
-              id="hero-signin-btn"
-              onClick={() => setIsModalOpen(true)}
-              className="hero-cta-btn animate-fade-in-up"
-              style={{ animationDelay: '0.3s' }}
+              <h2 style={{
+                fontSize: '2rem',
+                fontWeight: 700,
+                color: 'var(--text-main)',
+                marginBottom: '1rem'
+              }}>
+                Find your perfect Nest
+              </h2>
+           </div>
+            
+            <button 
+              onClick={() => setIsModalOpen(true)} 
+              className="btn btn-primary btn-sm"
+              style={{ 
+                marginTop: '0.5rem'
+              }}
             >
-              <span>Get Started • Sign In</span>
-              <ArrowRight size={20} />
+              Sign In
             </button>
 
             {/* Subtle scroll hint */}
@@ -383,77 +463,36 @@ export const Home = () => {
               NestFinder combines interactive maps, AI matching, and verified listings so you can find your perfect place — fast.
             </p>
 
-            {/* Feature cards grid */}
-            <div className="features-grid-layout">
-              
-              {/* Feature 1: Map */}
-              <div className="feature-redesign-card">
-                <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)' }}>
-                  <Map size={24} />
-                </div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Map-Based Discovery</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
-                  Browse rooms visually on our interactive OpenStreetMap overlay. Choose places instantly based on proximity to your college or transit point.
-                </p>
+          <div className="features-grid-layout">
+            
+            <div className="feature-redesign-card glass" style={{ borderLeft: '4px solid var(--primary)', boxShadow: '0 8px 30px rgba(99, 102, 241, 0.08)' }}>
+              <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)', boxShadow: '0 0 15px rgba(99, 102, 241, 0.2)' }}>
+                <Map size={24} />
               </div>
-
-              {/* Feature 2: AI */}
-              <div className="feature-redesign-card">
-                <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
-                  <Sparkles size={24} />
-                </div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>AI Similarity Matching</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
-                  Set your budget, amenities, and location preference. Our algorithm scores every listing with a percentage match so you see the best first.
-                </p>
-              </div>
-
-              {/* Feature 3: Verified */}
-              <div className="feature-redesign-card">
-                <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--secondary-light)', color: 'var(--secondary)' }}>
-                  <Shield size={24} />
-                </div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Verified Direct Contact</h3>
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
-                  Every landlord is verified. Contact them directly with zero broker commissions and zero hidden service fees.
-                </p>
-              </div>
-
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>Map-Based Room Discovery</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                Locate flats, rooms, and sharing configurations visually on our interactive open map overlay. Select places instantly based on proximity to colleges and transit points.
+              </p>
             </div>
 
-            {/* Stats row */}
-            <div className="stats-row">
-              <div className="stat-item">
-                <span className="stat-number">500+</span>
-                <span className="stat-label">Verified Listings</span>
+            <div className="feature-redesign-card glass" style={{ borderLeft: '4px solid var(--accent)', boxShadow: '0 8px 30px rgba(245, 158, 11, 0.08)' }}>
+              <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)', boxShadow: '0 0 15px rgba(245, 158, 11, 0.2)' }}>
+                <Sparkles size={24} />
               </div>
-              <div className="stat-divider" />
-              <div className="stat-item">
-                <span className="stat-number">0%</span>
-                <span className="stat-label">Broker Commission</span>
-              </div>
-              <div className="stat-divider" />
-              <div className="stat-item">
-                <span className="stat-number">AI</span>
-                <span className="stat-label">Smart Matching</span>
-              </div>
-              <div className="stat-divider" />
-              <div className="stat-item">
-                <span className="stat-number">📍</span>
-                <span className="stat-label">Map Integrated</span>
-              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>AI Similarity Matching</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                Specify your exact requirements for max budget, wifi networks, and amenities. Our customized matching algorithm immediately returns percentage scores for all available listings.
+              </p>
             </div>
 
-            {/* CTA repeat at bottom of features */}
-            <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="hero-cta-btn"
-                style={{ display: 'inline-flex' }}
-              >
-                <span>Start Searching Now</span>
-                <ArrowRight size={20} />
-              </button>
+            <div className="feature-redesign-card glass" style={{ borderLeft: '4px solid var(--secondary)', boxShadow: '0 8px 30px rgba(16, 185, 129, 0.08)' }}>
+              <div className="feature-icon-wrapper" style={{ backgroundColor: 'var(--secondary-light)', color: 'var(--secondary)', boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)' }}>
+                <Shield size={24} />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>Verified Direct Contact</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', lineHeight: 1.6 }}>
+                Every landlord undergoes verification. Reach out directly via telephone or messages with zero broker commissions and zero hidden administrative service fees.
+              </p>
             </div>
 
           </div>
@@ -472,175 +511,168 @@ export const Home = () => {
         {isModalOpen && (
           <div 
             className="modal-overlay"
-            onClick={() => { setIsModalOpen(false); resetForm(); }}
+            onClick={() => {
+              setIsModalOpen(false);
+              setAuthMode('login');
+            }}
           >
             <div 
               className="card glass-login-container glass shadow-xl" 
               style={{ 
                 width: '100%', 
-                maxWidth: '500px', 
+                maxWidth: '480px', 
                 padding: '2.5rem', 
                 textAlign: 'left', 
                 borderRadius: 'var(--radius-lg)', 
                 border: '1px solid var(--border-color)', 
                 position: 'relative',
-                maxHeight: '92vh',
-                overflowY: 'auto'
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)'
               }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Close button */}
               <button 
                 type="button"
-                onClick={() => { setIsModalOpen(false); resetForm(); }} 
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setAuthMode('login');
+                }} 
                 style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}
               >
                 <X size={20} />
               </button>
 
-              {/* Form header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.25rem' }}>
-                <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'var(--primary-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <HomeIcon size={18} style={{ color: 'var(--primary)' }} />
-                </div>
-                <div>
-                  {/* Title changes based on mode */}
-                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2 }}>
-                    {authMode === 'signin' ? 'Welcome Back' : 'Join NestFinder'}
-                  </h2>
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-light)', marginTop: '0.15rem' }}>
-                    {authMode === 'signin' ? 'Sign in to continue your search' : 'Create your free account in seconds'}
-                  </p>
-                </div>
-              </div>
+              <h2 style={{ fontSize: '1.6rem', fontWeight: 800, marginBottom: '0.25rem', background: 'linear-gradient(135deg, var(--text-main) 60%, var(--primary) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                {authMode === 'login' ? 'Access NestFinder' : 'Create Account'}
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginBottom: '1.5rem' }}>
+                {authMode === 'login' 
+                  ? 'Enter email and phone number to sign in' 
+                  : 'Register your details to start using NestFinder'}
+              </p>
 
-              <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-
-                {/* ── 3-Option Role Selector ── */}
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ marginBottom: '0.6rem', display: 'block' }}>I am a...</label>
-                  {/* 3-column grid for all 3 roles */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.65rem' }}>
-
-                    {/* Tenant */}
-                    <div 
-                      className={`role-radio-card ${selectedRole === 'tenant' ? 'active' : ''}`}
-                      onClick={() => setSelectedRole('tenant')}
-                    >
-                      <span className="role-icon-lg">🙋</span>
-                      <strong style={{ fontSize: '0.8rem' }}>Tenant</strong>
-                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>Find rooms</span>
-                    </div>
-
-                    {/* Landlord */}
-                    <div 
-                      className={`role-radio-card ${selectedRole === 'landlord' ? 'active' : ''}`}
-                      onClick={() => setSelectedRole('landlord')}
-                    >
-                      <span className="role-icon-lg">🏢</span>
-                      <strong style={{ fontSize: '0.8rem' }}>Landlord</strong>
-                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>List rooms</span>
-                    </div>
-
-                    {/* Admin */}
-                    <div 
-                      className={`role-radio-card ${selectedRole === 'admin' ? 'active' : ''}`}
-                      onClick={() => setSelectedRole('admin')}
-                    >
-                      <span className="role-icon-lg">🛡️</span>
-                      <strong style={{ fontSize: '0.8rem' }}>Admin</strong>
-                      <span style={{ fontSize: '0.68rem', color: 'var(--text-light)' }}>Manage site</span>
-                    </div>
+              <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                
+                {/* Role selection */}
+                <div className="form-group" style={{ marginBottom: '0.25rem' }}>
+                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Select Your Role</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem' }}>
+                    {[
+                      { id: 'tenant', label: 'Tenant', icon: '🙋' },
+                      { id: 'landlord', label: 'Landlord', icon: '🏢' },
+                      { id: 'admin', label: 'Admin', icon: '🛡️' }
+                    ].map(role => (
+                      <div 
+                        key={role.id}
+                        className={`role-radio-card ${selectedRole === role.id ? 'active' : ''}`}
+                        onClick={() => setSelectedRole(role.id)}
+                        style={{
+                          padding: '0.75rem 0.5rem',
+                          borderRadius: 'var(--radius-md)',
+                          border: selectedRole === role.id ? '2px solid var(--primary)' : '1px solid var(--border-color)',
+                          background: selectedRole === role.id ? 'var(--primary-light)' : 'transparent',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          textAlign: 'center',
+                          transition: 'all var(--transition-fast)'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.3rem' }}>{role.icon}</span>
+                        <strong style={{ fontSize: '0.82rem', color: selectedRole === role.id ? 'var(--primary)' : 'var(--text-main)' }}>{role.label}</strong>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* ── Full Name — only shown on Create Account ── */}
-                {authMode === 'create' && (
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Full Name</label>
+                {/* Full name (only in signup mode) */}
+                {authMode === 'signup' && (
+                  <div className="form-group">
+                    <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Full Name</label>
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                      <User size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                      <User size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
                       <input 
                         type="text" 
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Your full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="John Doe"
                         required
                         className="form-input" 
-                        style={{ width: '100%', paddingLeft: '2.5rem' }} 
+                        style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
                       />
                     </div>
                   </div>
                 )}
 
-                {/* ── Gmail / Email ── */}
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Gmail / Email</label>
+                {/* Email (both modes) */}
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Email Address</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                     <Mail size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
                     <input 
                       type="email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder={`${selectedRole}@gmail.com`}
+                      placeholder={`${selectedRole}@nestfinder.com`}
                       required
                       className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem' }} 
+                      style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
                     />
                   </div>
                 </div>
 
-                {/* ── Phone Number — only shown on Create Account ── */}
-                {authMode === 'create' && (
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Phone Number</label>
+                {/* Phone (both modes) */}
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Phone Number</label>
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
+                    <Phone size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
                     <input 
                       type="tel" 
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="98XXXXXXXX" 
-                      className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem' }} 
-                    />
-                  </div>
-                </div>
-                )}
-
-                {/* ── Password ── */}
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label">Password</label>
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                    <Lock size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)', pointerEvents: 'none' }} />
-                    <input 
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder={authMode === 'create' ? 'Create a strong password' : 'Enter your password'}
                       required
                       className="form-input" 
-                      style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '2.75rem' }} 
+                      style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
                     />
-                    {/* Eye toggle */}
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(v => !v)}
-                      style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer', padding: 0 }}
-                      aria-label="Toggle password visibility"
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
                   </div>
                 </div>
 
-                {/* ── Submit button ── */}
+                {/* Password (both modes) */}
+                <div className="form-group">
+                  <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem' }}>Password</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Lock size={16} style={{ position: 'absolute', left: '12px', color: 'var(--text-light)' }} />
+                    <input 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••" 
+                      required
+                      className="form-input" 
+                      style={{ width: '100%', paddingLeft: '2.5rem', height: '42px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-app)', color: 'var(--text-main)' }} 
+                    />
+                  </div>
+                </div>
+
                 <button 
                   type="submit" 
-                  className="btn btn-primary btn-lg glow-btn" 
-                  style={{ width: '100%', display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '0.25rem' }}
+                  className="btn btn-primary btn-lg" 
+                  style={{ 
+                    width: '100%', 
+                    display: 'flex', 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '0.5rem', 
+                    marginTop: '0.5rem',
+                    height: '46px',
+                    borderRadius: '8px',
+                    fontWeight: 700
+                  }}
                 >
-                  <span>{authMode === 'signin' ? 'Sign In to NestFinder' : 'Create My Account'}</span>
+                  <span>{authMode === 'login' ? 'Sign In' : 'Create Account'}</span>
                   <ArrowRight size={18} />
                 </button>
 
@@ -672,6 +704,34 @@ export const Home = () => {
                 </div>
 
               </form>
+
+              {/* Tab Toggle Link */}
+              <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.88rem' }}>
+                {authMode === 'login' ? (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    New here?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setAuthMode('signup')} 
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                    >
+                      Let's create account
+                    </button>
+                  </span>
+                ) : (
+                  <span style={{ color: 'var(--text-muted)' }}>
+                    Already have an account?{' '}
+                    <button 
+                      type="button"
+                      onClick={() => setAuthMode('login')} 
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+                    >
+                      Sign In
+                    </button>
+                  </span>
+                )}
+              </div>
+
             </div>
           </div>
         )}
@@ -687,13 +747,11 @@ export const Home = () => {
       
       {/* Tenant Welcome Banner: shows username greeting + bold search headline */}
       <div className="welcome-banner-card animate-fade-in" style={{ marginBottom: '2.5rem' }}>
-        {/* Welcome greeting with username */}
-        <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1.2, marginBottom: '0.3rem' }}>
-          Welcome, <span style={{ color: 'var(--primary)' }}>{currentUser.name}</span> 👋
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.5rem' }}>
+          Welcome, {currentUser.name}!
         </h2>
-        {/* Bold search begin headline */}
-        <p style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>
-          Let your search begin.
+        <p style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)', margin: 0 }}>
+          Let your search begin
         </p>
       </div>
 
