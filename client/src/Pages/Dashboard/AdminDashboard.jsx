@@ -31,6 +31,8 @@ export const AdminDashboard = () => {
       navigate('/auth');
     }
   }, [currentUser]);
+  if (!currentUser || currentUser.role !== 'admin') return null;
+
 
   // Tab views: 'pending' (approvals), 'flagged' (moderation), 'users'
   const [activeTab, setActiveTab] = useState('pending');
