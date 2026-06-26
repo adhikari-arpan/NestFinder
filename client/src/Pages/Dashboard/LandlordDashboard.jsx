@@ -52,6 +52,8 @@ export const LandlordDashboard = () => {
       navigate('/dashboard/landlord', { replace: true });
     }
   }, [location.search]);
+  if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) return null;
+
 
   // Form states for new Listing
   const [formTitle, setFormTitle] = useState('');
