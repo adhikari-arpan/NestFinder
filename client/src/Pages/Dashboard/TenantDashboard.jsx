@@ -59,6 +59,7 @@ export const TenantDashboard = () => {
   const [college, setCollege] = useState(tenantPreferences.poiCollege);
   const [prefAmenities, setPrefAmenities] = useState(tenantPreferences.essentialAmenities);
   const [isSavedPrefs, setIsSavedPrefs] = useState(false);
+  if (!currentUser || currentUser.role !== 'tenant') return null;
 
   // Filter bookmarked rooms
   const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
@@ -204,16 +205,22 @@ export const TenantDashboard = () => {
                   {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((amenity, i) => {
                     return (
                       <button 
-                        key={i} 
-                        type="button"
-                        onClick={() => setSelectedAmenities(prev => 
+                      key={i} 
+                      type="button"
+                      onClick={() => setSelectedAmenities(prev => 
                         prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
-                       )}
-                        const isChecked = {selectedAmenities.includes(amenity)}
-                      >
-                        {isChecked && <Check size={12} />}
-                        <span>{amenity}</span>
-                      </button>
+                      )}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.3rem',
+                        padding: '0.3rem 0.75rem', borderRadius: '20px', cursor: 'pointer', fontSize: '0.8rem',
+                        background: selectedAmenities.includes(amenity) ? 'var(--primary)' : 'transparent',
+                        color: selectedAmenities.includes(amenity) ? 'white' : 'var(--text-muted)',
+                        border: `1px solid ${selectedAmenities.includes(amenity) ? 'var(--primary)' : 'var(--border-color)'}`,
+                      }}
+                    >
+                      {selectedAmenities.includes(amenity) && <Check size={12} />}
+                      <span>{amenity}</span>
+                    </button>
                     );
                   })}
                 </div>
