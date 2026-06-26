@@ -9,10 +9,7 @@ import { Home, User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide
  import { TenantDashboard } from '../Pages/Dashboard/TenantDashboard';
  import { AdminDashboard } from '../Pages/Dashboard/AdminDashboard';
 
-//navigation to different dashboards based on user role
-navigate("/dashboard/tenant");
-navigate("/dashboard/landlord");
-navigate("/dashboard/admin");
+
 
 // --- Animated Canvas Background ---
 const AnimatedBackground = () => {
@@ -144,7 +141,7 @@ const AnimatedBackground = () => {
 };
 
 // --- Main Auth Component ---
-export const auth = () => {
+export const Auth = () => {
   const { currentUser, loginUser } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
