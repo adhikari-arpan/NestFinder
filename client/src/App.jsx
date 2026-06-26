@@ -9,12 +9,13 @@ import { Home } from './pages/Home';
 import { SearchMap } from './pages/SearchMap';
 import { RoomDetails } from './pages/RoomDetails';
 import { AIRecommend } from './pages/AIRecommend';
-import { Auth } from './pages/Auth';
+import { Auth } from './Pages/Auth';
+
 
 // Dashboards
- import { LandlordDashboard } from './pages/Dashboard/LandlordDashboard';
- import { TenantDashboard } from './pages/Dashboard/TenantDashboard';
- import { AdminDashboard } from './pages/Dashboard/AdminDashboard';
+ import { LandlordDashboard } from './Pages/Dashboard/LandlordDashboard';
+ import { TenantDashboard } from './Pages/Dashboard/TenantDashboard';
+ import { AdminDashboard } from './Pages/Dashboard/AdminDashboard';
 
 import './App.css';
 
@@ -29,10 +30,11 @@ function App() {
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/search" element={<SearchMap />} />
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/ai-recommend" element={<AIRecommend />} />
-            <Route path="/auth" element={<Auth />} />
+            
             
             {/* Role Dashboards */}
             <Route path="/dashboard/landlord" element={<LandlordDashboard />} />

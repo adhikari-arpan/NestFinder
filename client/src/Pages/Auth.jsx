@@ -3,6 +3,17 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { Home, User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
+
+// Dashboards
+ import { LandlordDashboard } from '../Pages/Dashboard/LandlordDashboard';
+ import { TenantDashboard } from '../Pages/Dashboard/TenantDashboard';
+ import { AdminDashboard } from '../Pages/Dashboard/AdminDashboard';
+
+//navigation to different dashboards based on user role
+navigate("/dashboard/tenant");
+navigate("/dashboard/landlord");
+navigate("/dashboard/admin");
+
 // --- Animated Canvas Background ---
 const AnimatedBackground = () => {
   const canvasRef = useRef(null);
@@ -133,7 +144,7 @@ const AnimatedBackground = () => {
 };
 
 // --- Main Auth Component ---
-export const Auth = () => {
+export const auth = () => {
   const { currentUser, loginUser } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -170,6 +181,7 @@ export const Auth = () => {
       loginUser(email, password, selectedRole);
     }
   };
+  
 
   const inputStyle = {
     width: '100%',

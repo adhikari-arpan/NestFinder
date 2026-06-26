@@ -2,15 +2,20 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AppContext} from "../../Context/AppContext";
 import { RoomCard } from '../../components/RoomCard';
-import { 
-  Heart, 
-  Sparkles, 
-  Settings, 
-  MessageSquare, 
-  CheckCircle, 
-  Clock, 
-  ArrowRight, 
-  SlidersHorizontal 
+import { MapContainer } from '../../components/MapContainer';
+import {
+  Heart,
+  Sparkles,
+  Settings,
+  MessageSquare,
+  CheckCircle,
+  Clock,
+  ArrowRight,
+  SlidersHorizontal,
+  Filter,
+  Search,
+  Check,
+  Map
 } from 'lucide-react';
 
 export const TenantDashboard = () => {
@@ -26,14 +31,25 @@ export const TenantDashboard = () => {
   const navigate = useNavigate();
 
   // Redirect if not logged in
-  useEffect(() => {
-    if (!currentUser || currentUser.role !== 'tenant') {
-      navigate('/auth');
-    }
-  }, [currentUser]);
+    useEffect(() => {
+      if (!currentUser) {
+        navigate('/auth');
+      } else if (currentUser.role !== 'tenant') {
+        navigate('/auth');
+      }
+    }, [currentUser, navigate]);
 
   // Tab views: 'saved', 'preferences', 'inquiries'
   const [activeTab, setActiveTab] = useState('saved');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [maxBudget, setMaxBudget] = useState(25000);
+
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+
+  const [activeListingId, setActiveListingId] = useState(null);
+  const [highlightListingId, setHighlightListingId] = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
 
   // Local state for preference editor
   const [budget, setBudget] = useState(tenantPreferences.budget);
@@ -52,7 +68,7 @@ export const TenantDashboard = () => {
     inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
   );
 
-  const toggleAmenity = (item) => {
+  const handleAmenityToggle = (item) => {
     setPrefAmenities(prev => 
       prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
     );
@@ -68,293 +84,240 @@ export const TenantDashboard = () => {
       essentialAmenities: prefAmenities,
       poiCollege: college
     });
-    setIsSavedPrefs(true);
-    setTimeout(() => setIsSavedPrefs(false), 3000);
-  };
+        setIsSavedPrefs(true);
+        setTimeout(() => setIsSavedPrefs(false), 3000);
+      };
+      const handleMarkerClick = (listing) => {
+      setActiveListingId(listing.id);
 
+      const element = document.getElementById(
+        `tenant-room-card-${listing.id}`
+      );
+
+
+      if (element) {
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    };
+              const scoredListings = listings.filter(listing => {
+              const matchesSearch =
+                searchQuery === '' ||
+                listing.location?.toLowerCase().includes(
+                  searchQuery.toLowerCase()
+                );
+
+              const matchesType =
+                selectedType === 'all' ||
+                listing.type === selectedType;
+
+              const matchesBudget =
+                listing.price <= maxBudget;
+
+              return matchesSearch &&
+                    matchesType &&
+                    matchesBudget;
+            }).map(listing => ({
+              ...listing,  //spread operator to copy all properties of the listing object
+              matchScore: Math.floor(Math.random() * 40) + 60
+            }));
+     // ============================================================
+  // TENANT WORKSPACE VIEW (logged-in tenant)
+  // ============================================================
   return (
-    <div className="container animate-fade-in" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
+    <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem 1.5rem' }}>
       
-      {/* Profile Header card */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.5rem', marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <img src={currentUser?.avatar} alt="avatar" style={{ width: '60px', height: '60px', borderRadius: '50%', border: '3px solid var(--primary)', objectFit: 'cover' }} />
-          <div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Tenant Dashboard: {currentUser?.name}</h1>
-            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Access your saved rooms, adjust AI matching parameters, and track landlord inquiry statuses.</p>
-          </div>
-        </div>
-        <button onClick={() => navigate('/ai-recommend')} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-          <Sparkles size={18} style={{ fill: 'white' }} /> Recalculate Recommendations
-        </button>
+      {/* Tenant Welcome Banner: shows username greeting + bold search headline */}
+      <div className="welcome-banner-card animate-fade-in" style={{ marginBottom: '2.5rem' }}>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', marginBottom: '0.5rem' }}>
+          Welcome, {currentUser.name}!
+        </h2>
+        <p style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--text-main)', margin: 0 }}>
+          Let your search begin
+        </p>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <button 
-          onClick={() => setActiveTab('saved')}
-          style={{ 
-            padding: '0.75rem 0.5rem',
-            background: 'none',
-            border: 'none',
-            fontSize: '0.95rem',
-            fontWeight: 700,
-            color: activeTab === 'saved' ? 'var(--primary)' : 'var(--text-light)',
-            borderBottom: activeTab === 'saved' ? '3px solid var(--primary)' : '3px solid transparent',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem'
-          }}
-        >
-          <Heart size={16} /> Saved Rooms ({bookmarkedRooms.length})
-        </button>
+      <div className="search-split-layout">
         
-        <button 
-          onClick={() => setActiveTab('preferences')}
-          style={{ 
-            padding: '0.75rem 0.5rem',
-            background: 'none',
-            border: 'none',
-            fontSize: '0.95rem',
-            fontWeight: 700,
-            color: activeTab === 'preferences' ? 'var(--primary)' : 'var(--text-light)',
-            borderBottom: activeTab === 'preferences' ? '3px solid var(--primary)' : '3px solid transparent',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem'
-          }}
-        >
-          <Settings size={16} /> Preference Matrix (AI Profile)
-        </button>
-
-        <button 
-          onClick={() => setActiveTab('inquiries')}
-          style={{ 
-            padding: '0.75rem 0.5rem',
-            background: 'none',
-            border: 'none',
-            fontSize: '0.95rem',
-            fontWeight: 700,
-            color: activeTab === 'inquiries' ? 'var(--primary)' : 'var(--text-light)',
-            borderBottom: activeTab === 'inquiries' ? '3px solid var(--primary)' : '3px solid transparent',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem'
-          }}
-        >
-          <MessageSquare size={16} /> Sent Inquiries ({tenantInquiries.length})
-        </button>
-      </div>
-
-      {/* 1. Saved Rooms Tab Grid */}
-      {activeTab === 'saved' && (
-        <div>
-          {bookmarkedRooms.length === 0 ? (
-            <div className="card text-center" style={{ padding: '4rem 1rem' }}>
-              <Heart size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
-              <h3>No Bookmarked Rooms</h3>
-              <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem 0' }}>Explore Kathmandu rooms and click the heart icon on any card to save it here.</p>
-              <Link to="/search" className="btn btn-primary btn-sm">Find Rooms Now</Link>
-            </div>
-          ) : (
-            <div className="grid-cols-3">
-              {bookmarkedRooms.map(room => (
-                <RoomCard key={room.id} room={room} />
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 2. Preferences Matrix Custom Editor */}
-      {activeTab === 'preferences' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '2.5rem' }} className="details-grid">
+        {/* Left column: Search & listings */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          {/* Editor Form */}
-          <div className="card" style={{ padding: '2rem', borderColor: 'var(--border-color)' }}>
-            <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              Edit Search Preferences
+          <div className="card" style={{ padding: '1.5rem', border: '1px solid var(--border-color)' }}>
+            <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+              <Filter size={18} style={{ color: 'var(--primary)' }} />
+              <span>Refine Your Search</span>
             </h3>
 
-            {isSavedPrefs && (
-              <div className="badge badge-secondary" style={{ padding: '0.5rem', width: '100%', marginBottom: '1rem', borderRadius: 'var(--radius-sm)' }}>
-                ✓ Preferences updated in active memory! Recalculating scores.
-              </div>
-            )}
-
-            <form onSubmit={handlePreferencesSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Search Zone</label>
-                  <select value={city} onChange={(e) => setCity(e.target.value)} className="form-input">
-                    <option value="Kathmandu">Kathmandu</option>
-                    <option value="Lalitpur">Lalitpur</option>
-                  </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '1rem' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.7rem' }}>Search Zone</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Search size={16} style={{ position: 'absolute', left: '10px', color: 'var(--text-light)' }} />
+                    <input 
+                      type="text" 
+                      placeholder="Baneshwor, Pulchowk, Kirtipur..." 
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="form-input"
+                      style={{ width: '100%', paddingLeft: '2.3rem', paddingTop: '0.5rem', paddingBottom: '0.5rem', fontSize: '0.9rem' }}
+                    />
+                  </div>
                 </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Max Budget Limit (Rs)</label>
-                  <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="form-input" />
-                </div>
-              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Layout Type</label>
-                  <select value={roomType} onChange={(e) => setRoomType(e.target.value)} className="form-input">
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.7rem' }}>Room Type</label>
+                  <select 
+                    value={selectedType} 
+                    onChange={(e) => setSelectedType(e.target.value)} 
+                    className="form-input" 
+                    style={{ padding: '0.5rem', fontSize: '0.9rem' }}
+                  >
+                    <option value="all">All Types</option>
                     <option value="Room">Single Room</option>
                     <option value="Flat">Full Flat</option>
                   </select>
                 </div>
-                
-                <div className="form-group">
-                  <label className="form-label">Sharing Layout</label>
-                  <select value={sharing} onChange={(e) => setSharing(e.target.value)} className="form-input">
-                    <option value="Single">Single Bed</option>
-                    <option value="Shared">Shared Room</option>
-                    <option value="Private">Private Flat</option>
-                  </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                  <label className="form-label" style={{ fontSize: '0.7rem' }}>Max Budget Limit</label>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>Rs. {maxBudget.toLocaleString('en-IN')}/mo</strong>
                 </div>
+                <input 
+                  type="range" 
+                  min="4000" 
+                  max="40000" 
+                  step="1000"
+                  value={maxBudget}
+                  onChange={(e) => setMaxBudget(Number(e.target.value))}
+                  style={{ accentColor: 'var(--primary)', cursor: 'pointer', width: '100%' }}
+                />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Nearest Landmark Campus</label>
-                <select value={college} onChange={(e) => setCollege(e.target.value)} className="form-input">
-                  <option value="">None / Not a student</option>
-                  <option value="Tribhuvan University">Tribhuvan University</option>
-                  <option value="Pulchowk Campus">Pulchowk Campus</option>
-                  <option value="St. Xavier's College Maitighar">St. Xavier's College Maitighar</option>
-                  <option value="Apex College Baneshwor">Apex College Baneshwor</option>
-                  <option value="United Academy Kumaripati">United Academy Kumaripati</option>
-                  <option value="Kathmandu University">Kathmandu University</option>
-                </select>
-              </div>
-
-              <div className="form-group" style={{ textAlign: 'left' }}>
-                <label className="form-label">Essential Amenities Checklist</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((item, idx) => {
-                    const isSelected = prefAmenities.includes(item);
+              <div style={{ textAlign: 'left' }}>
+                <label className="form-label" style={{ fontSize: '0.7rem', display: 'block', marginBottom: '0.5rem' }}>Facilities Required</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((amenity, i) => {
                     return (
                       <button 
-                        key={idx} 
+                        key={i} 
                         type="button"
-                        onClick={() => toggleAmenity(item)}
-                        className="btn btn-outline"
-                        style={{ 
-                          padding: '0.35rem 0.6rem', 
-                          fontSize: '0.75rem', 
-                          borderRadius: 'var(--radius-sm)',
-                          backgroundColor: isSelected ? 'var(--primary)' : 'transparent',
-                          borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
-                          color: isSelected ? 'white' : 'var(--text-muted)'
-                        }}
+                        onClick={() => setSelectedAmenities(prev => 
+                        prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
+                       )}
+                        const isChecked = {selectedAmenities.includes(amenity)}
                       >
-                        {item}
+                        {isChecked && <Check size={12} />}
+                        <span>{amenity}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-
-              <button type="submit" className="btn btn-primary" style={{ width: 'fit-content' }}>
-                Save Preferences
-              </button>
-            </form>
-          </div>
-
-          {/* AI parameters details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div className="card" style={{ borderColor: 'var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary)' }}>
-                <SlidersHorizontal size={20} />
-                <strong style={{ fontSize: '1rem' }}>Matching Vector Model</strong>
-              </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Your preferences profile maps directly to our AI models, modifying how candidate items are scored and recommended on search tabs.
-              </p>
-              <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8rem', textAlign: 'left' }}>
-                <div><strong>Current preference snapshot:</strong></div>
-                <div style={{ fontFamily: 'monospace', color: 'var(--primary)', padding: '0.5rem', backgroundColor: 'var(--bg-app)', borderRadius: 'var(--radius-sm)' }}>
-                  {JSON.stringify(tenantPreferences, null, 2)}
-                </div>
-              </div>
             </div>
           </div>
-
-        </div>
-      )}
-
-      {/* 3. Inquiries Sent tracking list */}
-      {activeTab === 'inquiries' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {tenantInquiries.length === 0 ? (
-            <div className="card text-center" style={{ padding: '4rem 1rem' }}>
-              <MessageSquare size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
-              <h3>No Messages Sent</h3>
-              <p style={{ color: 'var(--text-muted)' }}>When you inquire about listings, your inquiries timeline tracker will populate here.</p>
-            </div>
-          ) : (
-            tenantInquiries.map(inq => {
-              const matchedRoom = listings.find(l => l.id === inq.listingId);
-              return (
-                <div key={inq.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderColor: 'var(--border-color)' }}>
-                  
-                  {/* Card Header info */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
-                    <div>
-                      <strong style={{ fontSize: '1rem' }}>Listing: <Link to={`/room/${inq.listingId}`} style={{ color: 'var(--primary)' }}>{matchedRoom?.title || `Listing #${inq.listingId}`}</Link></strong>
-                      <span style={{ fontSize: '0.78rem', color: 'var(--text-light)', display: 'block' }}>
-                        Landlord contact: {matchedRoom?.landlord.name} ({matchedRoom?.landlord.phone})
-                      </span>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      {inq.status === 'replied' ? (
-                        <span className="badge badge-secondary" style={{ display: 'inline-flex', gap: '0.25rem', alignItems: 'center' }}>
-                          <CheckCircle size={12} /> Response Received
-                        </span>
-                      ) : (
-                        <span className="badge badge-accent" style={{ display: 'inline-flex', gap: '0.25rem', alignItems: 'center' }}>
-                          <Clock size={12} /> Awaiting Reply
-                        </span>
-                      )}
-                      <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
-                        Inquired {new Date(inq.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* My Inquiry Text */}
-                  <div style={{ fontSize: '0.9rem', padding: '0.75rem', backgroundColor: 'var(--bg-app)', borderRadius: 'var(--radius-md)', textAlign: 'left' }}>
-                    <strong>My Inquiry message:</strong>
-                    <div style={{ fontStyle: 'italic', marginTop: '0.25rem', color: 'var(--text-muted)' }}>"{inq.message}"</div>
-                  </div>
-
-                  {/* Landlord reply text */}
-                  {inq.status === 'replied' && (
-                    <div style={{ padding: '0.75rem', backgroundColor: 'var(--secondary-light)', borderRadius: 'var(--radius-md)', borderLeft: '4px solid var(--secondary)', fontSize: '0.9rem' }}>
-                      <strong>Response from Landlord:</strong>
-                      <div style={{ fontStyle: 'italic', marginTop: '0.25rem', color: 'var(--text-main)' }}>"{inq.replyText}"</div>
-                    </div>
-                  )}
-
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
-
-      <style>{`
+          <style>{`
         @media (max-width: 968px) {
           .details-grid {
             grid-template-columns: 1fr !important;
           }
         }
       `}</style>
+  
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
+                We found <strong>{scoredListings.length}</strong> matching rooms
+              </span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Sparkles size={12} style={{ color: 'var(--accent)' }} /> Sorted by AI Match Score
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '550px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+              {scoredListings.length === 0 ? (
+                <div className="card text-center" style={{ padding: '3rem 1rem' }}>
+                  <p style={{ color: 'var(--text-light)' }}>No active rooms match these filters.</p>
+                </div>
+              ) : (
+                scoredListings.map(listing => (
+                  <div 
+                    key={listing.id} 
+                    id={`tenant-room-card-${listing.id}`}
+                    onMouseEnter={() => setHighlightListingId(listing.id)}
+                    onMouseLeave={() => setHighlightListingId(null)}
+                    style={{ 
+                      borderRadius: 'var(--radius-lg)',
+                      border: activeListingId === listing.id ? '2px solid var(--primary)' : '2px solid transparent',
+                      transition: 'all 0.25s ease',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '12px', 
+                      right: '12px', 
+                      zIndex: 10,
+                      backgroundColor: 'rgba(99, 102, 241, 0.95)',
+                      backdropFilter: 'blur(4px)',
+                      color: 'white',
+                      padding: '0.25rem 0.6rem',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}>
+                      <Sparkles size={10} style={{ fill: 'white' }} />
+                      <span>{listing.matchScore}% Match</span>
+                    </div>
+
+                    <RoomCard room={listing} />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right column: Map */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              🗺️ Use Map to Choose Place
+            </span>
+            <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
+              Click pins to review
+            </span>
+          </div>
+
+          <div className="highlight-map-container" style={{ height: '700px', position: 'relative' }}>
+            <div className="map-badge-helper" style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 999 }}>
+              <Map size={14} />
+              <span>Map Discovery Mode</span>
+            </div>
+            
+            <MapContainer 
+              listings={scoredListings} 
+              activeListingId={activeListingId} 
+              highlightListingId={highlightListingId}
+              onMarkerClick={handleMarkerClick}
+              currentCenter={mapCenter}
+            />
+          </div>
+        </div>
+
+      </div>
     </div>
+    
   );
 };
+
+      
