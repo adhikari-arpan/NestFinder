@@ -14,7 +14,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
     if (!mapRef.current) return;
 
     // Kathmandu/Lalitpur coordinates center
-    const center = currentCenter || [27.685, 85.320]; 
+    const center = currentCenter || [27.685, 85.320];
     const zoom = currentCenter ? 15 : 13;
 
     // Initialize Map Instance
@@ -89,12 +89,12 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
     // Render Room Markers
     listings.forEach(listing => {
       const isActive = listing.id === activeListingId || listing.id === highlightListingId;
-      
+
       // Custom HTML Pin to bypass bundler image errors
       const markerHtml = `
         <div class="map-marker-pin ${isActive ? 'active' : ''}">
-          <div style="transform: rotate(45deg); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 0.65rem; color: white; font-weight: 800; font-family: var(--font-sans)">
-            Rs.${Math.round(listing.price/1000)}k
+          <div class="rotate-45 flex items-center justify-center w-full h-full text-[0.65rem] text-white font-extrabold font-sans">
+            Rs.${Math.round(listing.price / 1000)}k
           </div>
         </div>
       `;
@@ -111,17 +111,17 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
 
       // Create Sleek Popup Card
       const popupContent = `
-        <div style="width: 200px; display: flex; flex-direction: column; gap: 6px; padding: 4px;">
-          <img src="${listing.images[0]}" style="width: 100%; height: 90px; object-fit: cover; border-radius: var(--radius-sm);" />
-          <div style="font-weight: 700; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-main); margin-top: 2px;">
+        <div class="w-[200px] flex flex-col gap-1.5 p-1">
+          <img src="${listing.images[0]}" class="w-full h-[90px] object-cover rounded-[var(--radius-sm)]" />
+          <div class="font-bold text-[0.85rem] overflow-hidden text-ellipsis whitespace-nowrap text-[var(--text-main)] mt-0.5">
             ${listing.title}
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 2px;">
+          <div class="text-[0.75rem] text-[var(--text-muted)] flex items-center gap-0.5">
             📍 ${listing.location}
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-top: 4px; border-top: 1px solid var(--border-color); padding-top: 4px;">
-            <strong style="color: var(--primary);">Rs. ${listing.price.toLocaleString('en-IN')}/mo</strong>
-            <a href="/room/${listing.id}" class="popup-link" style="color: var(--secondary); font-weight: 700; text-decoration: none;">Details &rarr;</a>
+          <div class="flex justify-between items-center text-[0.8rem] mt-1 border-t border-[var(--border-color)] pt-1">
+            <strong class="text-[var(--primary)]">Rs. ${listing.price.toLocaleString('en-IN')}/mo</strong>
+            <a href="/room/${listing.id}" class="popup-link text-[var(--secondary)] font-bold no-underline">Details &rarr;</a>
           </div>
         </div>
       `;
@@ -178,7 +178,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
         activeListing.nearbyPOIs.forEach(poi => {
           let poiColor = '#ef4444'; // Hospital red
           let poiEmoji = '🏥';
-          
+
           if (poi.type === 'College') {
             poiColor = '#f59e0b'; // College orange
             poiEmoji = '🎓';
@@ -199,7 +199,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
           const poiLng = activeListing.longitude + lngOffset;
 
           const poiHtml = `
-            <div style="background-color: white; border: 2px solid ${poiColor}; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-md); font-size: 0.8rem;">
+            <div class="bg-white border-2 rounded-full w-7 h-7 flex items-center justify-center shadow-[var(--shadow-md)] text-[0.8rem]" style="border-color: ${poiColor};">
               ${poiEmoji}
             </div>
           `;
@@ -222,8 +222,8 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
 
   // CSS injection for popups inside Leaflet Map
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div ref={mapRef} style={{ width: '100%', height: '100%', zIndex: 1 }} />
+    <div className="w-full h-full relative">
+      <div ref={mapRef} className="w-full h-full z-[1]" />
       <style>{`
         .popup-link:hover {
           text-decoration: underline !important;

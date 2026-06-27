@@ -3,69 +3,68 @@ import { Link } from 'react-router-dom';
 import { Home, Globe, Share2, MessageSquare, Mail, Phone, MapPin } from 'lucide-react';
 
 export const Footer = () => {
+  const footerLinkClass = "text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]";
+  const socialIconClass = "w-9 h-9 rounded-[var(--radius-md)] bg-[var(--border-color)] text-[var(--text-main)] flex items-center justify-center transition-all hover:bg-[var(--primary)] hover:text-white hover:-translate-y-0.5";
+
   return (
-    <footer style={{ 
-      backgroundColor: 'var(--bg-card)', 
-      borderTop: '1px solid var(--border-color)',
-      padding: '4rem 0 2rem 0',
-      marginTop: 'auto',
-      transition: 'background var(--transition-normal)'
-    }}>
+    <footer className="bg-[var(--bg-card)] border-t border-[var(--border-color)] pt-16 pb-8 mt-auto transition-[background] duration-[var(--transition-normal)]">
       <div className="container">
-        <div className="grid-cols-3" style={{ gap: '3rem', marginBottom: '3rem' }}>
-          
+
+        {/* 3-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+
           {/* Brand Col */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', textAlign: 'left' }}>
-            <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1.4rem', color: 'var(--primary)' }}>
-              <Home style={{ fill: 'var(--primary)', color: '#ffffff' }} size={24} />
-              <span>Nest<span style={{ color: 'var(--text-main)' }}>Finder</span></span>
+          <div className="flex flex-col gap-5 text-left">
+            <Link to="/" className="flex items-center gap-2 font-extrabold text-[1.4rem] text-[var(--primary)]">
+              <Home size={24} style={{ fill: 'var(--primary)', color: '#ffffff' }} />
+              <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
             </Link>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+            <p className="text-[0.9rem] text-[var(--text-muted)]">
               NestFinder is Nepal's leading map-based platform designed specifically to help students and tenants discover verified room and flat rentals, powered by smart AI search algorithms.
             </p>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <a href="#" className="social-icon" aria-label="Website"><Globe size={18} /></a>
-              <a href="#" className="social-icon" aria-label="Share"><Share2 size={18} /></a>
-              <a href="#" className="social-icon" aria-label="Message"><MessageSquare size={18} /></a>
+            <div className="flex gap-3">
+              <a href="#" className={socialIconClass} aria-label="Website"><Globe size={18} /></a>
+              <a href="#" className={socialIconClass} aria-label="Share"><Share2 size={18} /></a>
+              <a href="#" className={socialIconClass} aria-label="Message"><MessageSquare size={18} /></a>
             </div>
           </div>
 
           {/* Quick Links */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', textAlign: 'left' }}>
+          <div className="grid grid-cols-2 gap-6 text-left">
             <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.25rem' }}>For Tenants</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <li><Link to="/search" className="footer-link">Find Rooms</Link></li>
-                <li><Link to="/ai-recommend" className="footer-link">AI Recommendations</Link></li>
-                <li><Link to="/auth" className="footer-link">Student Login</Link></li>
-                <li><a href="#" className="footer-link">Popular Localities</a></li>
+              <h4 className="text-[0.95rem] font-bold uppercase tracking-[0.05em] mb-5">For Tenants</h4>
+              <ul className="flex flex-col gap-3 text-[0.9rem] list-none">
+                <li><Link to="/search" className={footerLinkClass}>Find Rooms</Link></li>
+                <li><Link to="/ai-recommend" className={footerLinkClass}>AI Recommendations</Link></li>
+                <li><Link to="/auth" className={footerLinkClass}>Student Login</Link></li>
+                <li><a href="#" className={footerLinkClass}>Popular Localities</a></li>
               </ul>
             </div>
             <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '1.25rem' }}>For Landlords</h4>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <li><Link to="/dashboard/landlord?action=post" className="footer-link">Post a Listing</Link></li>
-                <li><a href="#" className="footer-link">Pricing & Plans</a></li>
-                <li><a href="#" className="footer-link">Safety Guidelines</a></li>
-                <li><a href="#" className="footer-link">Landlord FAQ</a></li>
+              <h4 className="text-[0.95rem] font-bold uppercase tracking-[0.05em] mb-5">For Landlords</h4>
+              <ul className="flex flex-col gap-3 text-[0.9rem] list-none">
+                <li><Link to="/dashboard/landlord?action=post" className={footerLinkClass}>Post a Listing</Link></li>
+                <li><a href="#" className={footerLinkClass}>Pricing & Plans</a></li>
+                <li><a href="#" className={footerLinkClass}>Safety Guidelines</a></li>
+                <li><a href="#" className={footerLinkClass}>Landlord FAQ</a></li>
               </ul>
             </div>
           </div>
 
-          {/* Contact Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', textAlign: 'left' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.25rem' }}>Contact NestFinder</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <MapPin size={16} className="text-primary-color" />
+          {/* Contact */}
+          <div className="flex flex-col gap-4 text-left">
+            <h4 className="text-[0.95rem] font-bold uppercase tracking-[0.05em]">Contact NestFinder</h4>
+            <div className="flex flex-col gap-3 text-[0.9rem] text-[var(--text-muted)]">
+              <div className="flex items-center gap-2">
+                <MapPin size={16} className="text-[var(--primary)]" />
                 <span>Maitighar Heights, Kathmandu, Nepal</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Phone size={16} className="text-primary-color" />
+              <div className="flex items-center gap-2">
+                <Phone size={16} className="text-[var(--primary)]" />
                 <span>+977-1-4432100, +977-9851000000</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Mail size={16} className="text-primary-color" />
+              <div className="flex items-center gap-2">
+                <Mail size={16} className="text-[var(--primary)]" />
                 <span>support@nestfinder.com.np</span>
               </div>
             </div>
@@ -74,56 +73,18 @@ export const Footer = () => {
         </div>
 
         {/* Bottom copyright */}
-        <div style={{ 
-          borderTop: '1px solid var(--border-color)', 
-          paddingTop: '1.5rem', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          flexWrap: 'wrap',
-          gap: '1rem',
-          fontSize: '0.85rem',
-          color: 'var(--text-light)'
-        }}>
+        <div className="border-t border-[var(--border-color)] pt-6 flex justify-between items-center flex-wrap gap-4 text-[0.85rem] text-[var(--text-light)]">
           <div>
-            &copy; {new Date().getFullYear()} NestFinder. Built for students & landlords in Nepal.
+            &copy; {new Date().getFullYear()} NestFinder. Built for students &amp; landlords in Nepal.
           </div>
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <a href="#" className="footer-link">Terms of Service</a>
-            <a href="#" className="footer-link">Privacy Policy</a>
-            <a href="#" className="footer-link">Support Hub</a>
+          <div className="flex gap-6">
+            <a href="#" className={footerLinkClass}>Terms of Service</a>
+            <a href="#" className={footerLinkClass}>Privacy Policy</a>
+            <a href="#" className={footerLinkClass}>Support Hub</a>
           </div>
         </div>
-      </div>
 
-      <style>{`
-        .footer-link {
-          color: var(--text-muted);
-          transition: color var(--transition-fast);
-        }
-        .footer-link:hover {
-          color: var(--primary);
-        }
-        .social-icon {
-          width: 36px;
-          height: 36px;
-          border-radius: var(--radius-md);
-          background-color: var(--border-color);
-          color: var(--text-main);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all var(--transition-fast);
-        }
-        .social-icon:hover {
-          background-color: var(--primary);
-          color: #ffffff;
-          transform: translateY(-2px);
-        }
-        .text-primary-color {
-          color: var(--primary);
-        }
-      `}</style>
+      </div>
     </footer>
   );
 };

@@ -3,29 +3,23 @@ import { useLocation } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { RoomCard } from '../components/RoomCard';
 import { MapContainer } from '../components/MapContainer';
-import { Search, SlidersHorizontal, RefreshCw, X, MapPin } from 'lucide-react';
+import { Search, SlidersHorizontal, RefreshCw, X } from 'lucide-react';
 
 export const SearchMap = () => {
   const { listings } = useContext(AppContext);
   const location = useLocation();
 
-  // Search/Filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
   const [selectedSharing, setSelectedSharing] = useState('all');
   const [maxBudget, setMaxBudget] = useState(40000);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [sortBy, setSortBy] = useState('recent');
-  
-  // Interactive Map states
   const [activeListingId, setActiveListingId] = useState(null);
   const [highlightListingId, setHighlightListingId] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
-
-  // College POI filter
   const [poiFilter, setPoiFilter] = useState('');
 
-  // Check URL query parameters on mount & update filters
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const locParam = params.get('location');
@@ -36,11 +30,10 @@ export const SearchMap = () => {
     if (locParam) setSearchQuery(locParam);
     if (typeParam && typeParam !== 'any') setSelectedType(typeParam);
     if (budgetParam && budgetParam !== 'any') setMaxBudget(Number(budgetParam));
-    
+
     if (poiParam) {
       setPoiFilter(poiParam);
-      // Center map on listing coordinates that are near this POI
-      const matchedListing = listings.find(l => 
+      const matchedListing = listings.find(l =>
         l.nearbyPOIs.some(poi => poi.name.toLowerCase().includes(poiParam.toLowerCase()))
       );
       if (matchedListing) {
@@ -50,135 +43,109 @@ export const SearchMap = () => {
     }
   }, [location.search]);
 
-  // List of all amenities to display in filters
   const allAmenitiesList = ["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"];
 
-  // Toggle Amenity Selection
   const handleAmenityChange = (amenity) => {
-    setSelectedAmenities(prev => 
+    setSelectedAmenities(prev =>
       prev.includes(amenity) ? prev.filter(a => a !== amenity) : [...prev, amenity]
     );
   };
 
-  // Reset Filters
   const resetFilters = () => {
-    setSearchQuery('');
-    setSelectedType('all');
-    setSelectedSharing('all');
-    setMaxBudget(40000);
-    setSelectedAmenities([]);
-    setPoiFilter('');
-    setSortBy('recent');
-    setActiveListingId(null);
-    setHighlightListingId(null);
-    setMapCenter(null);
+    setSearchQuery(''); setSelectedType('all'); setSelectedSharing('all');
+    setMaxBudget(40000); setSelectedAmenities([]); setPoiFilter('');
+    setSortBy('recent'); setActiveListingId(null);
+    setHighlightListingId(null); setMapCenter(null);
   };
 
-  // Filter listings
   const filteredListings = listings.filter(item => {
-    // Only display verified or pending active listings (in dashboard we show pending, in public we only show verified)
     if (item.status !== 'verified') return false;
-
-    // Search Query match (title, location, description)
-    const matchesQuery = 
+    const matchesQuery =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
-
-    // Type match
     const matchesType = selectedType === 'all' || item.type === selectedType;
-
-    // Sharing match
     const matchesSharing = selectedSharing === 'all' || item.sharing === selectedSharing;
-
-    // Budget match
     const matchesBudget = item.price <= maxBudget;
-
-    // Amenities match
-    const matchesAmenities = selectedAmenities.every(amenity => 
-      item.amenities.includes(amenity)
-    );
-
-    // POI Match
-    const matchesPOI = !poiFilter || item.nearbyPOIs.some(poi => 
+    const matchesAmenities = selectedAmenities.every(a => item.amenities.includes(a));
+    const matchesPOI = !poiFilter || item.nearbyPOIs.some(poi =>
       poi.name.toLowerCase().includes(poiFilter.toLowerCase())
     );
-
     return matchesQuery && matchesType && matchesSharing && matchesBudget && matchesAmenities && matchesPOI;
   });
 
-  // Sort filtered listings
   const sortedListings = [...filteredListings].sort((a, b) => {
     if (sortBy === 'price-low') return a.price - b.price;
     if (sortBy === 'price-high') return b.price - a.price;
     if (sortBy === 'popular') return b.views - a.views;
-    // 'recent' by default
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
   const handleMarkerClick = (listingId) => {
     setActiveListingId(listingId);
-    // Find the elements in the scroll view and scroll to it if possible
     const element = document.getElementById(`room-card-${listingId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   return (
-    <div className="search-map-layout animate-fade-in">
-      
-      {/* 1. Left Search Filter and Results Panel */}
-      <div className="search-sidebar">
-        
+    // search-map-layout: flex, height calc(100vh - 70px), overflow hidden
+    // on mobile: flex-col, height auto
+    <div className="flex overflow-hidden h-[calc(100vh-70px)] max-md:flex-col max-md:h-auto animate-fade-in">
+
+      {/* Left Sidebar */}
+      {/* search-sidebar: w-40%, h-full, overflow-y-auto, border-right, bg-sidebar, flex col */}
+      {/* mobile: w-full, h-500px, border-bottom instead */}
+      <div className="w-[40%] h-full overflow-y-auto border-r border-[var(--border-color)] bg-[var(--bg-sidebar)] flex flex-col max-md:w-full max-md:h-[500px] max-md:border-r-0 max-md:border-b max-md:border-b-[var(--border-color)]">
+
         {/* Filters Top Section */}
-        <div style={{ padding: '1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          
+        <div className="p-5 border-b border-[var(--border-color)] flex flex-col gap-4">
+
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <SlidersHorizontal size={18} style={{ color: 'var(--primary)' }} />
+          <div className="flex justify-between items-center">
+            <h2 className="text-[1.25rem] flex items-center gap-2">
+              <SlidersHorizontal size={18} className="text-[var(--primary)]" />
               Filter Listings
             </h2>
-            <button onClick={resetFilters} className="btn btn-ghost btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem' }}>
+            <button onClick={resetFilters} className="btn btn-ghost btn-sm flex items-center gap-1 px-2 py-1">
               <RefreshCw size={12} /> Reset
             </button>
           </div>
 
           {/* Search Box */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <Search size={18} style={{ position: 'absolute', left: '10px', color: 'var(--text-light)' }} />
-              <input 
-                type="text" 
-                placeholder="Search area, neighborhood, colleges..." 
+          <div className="form-group mb-0">
+            <div className="relative flex items-center">
+              <Search size={18} className="absolute left-2.5 text-[var(--text-light)]" />
+              <input
+                type="text"
+                placeholder="Search area, neighborhood, colleges..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="form-input"
-                style={{ width: '100%', paddingLeft: '2.5rem' }}
+                className="form-input w-full pl-10"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} style={{ position: 'absolute', right: '10px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}>
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 bg-transparent border-none text-[var(--text-light)] cursor-pointer"
+                >
                   <X size={16} />
                 </button>
               )}
             </div>
           </div>
 
-          {/* Type and Sharing Filter Selectors */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '0.7rem' }}>Room Type</label>
-              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="form-input" style={{ padding: '0.5rem' }}>
+          {/* Type & Sharing selects */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="form-group mb-0">
+              <label className="form-label text-[0.7rem]">Room Type</label>
+              <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="form-input py-2">
                 <option value="all">All Types</option>
                 <option value="Room">Single Room</option>
                 <option value="Flat">Full Flat</option>
               </select>
             </div>
-            
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" style={{ fontSize: '0.7rem' }}>Sharing Type</label>
-              <select value={selectedSharing} onChange={(e) => setSelectedSharing(e.target.value)} className="form-input" style={{ padding: '0.5rem' }}>
+            <div className="form-group mb-0">
+              <label className="form-label text-[0.7rem]">Sharing Type</label>
+              <select value={selectedSharing} onChange={(e) => setSelectedSharing(e.target.value)} className="form-input py-2">
                 <option value="all">All Sharing</option>
                 <option value="Single">Single Bed</option>
                 <option value="Shared">Shared Room</option>
@@ -188,45 +155,41 @@ export const SearchMap = () => {
           </div>
 
           {/* Budget Slider */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label className="form-label" style={{ fontSize: '0.7rem' }}>Max Budget</label>
-              <strong style={{ fontSize: '0.85rem', color: 'var(--primary)' }}>Rs. {maxBudget.toLocaleString('en-IN')}</strong>
+          <div className="form-group mb-0">
+            <div className="flex justify-between items-center">
+              <label className="form-label text-[0.7rem]">Max Budget</label>
+              <strong className="text-[0.85rem] text-[var(--primary)]">Rs. {maxBudget.toLocaleString('en-IN')}</strong>
             </div>
-            <input 
-              type="range" 
-              min="2000" 
-              max="40000" 
-              step="1000"
+            <input
+              type="range" min="2000" max="40000" step="1000"
               value={maxBudget}
               onChange={(e) => setMaxBudget(Number(e.target.value))}
-              style={{ accentColor: 'var(--primary)', cursor: 'pointer' }}
+              className="w-full cursor-pointer accent-[var(--primary)]"
             />
           </div>
 
-          {/* College Quick Indicator if active */}
+          {/* Active POI filter pill */}
           {poiFilter && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'var(--primary-light)', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-sm)', width: 'fit-content', fontSize: '0.8rem', color: 'var(--primary)' }}>
+            <div className="inline-flex items-center gap-1 bg-[var(--primary-light)] px-2 py-1 rounded-[var(--radius-sm)] w-fit text-[0.8rem] text-[var(--primary)]">
               <span>College: <strong>{poiFilter}</strong></span>
-              <button onClick={() => setPoiFilter('')} style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', display: 'flex' }}><X size={12} /></button>
+              <button onClick={() => setPoiFilter('')} className="bg-transparent border-none text-[var(--primary)] cursor-pointer flex">
+                <X size={12} />
+              </button>
             </div>
           )}
 
-          {/* Amenities Accordion / Expandable checkboxes */}
-          <div style={{ textAlign: 'left' }}>
-            <label className="form-label" style={{ fontSize: '0.7rem', display: 'block', marginBottom: '0.5rem' }}>Amenities Required</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+          {/* Amenities */}
+          <div className="text-left">
+            <label className="form-label text-[0.7rem] block mb-2">Amenities Required</label>
+            <div className="flex flex-wrap gap-2">
               {allAmenitiesList.map((amenity, i) => {
                 const isChecked = selectedAmenities.includes(amenity);
                 return (
-                  <button 
-                    key={i} 
+                  <button
+                    key={i}
                     onClick={() => handleAmenityChange(amenity)}
-                    className="btn btn-outline"
-                    style={{ 
-                      padding: '0.35rem 0.6rem', 
-                      fontSize: '0.75rem', 
-                      borderRadius: 'var(--radius-sm)',
+                    className="btn btn-outline px-2.5 py-1.5 text-[0.75rem] rounded-[var(--radius-sm)] transition-colors"
+                    style={{
                       backgroundColor: isChecked ? 'var(--primary)' : 'var(--bg-app)',
                       borderColor: isChecked ? 'var(--primary)' : 'var(--border-color)',
                       color: isChecked ? 'white' : 'var(--text-muted)'
@@ -241,12 +204,16 @@ export const SearchMap = () => {
 
         </div>
 
-        {/* Results Counter and Sorter */}
-        <div style={{ padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-app)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-light)' }}>
+        {/* Results Counter & Sort */}
+        <div className="px-5 py-3 border-b border-[var(--border-color)] bg-[var(--bg-app)] flex justify-between items-center">
+          <span className="text-[0.85rem] text-[var(--text-light)]">
             Showing <strong>{sortedListings.length}</strong> rooms in Kathmandu
           </span>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{ padding: '0.25rem', border: 'none', background: 'none', fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, cursor: 'pointer' }}>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="p-1 border-none bg-transparent text-[0.8rem] text-[var(--text-muted)] font-semibold cursor-pointer"
+          >
             <option value="recent">Newest Listings</option>
             <option value="price-low">Price: Low to High</option>
             <option value="price-high">Price: High to Low</option>
@@ -254,24 +221,23 @@ export const SearchMap = () => {
           </select>
         </div>
 
-        {/* Room Card List */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }} className="search-results-list">
+        {/* Room Cards List */}
+        <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-4">
           {sortedListings.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-light)' }}>
-              <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>No rooms matched your criteria.</p>
+            <div className="text-center py-12 px-4 text-[var(--text-light)]">
+              <p className="text-[1.1rem] mb-2">No rooms matched your criteria.</p>
               <button onClick={resetFilters} className="btn btn-outline btn-sm">Clear Filters</button>
             </div>
           ) : (
             sortedListings.map(listing => (
-              <div 
-                key={listing.id} 
+              <div
+                key={listing.id}
                 id={`room-card-${listing.id}`}
                 onMouseEnter={() => setHighlightListingId(listing.id)}
                 onMouseLeave={() => setHighlightListingId(null)}
-                style={{ 
-                  borderRadius: 'var(--radius-lg)',
+                className="rounded-[var(--radius-lg)] transition-[border-color,box-shadow] duration-[var(--transition-fast)]"
+                style={{
                   border: activeListingId === listing.id ? '2px solid var(--primary)' : '2px solid transparent',
-                  transition: 'border-color var(--transition-fast)',
                   boxShadow: activeListingId === listing.id ? 'var(--shadow-md)' : 'none'
                 }}
               >
@@ -283,11 +249,12 @@ export const SearchMap = () => {
 
       </div>
 
-      {/* 2. Right Interactive Map */}
-      <div className="map-viewport">
-        <MapContainer 
-          listings={sortedListings} 
-          activeListingId={activeListingId} 
+      {/* Right Map */}
+      {/* map-viewport: w-60%, h-full, relative — mobile: w-full, h-400px */}
+      <div className="w-[60%] h-full relative max-md:w-full max-md:h-[400px]">
+        <MapContainer
+          listings={sortedListings}
+          activeListingId={activeListingId}
           highlightListingId={highlightListingId}
           onMarkerClick={handleMarkerClick}
           currentCenter={mapCenter}

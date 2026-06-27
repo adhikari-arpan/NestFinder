@@ -3,19 +3,14 @@ import { Link, useLocation } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { 
   Home, 
-  Map, 
   Sparkles, 
   Bell, 
   Sun, 
   Moon, 
-  User, 
   LogOut, 
-  PlusCircle, 
   Menu, 
   X, 
   ShieldAlert,
-  ChevronDown,
-  Plus
 } from 'lucide-react';
 
 export const Navbar = () => {
@@ -41,94 +36,110 @@ export const Navbar = () => {
 
   const isActive = (path) => location.pathname === path;
 
-  // ── Determine if the current user is a guest ──
   const isGuest = !currentUser;
   const isAdmin = currentUser?.role === 'admin';
   const isLandlord = currentUser?.role === 'landlord';
   const isTenant = currentUser?.role === 'tenant';
 
+  const navLinkClass = (path) =>
+    `font-medium text-[0.95rem] relative py-1 transition-colors ${
+      isActive(path)
+        ? 'text-[var(--primary)] after:content-[""] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-[var(--primary)] after:rounded-full'
+        : 'text-[var(--text-muted)] hover:text-[var(--primary)]'
+    }`;
+
+  const iconBtnClass =
+    'bg-transparent border-none text-[var(--text-main)] w-[38px] h-[38px] rounded-[var(--radius-md)] cursor-pointer flex items-center justify-center transition-all hover:bg-[var(--border-color)] hover:text-[var(--primary)]';
+
   return (
-    <nav className="glass sticky-nav" style={{ 
-      position: 'sticky', 
-      top: 0, 
-      zIndex: 1000, 
-      borderBottom: '1px solid var(--border-color)',
-      padding: '0.75rem 0',
-      transition: 'background var(--transition-normal)'
-    }}>
-      <div className="container" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        position: 'relative'
-      }}>
-        {/* ── Logo ── */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '1.4rem', fontFamily: 'var(--font-display)', color: 'var(--primary)' }}>
-          <Home style={{ fill: 'var(--primary)', color: '#ffffff' }} size={24} />
-          <span>Nest<span style={{ color: 'var(--text-main)' }}>Finder</span></span>
+    <nav
+      className="glass sticky-nav sticky top-0 z-[1000] border-b border-[var(--border-color)] py-3 transition-[background] duration-[var(--transition-normal)]"
+    >
+      <div className="container flex justify-between items-center relative">
+
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 font-extrabold text-[1.4rem] text-[var(--primary)]"
+          style={{ fontFamily: 'var(--font-display)' }}
+        >
+          <Home size={24} style={{ fill: 'var(--primary)', color: '#ffffff' }} />
+          <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
         </Link>
 
-        {/* Desktop Navigation Links */}
+        {/* Desktop Nav Links */}
         {currentUser && (
-          <div style={{ display: 'none', md: 'flex', alignItems: 'center', gap: '1.5rem' }} className="desktop-links">
-            <Link to="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
-            <Link to="/search" className={`nav-link ${isActive('/search') ? 'active' : ''}`}>Find Rooms</Link>
-            <Link to="/ai-recommend" className={`nav-link ${isActive('/ai-recommend') ? 'active' : ''}`}>
-              <Sparkles size={16} style={{ marginRight: '4px', verticalAlign: 'middle', display: 'inline', color: 'var(--accent)' }} />
+          <div className="hidden md:flex items-center gap-6">
+            <Link to="/" className={navLinkClass('/')}>Home</Link>
+            <Link to="/search" className={navLinkClass('/search')}>Find Rooms</Link>
+            <Link to="/ai-recommend" className={navLinkClass('/ai-recommend')}>
+              <Sparkles size={16} className="inline mr-1 align-middle text-[var(--accent)]" />
               AI Recommendations
             </Link>
             {currentUser.role === 'tenant' && (
-              <Link to="/dashboard/tenant" className={`nav-link ${isActive('/dashboard/tenant') ? 'active' : ''}`}>My Dashboard</Link>
+              <Link to="/dashboard/tenant" className={navLinkClass('/dashboard/tenant')}>My Dashboard</Link>
             )}
             {currentUser.role === 'landlord' && (
-              <Link to="/dashboard/landlord" className={`nav-link ${isActive('/dashboard/landlord') ? 'active' : ''}`}>Landlord Hub</Link>
+              <Link to="/dashboard/landlord" className={navLinkClass('/dashboard/landlord')}>Landlord Hub</Link>
             )}
             {currentUser.role === 'admin' && (
-              <Link to="/dashboard/admin" className={`nav-link ${isActive('/dashboard/admin') ? 'active' : ''}`}>
-                <ShieldAlert size={16} style={{ display: 'inline', marginRight: '4px' }} />
+              <Link to="/dashboard/admin" className={navLinkClass('/dashboard/admin')}>
+                <ShieldAlert size={16} className="inline mr-1" />
                 Admin
               </Link>
             )}
           </div>
         )}
 
-        {/* ── Right Action Area ── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        {/* Right Action Area */}
+        <div className="flex items-center gap-3">
 
-          {/* Theme Selector */}
-          <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle Theme">
+          {/* Theme Toggle */}
+          <button onClick={toggleTheme} className={iconBtnClass} aria-label="Toggle Theme">
             {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
           </button>
 
-          {/* Notifications Trigger */}
+          {/* Notifications */}
           {currentUser && (
-            <div style={{ position: 'relative' }}>
-              <button onClick={() => setNotifOpen(!notifOpen)} className="icon-btn" aria-label="Notifications">
+            <div className="relative">
+              <button onClick={() => setNotifOpen(!notifOpen)} className={iconBtnClass} aria-label="Notifications">
                 <Bell size={20} />
                 {unreadNotifs.length > 0 && (
-                  <span className="notif-badge">{unreadNotifs.length}</span>
+                  <span className="absolute top-1 right-1 bg-[var(--danger)] text-white text-[0.65rem] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center border-2 border-[var(--bg-card)]">
+                    {unreadNotifs.length}
+                  </span>
                 )}
               </button>
 
               {notifOpen && (
-                <div className="card shadow-xl notification-dropdown">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                    <h4 style={{ fontSize: '0.95rem' }}>Notifications</h4>
+                <div className="card shadow-xl absolute top-[130%] right-[-50px] w-[320px] max-h-[400px] overflow-y-auto z-[1010] p-4 border border-[var(--border-color)]">
+                  <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--border-color)]">
+                    <h4 className="text-[0.95rem]">Notifications</h4>
                     {unreadNotifs.length > 0 && (
-                      <button onClick={markAllRead} style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.75rem', cursor: 'pointer', fontWeight: 600 }}>
+                      <button
+                        onClick={markAllRead}
+                        className="bg-transparent border-none text-[var(--primary)] text-[0.75rem] cursor-pointer font-semibold"
+                      >
                         Mark all read
                       </button>
                     )}
                   </div>
-                  <div className="notif-list">
+                  <div className="flex flex-col gap-2">
                     {notifications.length === 0 ? (
-                      <p style={{ textAlign: 'center', fontSize: '0.85rem', padding: '1rem' }}>No notifications</p>
+                      <p className="text-center text-[0.85rem] p-4">No notifications</p>
                     ) : (
                       notifications.map(n => (
-                        <div key={n.id} className={`notif-item ${n.read ? 'read' : 'unread'}`}>
-                          <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{n.title}</div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{n.message}</div>
-                          <span style={{ fontSize: '0.65rem', color: 'var(--text-light)' }}>
+                        <div
+                          key={n.id}
+                          className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${
+                            n.read
+                              ? 'bg-transparent border-l-[var(--border-color)]'
+                              : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
+                          }`}
+                        >
+                          <div className="font-semibold text-[0.85rem]">{n.title}</div>
+                          <div className="text-[0.75rem] text-[var(--text-muted)]">{n.message}</div>
+                          <span className="text-[0.65rem] text-[var(--text-light)]">
                             {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
@@ -140,25 +151,36 @@ export const Navbar = () => {
             </div>
           )}
 
-          {/* Authenticated user UI / CTA buttons */}
+          {/* User Area */}
           {currentUser ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }} className="desktop-links">
-                Welcome, <span style={{ color: 'var(--primary)' }}>{currentUser.name}</span>
+            <div className="flex items-center gap-3">
+              <span className="hidden md:inline text-[0.85rem] font-semibold text-[var(--text-main)]">
+                Welcome, <span className="text-[var(--primary)]">{currentUser.name}</span>
               </span>
-              
+
               {currentUser.role === 'tenant' && (
-                <Link to="/ai-recommend" className="btn btn-secondary btn-sm btn-icon-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Link
+                  to="/ai-recommend"
+                  className="btn btn-secondary btn-sm hidden md:flex items-center gap-1"
+                >
                   <Sparkles size={16} />
-                  <span className="btn-text">Find Match</span>
+                  <span>Find Match</span>
                 </Link>
               )}
-              
-              <Link to={currentUser.role === 'tenant' ? '/dashboard/tenant' : (currentUser.role === 'landlord' ? '/dashboard/landlord' : '/dashboard/admin')}>
-                <img 
-                  src={currentUser.avatar} 
-                  alt="avatar" 
-                  style={{ width: '36px', height: '36px', borderRadius: '50%', border: '2px solid var(--primary)', objectFit: 'cover' }} 
+
+              <Link
+                to={
+                  currentUser.role === 'tenant'
+                    ? '/dashboard/tenant'
+                    : currentUser.role === 'landlord'
+                    ? '/dashboard/landlord'
+                    : '/dashboard/admin'
+                }
+              >
+                <img
+                  src={currentUser.avatar}
+                  alt="avatar"
+                  className="w-9 h-9 rounded-full border-2 border-[var(--primary)] object-cover"
                 />
               </Link>
             </div>
@@ -166,170 +188,47 @@ export const Navbar = () => {
             <Link to="/auth" className="btn btn-primary btn-sm">Sign In</Link>
           )}
 
-          {/* ── Mobile Menu Toggle ── */}
-          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-toggle icon-btn">
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className={`${iconBtnClass} flex md:hidden`}
+          >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
-        {/* ── Mobile Navigation Dropdown ── */}
+        {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="mobile-menu glass animate-fade-in">
-            <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-            <Link to="/search" onClick={() => setMobileMenuOpen(false)}>Find Rooms</Link>
-            <Link to="/ai-recommend" onClick={() => setMobileMenuOpen(false)}>AI Match Finder</Link>
-            {currentUser?.role === 'tenant' && <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)}>My Dashboard</Link>}
-            {currentUser?.role === 'landlord' && <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)}>Landlord Hub</Link>}
-            {currentUser?.role === 'admin' && <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>}
-            {!currentUser && <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>Sign In</Link>}
+          <div className="glass animate-fade-in absolute top-full left-0 right-0 bg-[var(--bg-card)] p-4 flex flex-col gap-3 rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] mt-2 border border-[var(--border-color)] z-50">
+            {[
+              { to: '/', label: 'Home' },
+              { to: '/search', label: 'Find Rooms' },
+              { to: '/ai-recommend', label: 'AI Match Finder' },
+            ].map(({ to, label }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
+              >
+                {label}
+              </Link>
+            ))}
+            {currentUser?.role === 'tenant' && (
+              <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">My Dashboard</Link>
+            )}
+            {currentUser?.role === 'landlord' && (
+              <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Landlord Hub</Link>
+            )}
+            {currentUser?.role === 'admin' && (
+              <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Admin Dashboard</Link>
+            )}
+            {!currentUser && (
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Sign In</Link>
+            )}
           </div>
         )}
       </div>
-
-      {/* ── Component Styles ── */}
-      <style>{`
-        .desktop-links {
-          display: flex;
-        }
-        .nav-link {
-          font-weight: 500;
-          font-size: 0.95rem;
-          color: var(--text-muted);
-          position: relative;
-          padding: 0.25rem 0;
-        }
-        .nav-link:hover, .nav-link.active {
-          color: var(--primary);
-        }
-        .nav-link.active::after {
-          content: '';
-          position: absolute;
-          bottom: -4px;
-          left: 0;
-          width: 100%;
-          height: 2px;
-          background-color: var(--primary);
-          border-radius: var(--radius-full);
-        }
-        .icon-btn {
-          background: none;
-          border: none;
-          color: var(--text-main);
-          width: 38px;
-          height: 38px;
-          border-radius: var(--radius-md);
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all var(--transition-fast);
-        }
-        .icon-btn:hover {
-          background-color: var(--border-color);
-          color: var(--primary);
-        }
-        .notif-badge {
-          position: absolute;
-          top: 4px;
-          right: 4px;
-          background-color: var(--danger);
-          color: white;
-          font-size: 0.65rem;
-          font-weight: 700;
-          min-width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 2px solid var(--bg-card);
-        }
-        .notification-dropdown {
-          position: absolute;
-          top: 130%;
-          right: -50px;
-          width: 320px;
-          max-height: 400px;
-          overflow-y: auto;
-          z-index: 1010;
-          padding: 1rem;
-          border-color: var(--border-color);
-        }
-        .notif-list {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-        .notif-item {
-          padding: 0.6rem;
-          border-radius: var(--radius-md);
-          border-left: 3px solid transparent;
-          transition: background-color var(--transition-fast);
-        }
-        .notif-item.unread {
-          background-color: var(--primary-light);
-          border-left-color: var(--primary);
-        }
-        .notif-item.read {
-          background-color: transparent;
-          border-left-color: var(--border-color);
-        }
-        .notif-item:hover {
-          background-color: var(--bg-app);
-        }
-        .mobile-toggle {
-          display: none;
-        }
-        .mobile-menu {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          right: 0;
-          background-color: var(--bg-card);
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-          border-radius: var(--radius-md);
-          box-shadow: var(--shadow-lg);
-          margin-top: 0.5rem;
-          border: 1px solid var(--border-color);
-        }
-        .mobile-menu a {
-          padding: 0.5rem;
-          border-radius: var(--radius-sm);
-          font-weight: 500;
-        }
-        .mobile-menu a:hover {
-          background-color: var(--primary-light);
-          color: var(--primary);
-        }
-        .add-listing-btn:hover {
-          transform: translateY(-2px) scale(1.04);
-          box-shadow: 0 6px 25px rgba(99,102,241,0.5), 0 0 0 0 rgba(16,185,129,0.4);
-        }
-        .add-listing-btn:active {
-          transform: translateY(0) scale(1);
-        }
-        @media (max-width: 968px) {
-          .desktop-links {
-            display: none !important;
-          }
-          .mobile-toggle {
-            display: flex !important;
-          }
-          .btn-text {
-            display: none;
-          }
-          .welcome-nav-text {
-            display: none !important;
-          }
-          .add-listing-btn {
-            padding: 0.5rem !important;
-            border-radius: 50% !important;
-          }
-        }
-      `}</style>
     </nav>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { AppContext} from "../Context/AppContext";
+import { AppContext } from "../Context/AppContext";
 import { MapContainer } from '../components/MapContainer';
 import { RoomCard } from '../components/RoomCard';
 import { 
@@ -11,13 +11,10 @@ import {
   Mail, 
   CheckCircle2, 
   ArrowLeft, 
-  Users, 
-  Building, 
   Share2,
   Calendar,
   Eye,
   Star,
-  Layers,
   Sparkles
 } from 'lucide-react';
 
@@ -44,23 +41,19 @@ export const RoomDetails = () => {
     message: 'Hello, I am interested in this listing. Please let me know when I can visit it.'
   });
 
-  // Set first image as default active image on load
   useEffect(() => {
     if (room && room.images && room.images.length > 0) {
       setActiveImage(room.images[0]);
     }
-    // Reset enquiry form status
     setInquirySent(false);
-    
-    // Scroll window to top on mount
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [room, id]);
 
   if (!room) {
     return (
-      <div className="container" style={{ padding: '5rem 1rem', textAlign: 'center' }}>
+      <div className="container py-20 px-4 text-center">
         <h2>Listing Not Found</h2>
-        <p style={{ margin: '1rem 0 2rem 0' }}>The room listing you are trying to view does not exist or has been removed.</p>
+        <p className="my-4 mb-8">The room listing you are trying to view does not exist or has been removed.</p>
         <Link to="/search" className="btn btn-primary">Back to Search</Link>
       </div>
     );
@@ -75,15 +68,11 @@ export const RoomDetails = () => {
 
   const handleInquirySubmit = (e) => {
     e.preventDefault();
-    if (!contactForm.phone) {
-      alert("Please provide a phone number.");
-      return;
-    }
+    if (!contactForm.phone) { alert("Please provide a phone number."); return; }
     sendInquiry(room.id, contactForm);
     setInquirySent(true);
   };
 
-  // Find similar rooms (same city or within +/- 5000 Rs range)
   const similarRooms = listings
     .filter(l => l.id !== room.id && l.status === 'verified')
     .map(l => ({
@@ -99,77 +88,60 @@ export const RoomDetails = () => {
     .sort((a, b) => b.similarityScore - a.similarityScore)
     .slice(0, 3);
 
+  const sectionHeadingClass = "text-[1.2rem] border-b border-[var(--border-color)] pb-2";
+
   return (
-    <div className="container animate-fade-in" style={{ padding: '2rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
-      
-      {/* Navigation & Actions Row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-          <ArrowLeft size={16} />
-          <span>Back</span>
+    <div className="container animate-fade-in px-6 pt-8 pb-20 text-left">
+
+      {/* Nav Row */}
+      <div className="flex justify-between items-center mb-6">
+        <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm flex items-center gap-1">
+          <ArrowLeft size={16} /> Back
         </button>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button 
-            onClick={() => {
-              navigator.clipboard.writeText(window.location.href);
-              alert("Listing link copied to clipboard!");
-            }}
-            className="btn btn-outline btn-sm" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+        <div className="flex gap-2">
+          <button
+            onClick={() => { navigator.clipboard.writeText(window.location.href); alert("Listing link copied to clipboard!"); }}
+            className="btn btn-outline btn-sm flex items-center gap-1"
           >
-            <Share2 size={16} />
-            <span>Share</span>
+            <Share2 size={16} /> Share
           </button>
-          <button 
+          <button
             onClick={() => toggleSaveListing(room.id)}
-            className="btn btn-outline btn-sm" 
-            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', borderColor: isSaved ? 'var(--danger)' : 'var(--border-color)', color: isSaved ? 'var(--danger)' : 'inherit' }}
+            className={`btn btn-outline btn-sm flex items-center gap-1 ${isSaved ? 'text-[var(--danger)] border-[var(--danger)]' : 'border-[var(--border-color)]'}`}
           >
             <Heart size={16} style={{ fill: isSaved ? 'var(--danger)' : 'none' }} />
-            <span>{isSaved ? 'Saved' : 'Save'}</span>
+            {isSaved ? 'Saved' : 'Save'}
           </button>
         </div>
       </div>
 
-      {/* Main Grid: Left Details (3/5), Right Map & Landlord Sidebar (2/5) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr', gap: '2.5rem' }} className="details-grid">
-        
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-[1.4fr_0.8fr] gap-10">
+
         {/* Left Column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          
-          {/* Gallery Widget */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ width: '100%', height: '400px', borderRadius: 'var(--radius-lg)', overflow: 'hidden', border: '1px solid var(--border-color)', position: 'relative' }}>
-              <img 
-                src={activeImage} 
-                alt="Active listing"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+        <div className="flex flex-col gap-8">
+
+          {/* Gallery */}
+          <div className="flex flex-col gap-3">
+            <div className="w-full h-[400px] rounded-[var(--radius-lg)] overflow-hidden border border-[var(--border-color)] relative">
+              <img src={activeImage} alt="Active listing" className="w-full h-full object-cover" />
               {room.featured && (
-                <span className="badge badge-accent" style={{ position: 'absolute', top: '15px', left: '15px', zIndex: 5, padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                <span className="badge badge-accent absolute top-[15px] left-[15px] z-[5] px-3 py-1.5 text-[0.8rem]">
                   Popular Choice
                 </span>
               )}
             </div>
-
-            {/* Thumbnail Strip */}
             {room.images && room.images.length > 1 && (
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div className="flex gap-3">
                 {room.images.map((img, index) => (
-                  <button 
-                    key={index} 
+                  <button
+                    key={index}
                     onClick={() => setActiveImage(img)}
-                    style={{ 
-                      width: '80px', 
-                      height: '60px', 
-                      borderRadius: 'var(--radius-sm)', 
-                      overflow: 'hidden', 
-                      border: activeImage === img ? '2px solid var(--primary)' : '1px solid var(--border-color)',
-                      cursor: 'pointer',
-                      padding: 0
-                    }}
+                    className={`w-20 h-[60px] rounded-[var(--radius-sm)] overflow-hidden p-0 cursor-pointer border ${
+                      activeImage === img ? 'border-2 border-[var(--primary)]' : 'border border-[var(--border-color)]'
+                    }`}
                   >
-                    <img src={img} alt={`thumbnail ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={img} alt={`thumbnail ${index}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -178,82 +150,78 @@ export const RoomDetails = () => {
 
           {/* Heading Info */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '0.5rem' }}>
+            <div className="flex justify-between items-start flex-wrap gap-4 mb-2">
               <div>
-                <span className="badge badge-primary" style={{ marginBottom: '0.5rem' }}>{room.sharing} Sharing • {room.type}</span>
-                <h1 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>{room.title}</h1>
+                <span className="badge badge-primary mb-2">{room.sharing} Sharing • {room.type}</span>
+                <h1 className="text-[1.8rem] font-extrabold m-0">{room.title}</h1>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)', display: 'block' }}>
+              <div className="text-right">
+                <span className="text-[1.8rem] font-extrabold text-[var(--primary)] block">
                   Rs. {room.price.toLocaleString('en-IN')}
                 </span>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>per month (utilities negotiable)</span>
+                <span className="text-[0.85rem] text-[var(--text-muted)]">per month (utilities negotiable)</span>
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap', fontSize: '0.9rem', color: 'var(--text-light)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.75rem 0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <MapPin size={16} style={{ color: 'var(--primary)' }} />
+            <div className="flex items-center gap-6 flex-wrap text-[0.9rem] text-[var(--text-light)] border-t border-b border-[var(--border-color)] py-3">
+              <div className="flex items-center gap-1">
+                <MapPin size={16} className="text-[var(--primary)]" />
                 <span>{room.location}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div className="flex items-center gap-1">
                 <Eye size={16} />
                 <span>{room.views} views</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div className="flex items-center gap-1">
                 <Star size={16} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
                 <span>{room.rating} ({room.reviews.length} reviews)</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div className="flex items-center gap-1">
                 <Calendar size={16} />
                 <span>Listed {new Date(room.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           </div>
 
-          {/* Description Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Description</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.98rem', lineHeight: '1.7' }}>
-              {room.description}
-            </p>
+          {/* Description */}
+          <div className="flex flex-col gap-3">
+            <h3 className={sectionHeadingClass}>Description</h3>
+            <p className="text-[var(--text-muted)] text-[0.98rem] leading-[1.7]">{room.description}</p>
           </div>
 
-          {/* Amenities checklist */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Facilities Available</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginTop: '0.5rem' }}>
+          {/* Amenities */}
+          <div className="flex flex-col gap-3">
+            <h3 className={sectionHeadingClass}>Facilities Available</h3>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mt-2">
               {room.amenities.map((amenity, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.95rem' }}>
-                  <CheckCircle2 size={18} style={{ color: 'var(--secondary)' }} />
+                <div key={i} className="flex items-center gap-2 text-[0.95rem]">
+                  <CheckCircle2 size={18} className="text-[var(--secondary)]" />
                   <span>{amenity}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Nearby POIs Proximity List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.2rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Nearby Points of Interest (Walk Distance)</h3>
-            <div className="card" style={{ padding: 0, overflow: 'hidden', borderColor: 'var(--border-color)' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }} className="poi-table">
+          {/* Nearby POIs Table */}
+          <div className="flex flex-col gap-3">
+            <h3 className={sectionHeadingClass}>Nearby Points of Interest (Walk Distance)</h3>
+            <div className="card p-0 overflow-hidden border border-[var(--border-color)]">
+              <table className="w-full border-collapse text-[0.9rem] poi-table">
                 <thead>
-                  <tr style={{ backgroundColor: 'var(--bg-app)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
-                    <th style={{ padding: '0.75rem 1rem' }}>POI Name</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Category</th>
-                    <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Distance</th>
+                  <tr className="bg-[var(--bg-app)] border-b border-[var(--border-color)] text-left">
+                    <th className="px-4 py-3">POI Name</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3 text-right">Distance</th>
                   </tr>
                 </thead>
                 <tbody>
                   {room.nearbyPOIs.map((poi, idx) => (
-                    <tr key={idx} style={{ borderBottom: idx === room.nearbyPOIs.length - 1 ? 'none' : '1px solid var(--border-color)' }}>
-                      <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>{poi.name}</td>
-                      <td style={{ padding: '0.75rem 1rem', color: 'var(--text-light)' }}>
+                    <tr key={idx} className={idx !== room.nearbyPOIs.length - 1 ? 'border-b border-[var(--border-color)]' : ''}>
+                      <td className="px-4 py-3 font-semibold">{poi.name}</td>
+                      <td className="px-4 py-3 text-[var(--text-light)]">
                         {poi.type === 'College' ? '🎓 College' : poi.type === 'Hospital' ? '🏥 Hospital' : poi.type === 'Market' ? '🛍️ Market' : '🚌 Transit stop'}
                       </td>
-                      <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>
-                        {poi.distance} meters
-                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-[var(--primary)]">{poi.distance} meters</td>
                     </tr>
                   ))}
                 </tbody>
@@ -263,81 +231,78 @@ export const RoomDetails = () => {
 
         </div>
 
-        {/* Right Column (Sidebar) */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          
-          {/* Landlord Contact Card */}
-          <div className="card shadow-lg" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', borderColor: 'var(--border-color)', padding: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div style={{ width: '50px', height: '50px', borderRadius: '50%', backgroundColor: 'var(--primary-light)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '1.2rem' }}>
+        {/* Right Sidebar */}
+        <div className="flex flex-col gap-8">
+
+          {/* Landlord Card */}
+          <div className="card shadow-lg flex flex-col gap-5 border border-[var(--border-color)] p-6">
+            <div className="flex items-center gap-3">
+              <div className="w-[50px] h-[50px] rounded-full bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center font-bold text-[1.2rem]">
                 {room.landlord.name.charAt(0)}
               </div>
-              <div style={{ textAlign: 'left' }}>
-                <h3 style={{ fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <div className="text-left">
+                <h3 className="text-[1.05rem] flex items-center gap-1">
                   {room.landlord.name}
-                  {room.landlord.verified && <CheckCircle2 size={16} style={{ color: 'var(--secondary)', fill: 'var(--secondary-light)' }} title="Verified Landlord" />}
+                  {room.landlord.verified && (
+                    <CheckCircle2 size={16} style={{ color: 'var(--secondary)', fill: 'var(--secondary-light)' }} title="Verified Landlord" />
+                  )}
                 </h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>Nest Landlord Profile</span>
+                <span className="text-[0.8rem] text-[var(--text-light)]">Nest Landlord Profile</span>
               </div>
             </div>
 
-            {/* Quick Contact buttons if authorized (or standard phone text) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)', padding: '0.75rem 0', fontSize: '0.88rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Phone size={14} style={{ color: 'var(--primary)' }} />
+            <div className="flex flex-col gap-2 border-t border-b border-[var(--border-color)] py-3 text-[0.88rem]">
+              <div className="flex items-center gap-2">
+                <Phone size={14} className="text-[var(--primary)]" />
                 <span><strong>Phone:</strong> {room.landlord.phone}</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Mail size={14} style={{ color: 'var(--primary)' }} />
+              <div className="flex items-center gap-2">
+                <Mail size={14} className="text-[var(--primary)]" />
                 <span><strong>Email:</strong> {room.landlord.email}</span>
               </div>
             </div>
 
-            {/* Message Inquire form */}
             {inquirySent ? (
-              <div className="badge badge-secondary" style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.25rem', textTransform: 'none' }}>
-                <strong style={{ display: 'block' }}>✓ Inquiry Delivered!</strong>
+              <div className="badge badge-secondary p-3 rounded-[var(--radius-md)] text-[0.85rem] flex flex-col gap-1 normal-case">
+                <strong className="block">✓ Inquiry Delivered!</strong>
                 The landlord has been notified and will contact you back.
               </div>
             ) : (
-              <form onSubmit={handleInquirySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', textAlign: 'left' }}>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
-                    <label className="form-label" style={{ fontSize: '0.65rem' }}>Name</label>
-                    <input type="text" name="name" value={contactForm.name} onChange={handleInputChange} required className="form-input" style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }} />
+              <form onSubmit={handleInquirySubmit} className="flex flex-col gap-3 text-left">
+                <div className="flex gap-2">
+                  <div className="form-group mb-0 flex-1">
+                    <label className="form-label text-[0.65rem]">Name</label>
+                    <input type="text" name="name" value={contactForm.name} onChange={handleInputChange} required className="form-input px-2.5 py-1.5 text-[0.85rem]" />
                   </div>
-                  <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
-                    <label className="form-label" style={{ fontSize: '0.65rem' }}>Email</label>
-                    <input type="email" name="email" value={contactForm.email} onChange={handleInputChange} required className="form-input" style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }} />
+                  <div className="form-group mb-0 flex-1">
+                    <label className="form-label text-[0.65rem]">Email</label>
+                    <input type="email" name="email" value={contactForm.email} onChange={handleInputChange} required className="form-input px-2.5 py-1.5 text-[0.85rem]" />
                   </div>
                 </div>
-                
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.65rem' }}>Phone Number (Required)</label>
-                  <input type="tel" name="phone" value={contactForm.phone} onChange={handleInputChange} required placeholder="98XXXXXXXX" className="form-input" style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem' }} />
+                <div className="form-group mb-0">
+                  <label className="form-label text-[0.65rem]">Phone Number (Required)</label>
+                  <input type="tel" name="phone" value={contactForm.phone} onChange={handleInputChange} required placeholder="98XXXXXXXX" className="form-input px-2.5 py-1.5 text-[0.85rem]" />
                 </div>
-                
-                <div className="form-group" style={{ marginBottom: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.65rem' }}>Message</label>
-                  <textarea name="message" value={contactForm.message} onChange={handleInputChange} rows={3} className="form-input" style={{ padding: '0.4rem 0.6rem', fontSize: '0.85rem', resize: 'vertical' }} />
+                <div className="form-group mb-0">
+                  <label className="form-label text-[0.65rem]">Message</label>
+                  <textarea name="message" value={contactForm.message} onChange={handleInputChange} rows={3} className="form-input px-2.5 py-1.5 text-[0.85rem] resize-y" />
                 </div>
-
-                <button type="submit" className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '0.25rem', display: 'flex', gap: '0.25rem' }}>
+                <button type="submit" className="btn btn-primary btn-sm w-full mt-1 flex gap-1 justify-center">
                   <Send size={14} /> Send Message
                 </button>
               </form>
             )}
           </div>
 
-          {/* Interactive Mini-Map showing POIs in radius */}
-          <div className="card" style={{ padding: 0, overflow: 'hidden', height: '280px', borderColor: 'var(--border-color)' }}>
-            <div style={{ height: '35px', padding: '0 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: 'var(--bg-app)', borderBottom: '1px solid var(--border-color)', fontSize: '0.8rem', fontWeight: 700 }}>
+          {/* Mini Map */}
+          <div className="card p-0 overflow-hidden h-[280px] border border-[var(--border-color)]">
+            <div className="h-[35px] px-4 flex items-center justify-between bg-[var(--bg-app)] border-b border-[var(--border-color)] text-[0.8rem] font-bold">
               <span>📍 Location POI Radius Map</span>
-              <span className="badge badge-primary" style={{ fontSize: '0.65rem' }}>OSM Leaflet</span>
+              <span className="badge badge-primary text-[0.65rem]">OSM Leaflet</span>
             </div>
-            <div style={{ height: '245px' }}>
-              <MapContainer 
-                listings={[room]} 
+            <div className="h-[245px]">
+              <MapContainer
+                listings={[room]}
                 activeListingId={room.id}
                 showPOIRadius={true}
                 currentCenter={[room.latitude, room.longitude]}
@@ -346,15 +311,14 @@ export const RoomDetails = () => {
           </div>
 
         </div>
-
       </div>
 
-      {/* Similar Listings Carousel / Grid */}
+      {/* Similar Rooms */}
       {similarRooms.length > 0 && (
-        <section style={{ marginTop: '4rem', borderTop: '1px solid var(--border-color)', paddingTop: '3rem' }}>
-          <div style={{ textAlign: 'left', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <section className="mt-16 border-t border-[var(--border-color)] pt-12">
+          <div className="text-left mb-8 flex items-center gap-2">
             <Sparkles size={20} style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
-            <h2 style={{ fontSize: '1.6rem' }}>Similar Rooms & Flats in {room.city}</h2>
+            <h2 className="text-[1.6rem]">Similar Rooms & Flats in {room.city}</h2>
           </div>
           <div className="grid-cols-3">
             {similarRooms.map(item => (
@@ -367,11 +331,6 @@ export const RoomDetails = () => {
       <style>{`
         .poi-table tr:hover {
           background-color: var(--primary-light);
-        }
-        @media (max-width: 968px) {
-          .details-grid {
-            grid-template-columns: 1fr !important;
-          }
         }
       `}</style>
     </div>
