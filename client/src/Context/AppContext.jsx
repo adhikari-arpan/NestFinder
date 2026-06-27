@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import supabase from '../../db/supabaseClient';
 
 export const AppContext = createContext(); //an empty global container like a empty ware house to store eveything that we want to share across the app.
 
@@ -219,8 +220,6 @@ const initialListings = [
   }
 ];
 
-
-
 export const AppContextProvider = ({ children }) => {   //childern= app and provider supplies data to app and everything that is inside app.
   // Database States
   const [listings, setListings] = useState(initialListings);//automatically store listings & updates in case of new listings.
@@ -295,31 +294,55 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
   };
 
 
-  //user login process is simulated here. In a real app, you would call an API to verify credentials and get user data.
-  const loginUser = (email, password, role) => {
-    let mockUser = {
-      id: role === 'tenant' ? 1 : (role === 'landlord' ? 2 : 3),
-      name: role === 'tenant' ? "Roshan Gurung" : (role === 'landlord' ? "Ramesh Shrestha" : "System Administrator"),
-      email: email,
-      role: role,
-      avatar: role === 'tenant' 
-        ? "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80"
-        : "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80"
-    };
-    setCurrentUser(mockUser);
-    
-    // Add success notification
-    addNotification(`Logged in successfully`, `Welcome back, ${mockUser.name}!`, 'auth');
-  };
+  //user login process
+  const loginUser = async (email, password, role) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) { alert(error.message); return }
+
+    // fetch role from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, name, phone')
+      .eq('id', data.user.id)
+      .single()
+
+    setCurrentUser({ ...data.user, ...profile })
+    addNotification(`Logged in successfully`, `Welcome back, ${profile.name}!`, 'auth');
+  }
 
   const logoutUser = () => {
     setCurrentUser(null);
   };
 
+  const signupUser = async (email, password, name, phone, role) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, phone, role }   // goes into raw_user_meta_data → trigger reads it
+      }
+    })
+    if (error) { alert(error.message); return }
+    alert('Check your email to confirm your account!')
+  }
 
+  // Restore session on page load
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        supabase.from('profiles').select('*').eq('id', session.user.id).single()
+          .then(({ data: profile }) => setCurrentUser({ ...session.user, ...profile }))
+      }
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) setCurrentUser(null)
+    })
+    return () => listener.subscription.unsubscribe()
+  }, [])
 
   const toggleSaveListing = (id) => {
-    setSavedListings(prev => 
+    setSavedListings(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );
     const item = listings.find(l => l.id === id);
@@ -396,7 +419,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
   };
 
   const replyToInquiry = (inquiryId, replyMsg) => {
-    setInquiries(prev => 
+    setInquiries(prev =>
       prev.map(inq => inq.id === inquiryId ? { ...inq, status: "replied", replyText: replyMsg } : inq)
     );
     addNotification("Reply Sent", "Your response was sent to the tenant.", "message");
@@ -405,9 +428,9 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
   // Mock Recommendation Logic (AI recommendations simulation)
   const calculateRecommendationScore = (listing, prefs) => {
     if (!prefs) return 0;
-    
+
     let score = 100;
-    
+
     // 1. Budget checking (penalty if price is higher than preferred budget)
     if (listing.price > prefs.budget) {
       const diff = listing.price - prefs.budget;
@@ -419,12 +442,12 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
       const savings = prefs.budget - listing.price;
       score += Math.min(5, (savings / prefs.budget) * 10);
     }
-    
+
     // 2. City match (penalty if in different city, 15 points)
     if (prefs.preferredCity && listing.city.toLowerCase() !== prefs.preferredCity.toLowerCase()) {
       score -= 15;
     }
-    
+
     // 3. Sharing match (10 points penalty if mismatch)
     if (prefs.sharing && listing.sharing !== prefs.sharing) {
       score -= 10;
@@ -434,7 +457,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
     if (prefs.roomType && listing.type !== prefs.roomType) {
       score -= 15;
     }
-    
+
     // 5. Essential Amenities (deduct 8 points for each missing amenity)
     if (prefs.essentialAmenities && prefs.essentialAmenities.length > 0) {
       prefs.essentialAmenities.forEach(amenity => {
@@ -443,15 +466,15 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
         }
       });
     }
-    
+
     // 6. Proximity to Preferred College/POI (closer is higher score, up to 15 points)
     if (prefs.poiCollege) {
-      const matchPOI = listing.nearbyPOIs.find(poi => 
-        poi.type === "College" && 
-        (poi.name.toLowerCase().includes(prefs.poiCollege.toLowerCase()) || 
-         prefs.poiCollege.toLowerCase().includes(poi.name.toLowerCase()))
+      const matchPOI = listing.nearbyPOIs.find(poi =>
+        poi.type === "College" &&
+        (poi.name.toLowerCase().includes(prefs.poiCollege.toLowerCase()) ||
+          prefs.poiCollege.toLowerCase().includes(poi.name.toLowerCase()))
       );
-      
+
       if (matchPOI) {
         if (matchPOI.distance <= 500) {
           score += 15; // very close
@@ -470,7 +493,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
         }
       }
     }
-    
+
     // Caps between 0 and 100
     return Math.max(0, Math.min(100, Math.round(score)));
   };
@@ -502,6 +525,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
         currentUser,
         loginUser,
         logoutUser,
+        signupUser,
         theme,
         toggleTheme,
         createListing,

@@ -5,10 +5,10 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
 // Pages
-import { Home } from './pages/Home';
-import { SearchMap } from './pages/SearchMap';
-import { RoomDetails } from './pages/RoomDetails';
-import { AIRecommend } from './pages/AIRecommend';
+import { Home } from './Pages/Home';
+import { SearchMap } from './Pages/SearchMap';
+import { RoomDetails } from './Pages/RoomDetails';
+import { AIRecommend } from './Pages/AIRecommend';
 import { Auth } from './Pages/Auth';
 
 

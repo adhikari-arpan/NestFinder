@@ -3,13 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { Home, User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
-
 // Dashboards
- import { LandlordDashboard } from '../Pages/Dashboard/LandlordDashboard';
- import { TenantDashboard } from '../Pages/Dashboard/TenantDashboard';
- import { AdminDashboard } from '../Pages/Dashboard/AdminDashboard';
-
-
+import { LandlordDashboard } from '../Pages/Dashboard/LandlordDashboard';
+import { TenantDashboard } from '../Pages/Dashboard/TenantDashboard';
+import { AdminDashboard } from '../Pages/Dashboard/AdminDashboard';
 
 // --- Animated Canvas Background ---
 const AnimatedBackground = () => {
@@ -142,7 +139,7 @@ const AnimatedBackground = () => {
 
 // --- Main Auth Component ---
 export const Auth = () => {
-  const { currentUser, loginUser } = useContext(AppContext);
+  const { currentUser, loginUser, signupUser } = useContext(AppContext);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -164,21 +161,23 @@ export const Auth = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     if (activeTab === 'login') {
-      if (!email || !phone || !password) {
-        alert("Please fill in email, phone number and password.");
+      if (!email || !password) {
+        alert("Please fill in email and password.");
         return;
       }
-      loginUser(email, password, selectedRole);
+      loginUser(email, password);
+
     } else {
       if (!name || !email || !password || !phone) {
         alert("Please fill all signup fields.");
         return;
       }
-      loginUser(email, password, selectedRole);
+      signupUser(email, password, name, phone, selectedRole);
     }
   };
-  
+
 
   const inputStyle = {
     width: '100%',
@@ -193,6 +192,7 @@ export const Auth = () => {
     outline: 'none',
     transition: 'border 0.2s',
     boxSizing: 'border-box',
+    color: 'rgba(255,255,255,0.9)',
   };
 
   return (
@@ -324,7 +324,7 @@ export const Auth = () => {
         {/* Role selector */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
           {[
-            { val: 'tenant', label: '🙋 Tenant' }, 
+            { val: 'tenant', label: '🙋 Tenant' },
             { val: 'landlord', label: '🏢 Landlord' },
             { val: 'admin', label: '🛡️ Admin' }
           ].map(r => (
@@ -356,11 +356,13 @@ export const Auth = () => {
               placeholder="Email address" required className="form-input" style={inputStyle} />
           </div>
 
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Phone size={15} style={{ position: 'absolute', left: '12px', color: 'rgba(255,255,255,0.35)' }} />
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-              placeholder="Phone: 98XXXXXXXX" required className="form-input" style={inputStyle} />
-          </div>
+          {activeTab === 'signup' && (
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <Phone size={15} style={{ position: 'absolute', left: '12px', color: 'rgba(255,255,255,0.35)' }} />
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                placeholder="Phone: 98XXXXXXXX" required className="form-input" style={inputStyle} />
+            </div>
+          )}
 
           {/* PASSWORD — shown on both login and signup */}
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
