@@ -71,7 +71,13 @@ const NetworkBackground = ({ theme }) => {
     draw();
     return () => { cancelAnimationFrame(frame); window.removeEventListener('resize', resize); };
   }, [theme]);
-  return <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }} />;
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full pointer-events-none z-0"
+    />
+  );
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -114,31 +120,27 @@ export const Home = () => {
 
   // ── GUEST VIEW ──────────────────────────────────────────────────────────────
   if (!currentUser) return (
-    <div style={{ display: 'flex', flexDirection: 'column', color: 'var(--text-main)', overflowX: 'hidden' }}>
+    <div className="flex flex-col text-[var(--text-main)] overflow-x-hidden">
 
-      {/* ── HERO SECTION — full viewport height ── */}
-      <section style={{
-        position: 'relative',
-        minHeight: 'calc(100vh - 70px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: '5rem 1.5rem 3rem',
-        overflow: 'hidden',
-        background: isDark
-          ? 'linear-gradient(135deg,#090d16 0%,#0d1222 60%,#0a1a12 100%)'
-          : 'linear-gradient(135deg,#f0f4ff 0%,#fafbff 100%)',
-      }}>
+      {/* ── HERO SECTION ── */}
+      <section className={[
+        'relative min-h-[calc(100vh-70px)] flex flex-col items-center justify-center',
+        'text-center px-6 pt-20 pb-12 overflow-hidden',
+        isDark
+          ? 'bg-[linear-gradient(135deg,#090d16_0%,#0d1222_60%,#0a1a12_100%)]'
+          : 'bg-[linear-gradient(135deg,#f0f4ff_0%,#fafbff_100%)]',
+      ].join(' ')}>
+
         <NetworkBackground theme={theme} />
 
         {/* Ambient orbs */}
-        <div style={{ position: 'absolute', top: '15%', left: '8%', width: '400px', height: '400px', borderRadius: '50%', background: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)', filter: 'blur(100px)', pointerEvents: 'none', zIndex: 1 }} />
-        <div style={{ position: 'absolute', bottom: '20%', right: '8%', width: '320px', height: '320px', borderRadius: '50%', background: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)', filter: 'blur(90px)', pointerEvents: 'none', zIndex: 1 }} />
+        <div className="absolute top-[15%] left-[8%] w-[400px] h-[400px] rounded-full pointer-events-none z-[1]"
+          style={{ background: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)', filter: 'blur(100px)' }} />
+        <div className="absolute bottom-[20%] right-[8%] w-[320px] h-[320px] rounded-full pointer-events-none z-[1]"
+          style={{ background: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)', filter: 'blur(90px)' }} />
 
         {/* Hero content */}
-        <div className="animate-fade-in" style={{ position: 'relative', zIndex: 5, maxWidth: '740px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.75rem' }}>
+        <div className="animate-fade-in relative z-[5] max-w-[740px] flex flex-col items-center gap-7">
 
           <span className="hero-badge">🏠 Nepal's Rental Network</span>
 
@@ -152,19 +154,24 @@ export const Home = () => {
           </p>
 
           {/* Feature pills */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.6rem' }}>
+          <div className="flex flex-wrap justify-center gap-[0.6rem]">
             {['✅ Verified listings', '🤖 AI match scoring', '🗺️ Map-based search', '🚫 Zero broker fees'].map((f, i) => (
-              <span key={i} style={{
-                padding: '0.4rem 1rem', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 600,
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.07)',
-                border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.15)'}`,
-                color: isDark ? '#cbd5e1' : '#4338ca',
-              }}>{f}</span>
+              <span
+                key={i}
+                className="px-4 py-[0.4rem] rounded-full text-[0.8rem] font-semibold"
+                style={{
+                  background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.07)',
+                  border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.15)'}`,
+                  color: isDark ? '#cbd5e1' : '#4338ca',
+                }}
+              >
+                {f}
+              </span>
             ))}
           </div>
 
-          {/* CTA — links directly to /auth */}
-          <Link to="/auth" className="hero-cta-btn" style={{ textDecoration: 'none', marginTop: '0.5rem' }}>
+          {/* CTA */}
+          <Link to="/auth" className="hero-cta-btn mt-2" style={{ textDecoration: 'none' }}>
             Get Started • Sign In <ArrowRight size={18} />
           </Link>
 
@@ -175,8 +182,8 @@ export const Home = () => {
           </div>
         </div>
 
-        {/* Stats bar pinned near bottom of hero */}
-        <div className="container" style={{ position: 'relative', zIndex: 5, marginTop: '3.5rem', width: '100%' }}>
+        {/* Stats bar */}
+        <div className="container relative z-[5] mt-14 w-full">
           <div className="stats-row">
             <div className="stat-item"><div className="stat-number">500+</div><div className="stat-label">Active Listings</div></div>
             <div className="stat-divider" />
@@ -187,35 +194,42 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* ── FEATURES SECTION — next scroll page ── */}
-      <section style={{
-        position: 'relative',
-        padding: '8rem 0 9rem',
-        background: isDark
-          ? 'linear-gradient(180deg,#0d1222 0%,#090d16 100%)'
-          : 'linear-gradient(180deg,#ffffff 0%,#f8faff 100%)',
-        borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.08)'}`,
-      }}>
+      {/* ── FEATURES SECTION ── */}
+      <section
+        className="relative py-32 pb-36"
+        style={{
+          background: isDark
+            ? 'linear-gradient(180deg,#0d1222 0%,#090d16 100%)'
+            : 'linear-gradient(180deg,#ffffff 0%,#f8faff 100%)',
+          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.08)'}`,
+        }}
+      >
         {/* Orbs */}
-        <div style={{ position: 'absolute', top: '-80px', left: '10%', width: '380px', height: '380px', borderRadius: '50%', background: 'rgba(99,102,241,0.06)', filter: 'blur(90px)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', bottom: '-60px', right: '10%', width: '320px', height: '320px', borderRadius: '50%', background: 'rgba(16,185,129,0.05)', filter: 'blur(80px)', pointerEvents: 'none' }} />
+        <div className="absolute -top-20 left-[10%] w-[380px] h-[380px] rounded-full pointer-events-none"
+          style={{ background: 'rgba(99,102,241,0.06)', filter: 'blur(90px)' }} />
+        <div className="absolute -bottom-16 right-[10%] w-[320px] h-[320px] rounded-full pointer-events-none"
+          style={{ background: 'rgba(16,185,129,0.05)', filter: 'blur(80px)' }} />
 
-        <div className="container" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="container relative z-[1]">
 
           {/* Section header */}
-          <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
-            <p style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.14em', color: 'var(--primary)', textTransform: 'uppercase', marginBottom: '1rem' }}>
+          <div className="text-center mb-20">
+            <p className="text-[0.78rem] font-bold tracking-[0.14em] text-[var(--primary)] uppercase mb-4">
               WHY NESTFINDER?
             </p>
-            <h2 style={{
-              fontSize: 'clamp(1.9rem, 4vw, 2.8rem)', fontWeight: 800,
-              color: isDark ? '#f1f5f9' : '#0f172a',
-              marginBottom: '1.25rem', lineHeight: 1.2,
-              fontFamily: 'var(--font-display)'
-            }}>
+            <h2
+              className="text-[clamp(1.9rem,4vw,2.8rem)] font-extrabold mb-5 leading-tight"
+              style={{
+                color: isDark ? '#f1f5f9' : '#0f172a',
+                fontFamily: 'var(--font-display)',
+              }}
+            >
               Everything you need to find<br />your ideal room
             </h2>
-            <p style={{ fontSize: '1.05rem', color: isDark ? '#94a3b8' : '#475569', maxWidth: '520px', margin: '0 auto', lineHeight: 1.75 }}>
+            <p
+              className="text-[1.05rem] max-w-[520px] mx-auto leading-[1.75]"
+              style={{ color: isDark ? '#94a3b8' : '#475569' }}
+            >
               NestFinder combines interactive maps, AI recommendations and verified listings so you can find your perfect place — efficiently and safely.
             </p>
           </div>
@@ -242,18 +256,35 @@ export const Home = () => {
                 desc: 'Every landlord undergoes verification. Reach out directly via telephone or messages with zero broker commissions and no hidden fees whatsoever.'
               },
             ].map(({ icon, color, bg, border, shadow, title, desc }) => (
-              <div key={title} className="feature-redesign-card glass" style={{ borderLeft: `4px solid ${border}`, boxShadow: `0 8px 30px ${shadow}` }}>
-                <div className="feature-icon-wrapper" style={{ backgroundColor: bg, color, boxShadow: `0 0 15px ${shadow}` }}>
+              <div
+                key={title}
+                className="feature-redesign-card glass"
+                style={{ borderLeft: `4px solid ${border}`, boxShadow: `0 8px 30px ${shadow}` }}
+              >
+                <div
+                  className="feature-icon-wrapper"
+                  style={{ backgroundColor: bg, color, boxShadow: `0 0 15px ${shadow}` }}
+                >
                   {icon}
                 </div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: isDark ? '#f1f5f9' : '#0f172a', margin: 0 }}>{title}</h3>
-                <p style={{ color: isDark ? '#94a3b8' : '#475569', fontSize: '0.93rem', lineHeight: 1.7, margin: 0 }}>{desc}</p>
+                <h3
+                  className="text-[1.15rem] font-bold m-0"
+                  style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
+                >
+                  {title}
+                </h3>
+                <p
+                  className="text-[0.93rem] leading-[1.7] m-0"
+                  style={{ color: isDark ? '#94a3b8' : '#475569' }}
+                >
+                  {desc}
+                </p>
               </div>
             ))}
           </div>
 
           {/* Bottom CTA */}
-          <div style={{ textAlign: 'center', marginTop: '5rem' }}>
+          <div className="text-center mt-20">
             <Link to="/auth" className="hero-cta-btn" style={{ textDecoration: 'none' }}>
               Start Finding Rooms <ArrowRight size={18} />
             </Link>
