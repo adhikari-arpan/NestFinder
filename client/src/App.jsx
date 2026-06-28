@@ -13,11 +13,9 @@ import { Auth } from './Pages/Auth';
 
 
 // Dashboards
- import { LandlordDashboard } from './Pages/Dashboard/LandlordDashboard';
- import { TenantDashboard } from './Pages/Dashboard/TenantDashboard';
- import { AdminDashboard } from './Pages/Dashboard/AdminDashboard';
-
-import './App.css';
+import { LandlordDashboard } from './Pages/Dashboard/LandlordDashboard';
+import { TenantDashboard } from './Pages/Dashboard/TenantDashboard';
+import { AdminDashboard } from './Pages/Dashboard/AdminDashboard';
 
 function App() {
   return (
@@ -34,8 +32,8 @@ function App() {
             <Route path="/search" element={<SearchMap />} />
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/ai-recommend" element={<AIRecommend />} />
-            
-            
+
+
             {/* Role Dashboards */}
             <Route path="/dashboard/landlord" element={<LandlordDashboard />} />
             <Route path="/dashboard/tenant" element={<TenantDashboard />} />

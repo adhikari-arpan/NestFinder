@@ -2,6 +2,8 @@
    NestFinder - Global Styles & Design System
    ========================================== */
 
+@import "tailwindcss";
+
 /* Design Tokens & Variables */
 :root {
   /* Colors */
@@ -717,8 +719,6 @@ p {
   margin-top: 5rem;
   margin-bottom: 3rem;
   background: linear-gradient(135deg, var(--text-main) 40%, var(--primary) 100%);
-  WebkitBackgroundClip: 'text';
-  WebkitTextFillColor: 'transparent';
 }
 
 .features-grid-layout {
