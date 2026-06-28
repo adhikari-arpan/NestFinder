@@ -295,7 +295,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
 
 
   //user login process
-  const loginUser = async (email, password, role) => {
+  const loginUser = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) { alert(error.message); return }
 
