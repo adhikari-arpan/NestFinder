@@ -29,27 +29,7 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="grid grid-cols-2 gap-6 text-left">
-            <div>
-              <h4 className="text-[0.95rem] font-bold uppercase tracking-[0.05em] mb-5">For Tenants</h4>
-              <ul className="flex flex-col gap-3 text-[0.9rem] list-none">
-                <li><Link to="/search" className={footerLinkClass}>Find Rooms</Link></li>
-                <li><Link to="/ai-recommend" className={footerLinkClass}>AI Recommendations</Link></li>
-                <li><Link to="/auth" className={footerLinkClass}>Student Login</Link></li>
-                <li><a href="#" className={footerLinkClass}>Popular Localities</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-[0.95rem] font-bold uppercase tracking-[0.05em] mb-5">For Landlords</h4>
-              <ul className="flex flex-col gap-3 text-[0.9rem] list-none">
-                <li><Link to="/dashboard/landlord?action=post" className={footerLinkClass}>Post a Listing</Link></li>
-                <li><a href="#" className={footerLinkClass}>Pricing & Plans</a></li>
-                <li><a href="#" className={footerLinkClass}>Safety Guidelines</a></li>
-                <li><a href="#" className={footerLinkClass}>Landlord FAQ</a></li>
-              </ul>
-            </div>
-          </div>
+        
 
           {/* Contact */}
           <div className="flex flex-col gap-4 text-left">
@@ -57,15 +37,15 @@ export const Footer = () => {
             <div className="flex flex-col gap-3 text-[0.9rem] text-[var(--text-muted)]">
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-[var(--primary)]" />
-                <span>Maitighar Heights, Kathmandu, Nepal</span>
+                <span>Balkumari, Lalitpur, Nepal</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={16} className="text-[var(--primary)]" />
-                <span>+977-1-4432100, +977-9851000000</span>
+                <span>+977-1xxxxxxxxx, +977-98xxxxxxxx</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={16} className="text-[var(--primary)]" />
-                <span>support@nestfinder.com.np</span>
+                <span>@nestfinder.com.np</span>
               </div>
             </div>
           </div>
