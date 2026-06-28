@@ -1,138 +1,83 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { Home, User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 // --- Animated Canvas Background ---
-const AnimatedBackground = () => {
+const AnimatedBackground = ({ theme }) => {
   const canvasRef = useRef(null);
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     let animFrame;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
+    const isDark = theme === 'dark';
+    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
     resize();
     window.addEventListener('resize', resize);
-
-    const NODE_COUNT = 55;
-    const nodes = Array.from({ length: NODE_COUNT }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      r: Math.random() * 3 + 1.5,
-      color: Math.random() > 0.5 ? '99,102,241' : '16,185,129',
+    const nodes = Array.from({ length: 55 }, () => ({
+      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 3 + 1.5, color: Math.random() > 0.5 ? '99,102,241' : '16,185,129',
     }));
-
-    const HOUSE_COUNT = 6;
-    const houseNodes = Array.from({ length: HOUSE_COUNT }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.15,
-      vy: (Math.random() - 0.5) * 0.15,
-      size: Math.random() * 12 + 10,
-      opacity: Math.random() * 0.12 + 0.06,
+    const houseNodes = Array.from({ length: 6 }, () => ({
+      x: Math.random() * window.innerWidth, y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.15, vy: (Math.random() - 0.5) * 0.15,
+      size: Math.random() * 12 + 10, opacity: Math.random() * 0.12 + 0.06,
     }));
-
     const drawHouse = (ctx, x, y, size, opacity) => {
-      ctx.save();
-      ctx.globalAlpha = opacity;
-      ctx.strokeStyle = 'rgba(99,102,241,1)';
+      ctx.save(); ctx.globalAlpha = opacity;
+      ctx.strokeStyle = isDark ? 'rgba(99,102,241,1)' : 'rgba(79,70,229,0.7)';
       ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(x, y - size);
-      ctx.lineTo(x + size, y);
-      ctx.lineTo(x - size, y);
-      ctx.closePath();
-      ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, y - size); ctx.lineTo(x + size, y); ctx.lineTo(x - size, y); ctx.closePath(); ctx.stroke();
       ctx.strokeRect(x - size * 0.7, y, size * 1.4, size * 1.1);
       ctx.strokeRect(x - size * 0.2, y + size * 0.5, size * 0.4, size * 0.6);
       ctx.restore();
     };
-
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      nodes.forEach(n => {
-        n.x += n.vx; n.y += n.vy;
-        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
-        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
-      });
-
-      houseNodes.forEach(h => {
-        h.x += h.vx; h.y += h.vy;
-        if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
-        if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
-      });
-
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 130) {
-            const alpha = (1 - dist / 130) * 0.18;
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(99,102,241,${alpha})`;
-            ctx.lineWidth = 0.8;
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.stroke();
-          }
-        }
+      nodes.forEach(n => { n.x += n.vx; n.y += n.vy; if (n.x < 0 || n.x > canvas.width) n.vx *= -1; if (n.y < 0 || n.y > canvas.height) n.vy *= -1; });
+      houseNodes.forEach(h => { h.x += h.vx; h.y += h.vy; if (h.x < 0 || h.x > canvas.width) h.vx *= -1; if (h.y < 0 || h.y > canvas.height) h.vy *= -1; });
+      for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+        const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+        if (dist < 130) { ctx.beginPath(); ctx.strokeStyle = `rgba(99,102,241,${(1 - dist / 130) * (isDark ? 0.18 : 0.16)})`; ctx.lineWidth = 0.8; ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(nodes[j].x, nodes[j].y); ctx.stroke(); }
       }
-
-      nodes.forEach(n => {
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${n.color},0.55)`;
-        ctx.fill();
-      });
-
-      houseNodes.forEach(h => drawHouse(ctx, h.x, h.y, h.size, h.opacity));
+      nodes.forEach(n => { ctx.beginPath(); ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2); ctx.fillStyle = `rgba(${n.color},${isDark ? 0.55 : 0.5})`; ctx.fill(); });
+      houseNodes.forEach(h => drawHouse(ctx, h.x, h.y, h.size, isDark ? h.opacity : h.opacity * 1.8));
       animFrame = requestAnimationFrame(animate);
     };
-
     animate();
-    return () => {
-      cancelAnimationFrame(animFrame);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="fixed inset-0 w-full h-full z-0 pointer-events-none"
-    />
-  );
+    return () => { cancelAnimationFrame(animFrame); window.removeEventListener('resize', resize); };
+  }, [theme]);
+  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full z-0 pointer-events-none" />;
 };
 
-// --- Reusable Input Field ---
-const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, right }) => (
-  <div className="relative flex items-center">
-    <Icon size={15} className="absolute left-3 text-white/35 pointer-events-none" />
+// --- Input Field ---
+const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, right, isDark }) => (
+  <div className="relative flex items-center w-full">
+    <span className="absolute left-0 top-0 h-full w-11 flex items-center justify-center pointer-events-none">
+      <Icon size={16} style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)' }} />
+    </span>
     <input
-      type={type}
-      value={value}
-      onChange={onChange}
-      placeholder={placeholder}
-      required={required}
-      className="w-full h-11 pl-10 pr-10 bg-white/[0.06] border border-white/[0.15] rounded-[10px] text-white/90 text-[0.9rem] placeholder-white/30 outline-none transition-all duration-200 focus:border-indigo-500/60 focus:bg-indigo-500/[0.08]"
+      type={type} value={value} onChange={onChange}
+      placeholder={placeholder} required={required}
+      style={{
+        background: isDark ? 'rgba(255,255,255,0.055)' : 'rgba(99,102,241,0.05)',
+        border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(99,102,241,0.18)'}`,
+        color: isDark ? 'rgba(255,255,255,0.92)' : '#1e1b4b',
+        paddingLeft: '3rem',
+        paddingRight: '2.75rem',
+        textAlign: 'left',
+      }}
+      className="w-full h-[54px] rounded-xl text-[0.9rem] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/25"
     />
-    {right && <div className="absolute right-3">{right}</div>}
+    {right && <div className="absolute right-4 flex items-center">{right}</div>}
   </div>
 );
 
-// --- Main Auth Component ---
 export const Auth = () => {
-  const { currentUser, loginUser, signupUser } = useContext(AppContext);
+  const { currentUser, loginUser, signupUser, theme } = useContext(AppContext);
   const navigate = useNavigate();
+  const isDark = theme === 'dark';
 
   const [activeTab, setActiveTab]       = useState('login');
   const [selectedRole, setSelectedRole] = useState('tenant');
@@ -160,192 +105,164 @@ export const Auth = () => {
     }
   };
 
-  const roles = [
-    { val: 'tenant',   label: '🙋 Tenant' },
-    { val: 'landlord', label: '🏢 Landlord' },
-    { val: 'admin',    label: '🛡️ Admin' },
-  ];
+  const roles    = [{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }, { val: 'admin', label: '🛡️ Admin' }];
+  const features = [{ icon: '🏠', text: 'Verified room listings across Kathmandu valley' }, { icon: '🤖', text: 'AI-powered recommendations for your budget' }, { icon: '🗺️', text: 'Map-based search with nearby colleges & hospitals' }];
+  const stats    = [{ num: '500+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
 
-  const features = [
-    { icon: '🏠', text: 'Verified room listings across Kathmandu valley' },
-    { icon: '🤖', text: 'AI-powered recommendations for your budget' },
-    { icon: '🗺️', text: 'Map-based search with nearby colleges & hospitals' },
-  ];
-
-  const stats = [
-    { num: '500+', label: 'Active Listings' },
-    { num: '3',    label: 'Cities Covered' },
-    { num: '98%',  label: 'Verified Landlords' },
-  ];
+  const pageBg       = isDark ? 'linear-gradient(135deg,#090d16 0%,#0d1117 60%,#0a1a12 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#fafbff 60%,#f0fdf4 100%)';
+  const cardBg       = isDark ? 'rgba(255,255,255,0.042)' : 'rgba(255,255,255,0.9)';
+  const cardBorder   = isDark ? 'rgba(255,255,255,0.09)'  : 'rgba(99,102,241,0.16)';
+  const cardShadow   = isDark ? '0 32px 80px rgba(0,0,0,0.6)' : '0 20px 60px rgba(99,102,241,0.13), 0 4px 20px rgba(0,0,0,0.05)';
+  const tabBarBg     = isDark ? 'rgba(255,255,255,0.05)'  : 'rgba(99,102,241,0.07)';
+  const headingColor = isDark ? 'rgba(255,255,255,0.92)'  : '#1e1b4b';
+  const subColor     = isDark ? 'rgba(255,255,255,0.4)'   : '#4338ca';
+  const switchColor  = isDark ? 'rgba(255,255,255,0.4)'   : '#374151';
+  const dividerColor = isDark ? 'rgba(255,255,255,0.06)'  : 'rgba(99,102,241,0.10)';
+  const linkColor    = isDark ? '#818cf8' : '#4f46e5';
+  const tabInactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(67,56,202,0.65)';
+  const roleActiveText   = isDark ? '#c7d2fe' : '#4338ca';
+  const roleInactiveText = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(67,56,202,0.6)';
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-[#0f0f1a] via-[#0d1117] to-[#0a1a12] py-8 px-4">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden py-10 px-4"
+      style={{ background: pageBg }}>
 
-      {/* Canvas background */}
-      <AnimatedBackground />
+      <AnimatedBackground theme={theme} />
 
-      {/* Radial glow */}
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none z-[1]"
-        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, transparent 70%)' }}
-      />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none z-[1]"
+        style={{ background: isDark ? 'radial-gradient(circle,rgba(99,102,241,0.10) 0%,transparent 70%)' : 'radial-gradient(circle,rgba(99,102,241,0.07) 0%,transparent 70%)' }} />
 
-      {/* Left floating panel — hidden below lg */}
-      <div className="absolute left-[6%] top-1/2 -translate-y-1/2 z-[2] max-w-[280px] hidden lg:flex flex-col gap-6">
-        <div>
-          <p className="text-[0.7rem] tracking-[0.15em] text-emerald-400/80 font-bold uppercase mb-2">
-            Nepal's Rental Network
-          </p>
-          <h1 className="text-[1.9rem] font-extrabold text-white/90 leading-tight">
-            Find your<br />
-            <span className="text-indigo-400/90">perfect Nest</span>
+      {/* Left panel */}
+      <div className="absolute left-[6%] top-1/2 -translate-y-1/2 z-[2] max-w-[260px] hidden xl:flex flex-col gap-8">
+        <div className="flex flex-col gap-3">
+          <p className="text-[0.68rem] tracking-[0.18em] font-bold uppercase"
+            style={{ color: isDark ? 'rgba(52,211,153,0.8)' : '#059669' }}>Nepal's Rental Network</p>
+          <h1 className="text-[2rem] font-extrabold leading-[1.2]" style={{ color: isDark ? 'rgba(255,255,255,0.9)' : '#1e1b4b' }}>
+            Find your<br /><span style={{ color: isDark ? '#818cf8' : '#4f46e5' }}>perfect Nest</span>
           </h1>
         </div>
-        {features.map((item, i) => (
-          <div key={i} className="flex gap-3 items-start">
-            <span className="text-lg">{item.icon}</span>
-            <span className="text-[0.82rem] text-white/55 leading-relaxed">{item.text}</span>
-          </div>
-        ))}
+        <div className="w-8 h-[2px] rounded-full" style={{ background: isDark ? '#818cf8' : '#4f46e5', opacity: 0.4 }} />
+        <div className="flex flex-col gap-5">
+          {features.map((f, i) => (
+            <div key={i} className="flex gap-3 items-start">
+              <span className="text-base mt-0.5 shrink-0">{f.icon}</span>
+              <span className="text-[0.81rem] leading-relaxed" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : '#475569' }}>{f.text}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Right floating panel — hidden below lg */}
-      <div className="absolute right-[6%] top-1/2 -translate-y-1/2 z-[2] max-w-[220px] hidden lg:flex flex-col gap-5">
-        {stats.map((stat, i) => (
+      {/* Right panel */}
+      <div className="absolute right-[6%] top-1/2 -translate-y-1/2 z-[2] max-w-[200px] hidden xl:flex flex-col gap-7">
+        {stats.map((s, i) => (
           <div key={i} className="text-right">
-            <p className="text-[1.6rem] font-extrabold text-indigo-400/85">{stat.num}</p>
-            <p className="text-[0.75rem] text-white/40 font-medium">{stat.label}</p>
+            <p className="text-[1.75rem] font-extrabold leading-none" style={{ color: isDark ? 'rgba(129,140,248,0.85)' : '#4f46e5' }}>{s.num}</p>
+            <p className="text-[0.72rem] font-medium tracking-wide mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : '#64748b' }}>{s.label}</p>
           </div>
         ))}
       </div>
 
-      {/* Auth Card */}
-      <div
-        className="relative z-[3] w-full max-w-[440px] rounded-[20px] py-10 px-8 border border-white/[0.12] backdrop-blur-2xl shadow-[0_25px_60px_rgba(0,0,0,0.5)] animate-modal-enter"
-        style={{ background: 'rgba(255,255,255,0.05)' }}
-      >
+      {/* ── Card ── */}
+      <div className="relative z-[3] w-full max-w-[420px] rounded-2xl border backdrop-blur-2xl animate-modal-enter"
+        style={{ background: cardBg, borderColor: cardBorder, boxShadow: cardShadow, padding: '2.75rem 2.25rem 2.5rem' }}>
 
         {/* Logo */}
-        <div className="flex flex-col items-center gap-2 mb-7">
-          <div className="w-[50px] h-[50px] rounded-[14px] bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center shadow-[0_4px_20px_rgba(99,102,241,0.4)]">
-            <Home size={24} color="white" />
+        <div className="flex flex-col items-center gap-3" style={{ marginBottom: '2.75rem' }}>
+          <div className="w-[52px] h-[52px] rounded-[14px] bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center shadow-[0_4px_22px_rgba(99,102,241,0.38)]">
+            <Home size={23} color="white" />
           </div>
-          <h2 className="text-[1.35rem] font-extrabold text-white/90 m-0">NestFinder</h2>
-          <p className="text-[0.78rem] text-white/40 m-0">Kathmandu's trusted rental platform</p>
+          <h2 className="text-[1.35rem] font-extrabold m-0 tracking-tight" style={{ color: headingColor }}>NestFinder</h2>
+          <p className="text-[0.75rem] m-0 font-medium" style={{ color: subColor }}>Nepals's trusted rental platform</p>
         </div>
 
         {/* Tabs */}
-        <div
-          className="flex rounded-[10px] p-1 mb-6"
-          style={{ background: 'rgba(255,255,255,0.06)' }}
-        >
+        <div className="flex rounded-xl p-[5px]" style={{ background: tabBarBg, marginBottom: '1.75rem' }}>
           {['login', 'signup'].map(tab => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-lg border-none cursor-pointer font-bold text-[0.85rem] transition-all duration-200 ${
+            <button key={tab} type="button" onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-3 rounded-[9px] border-none cursor-pointer font-bold text-[0.85rem] transition-all duration-200 ${
                 activeTab === tab
-                  ? 'bg-indigo-500/85 text-white'
-                  : 'bg-transparent text-white/45 hover:text-white/70'
+                  ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
+                  : 'bg-transparent hover:opacity-70'
               }`}
-            >
+              style={activeTab !== tab ? { color: tabInactiveColor } : {}}>
               {tab === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           ))}
         </div>
 
         {/* Role selector */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2.5" style={{ marginBottom: '2.25rem' }}>
           {roles.map(r => (
-            <button
-              key={r.val}
-              type="button"
-              onClick={() => setSelectedRole(r.val)}
-              className={`flex-1 py-2 px-1 rounded-[10px] border cursor-pointer font-bold text-[0.82rem] transition-all duration-200 ${
-                selectedRole === r.val
-                  ? 'border-indigo-500/70 bg-indigo-500/20 text-indigo-400'
-                  : 'border-white/10 bg-transparent text-white/45 hover:border-white/25'
-              }`}
-            >
+            <button key={r.val} type="button" onClick={() => setSelectedRole(r.val)}
+              className="flex-1 py-3 px-1 rounded-xl border cursor-pointer font-semibold text-[0.82rem] transition-all duration-200"
+              style={selectedRole === r.val ? {
+                borderColor: 'rgba(151, 153, 237, 0.55)',
+                background: isDark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.1)',
+                color: roleActiveText,
+              } : {
+                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.14)',
+                background: 'transparent',
+                color: roleInactiveText,
+              }}>
               {r.label}
             </button>
           ))}
         </div>
 
+        {/* Divider */}
+        <div className="h-px w-full" style={{ background: dividerColor, marginBottom: '2.25rem' }} />
+
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: '1.5rem' }}>
 
           {activeTab === 'signup' && (
-            <InputField
-              icon={User} type="text" value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Full Name" required
-            />
+            <InputField isDark={isDark} icon={User} type="text" value={name}
+              onChange={e => setName(e.target.value)} placeholder="Full name" required />
           )}
 
-          <InputField
-            icon={Mail} type="email" value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Email address" required
-          />
+          <InputField isDark={isDark} icon={Mail} type="email" value={email}
+            onChange={e => setEmail(e.target.value)} placeholder="Email address" required />
 
           {activeTab === 'signup' && (
-            <InputField
-              icon={Phone} type="tel" value={phone}
-              onChange={e => setPhone(e.target.value)}
-              placeholder="Phone: 98XXXXXXXX" required
-            />
+            <InputField isDark={isDark} icon={Phone} type="tel" value={phone}
+              onChange={e => setPhone(e.target.value)} placeholder="Phone: 98XXXXXXXX" required />
           )}
 
-          <InputField
-            icon={Lock}
+          <InputField isDark={isDark} icon={Lock}
             type={showPassword ? 'text' : 'password'}
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Password"
-            required
+            value={password} onChange={e => setPassword(e.target.value)}
+            placeholder="Password" required
             right={
-              <button
-                type="button"
-                onClick={() => setShowPassword(p => !p)}
-                className="text-white/35 hover:text-white/60 transition-colors bg-transparent border-none cursor-pointer p-0"
-              >
+              <button type="button" onClick={() => setShowPassword(p => !p)}
+                className="bg-transparent border-none cursor-pointer p-0 transition-opacity hover:opacity-60"
+                style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)' }}>
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             }
           />
 
-          <button
-            type="submit"
-            className="w-full py-3 mt-1 border-none rounded-[10px] cursor-pointer bg-gradient-to-br from-indigo-500 to-emerald-500 text-white font-bold text-[0.95rem] flex items-center justify-center gap-1 shadow-[0_4px_20px_rgba(99,102,241,0.35)] hover:opacity-90 transition-opacity duration-200"
-          >
+          {/* Submit */}
+          <button type="submit"
+            style={{ marginTop: '0.5rem' }}
+            className="w-full h-[54px] border-none rounded-xl cursor-pointer bg-gradient-to-r from-indigo-500 to-emerald-500 text-white font-bold text-[0.93rem] flex items-center justify-center gap-2 shadow-[0_4px_22px_rgba(99,102,241,0.32)] hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)] transition-all duration-200">
             {activeTab === 'login' ? 'Sign In' : 'Create Account'}
             <ChevronRight size={17} />
           </button>
         </form>
 
-        {/* Switch tab */}
-        <p className="mt-5 text-[0.8rem] text-white/35 text-center">
+        {/* Switch */}
+        <p className="text-[0.79rem] text-center font-medium" style={{ color: switchColor, marginTop: '2rem' }}>
           {activeTab === 'login' ? (
             <>No account?{' '}
-              <button
-                type="button"
-                onClick={() => setActiveTab('signup')}
-                className="bg-transparent border-none text-indigo-400/90 font-bold cursor-pointer hover:underline p-0"
-              >
-                Register here
-              </button>
+              <button type="button" onClick={() => setActiveTab('signup')}
+                className="bg-transparent border-none font-bold cursor-pointer hover:underline p-0"
+                style={{ color: linkColor }}>Register here</button>
             </>
           ) : (
             <>Already registered?{' '}
-              <button
-                type="button"
-                onClick={() => setActiveTab('login')}
-                className="bg-transparent border-none text-indigo-400/90 font-bold cursor-pointer hover:underline p-0"
-              >
-                Sign in
-              </button>
+              <button type="button" onClick={() => setActiveTab('login')}
+                className="bg-transparent border-none font-bold cursor-pointer hover:underline p-0"
+                style={{ color: linkColor }}>Sign in</button>
             </>
           )}
         </p>
