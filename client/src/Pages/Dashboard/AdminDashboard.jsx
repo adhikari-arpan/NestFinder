@@ -23,13 +23,15 @@ export const AdminDashboard = () => {
   
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!currentUser || currentUser.role !== 'admin') {
-      navigate('/auth');
-    }
-  }, [currentUser]);
+  
+//id=f not loggedin or not admin, redirect to auth page
+  // useEffect(() => {
+  //   if (!currentUser || currentUser.role !== 'admin') {
+  //     navigate('/auth');
+  //   }
+  // }, [currentUser]);
 
-  if (!currentUser || currentUser.role !== 'admin') return null;
+  // if (!currentUser || currentUser.role !== 'admin') return null;
 
   const [activeTab, setActiveTab] = useState('pending');
 

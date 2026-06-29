@@ -22,13 +22,15 @@ export const TenantDashboard = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/auth');
-    } else if (currentUser.role !== 'tenant') {
-      navigate('/auth');
-    }
-  }, [currentUser, navigate]);
+
+  // if not logged in or not a tenant, redirect to auth page
+  // useEffect(() => {
+  //   if (!currentUser) {
+  //     navigate('/auth');
+  //   } else if (currentUser.role !== 'tenant') {
+  //     navigate('/auth');
+  //   }
+  // }, [currentUser, navigate]);
 
   const [activeTab, setActiveTab] = useState('saved');
   const [searchQuery, setSearchQuery] = useState('');
@@ -94,20 +96,21 @@ export const TenantDashboard = () => {
 
   const AMENITIES = ['WiFi', 'Hot Water', 'Parking', 'Furnished', 'Kitchen', 'Balcony', 'Backup Electricity'];
 
-  return (
-    <div className="container animate-fade-in py-8 px-6 pb-20">
+    if (!currentUser) return null;
 
-      {/* Welcome Banner */}
-      
-      <div className="welcome-banner-card animate-fade-in mb-10">
-        <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
-        <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
-          Welcome, {currentUser.name}!
-        </h2>
-        <p className="text-[1.1rem] font-bold text-text-main m-0">
-          Let your search begin
-        </p>
-      </div>
+    return (
+      <div className="container animate-fade-in py-8 px-6 pb-20">
+
+        {/* Welcome Banner */}
+        <div className="welcome-banner-card animate-fade-in mb-10">
+          <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
+          <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
+            Welcome, {currentUser?.name}!
+          </h2>
+          <p className="text-[1.1rem] font-bold text-text-main m-0">
+            Let your search begin
+          </p>
+        </div>
 
       {/* Temporary Logout button */}
       <button
