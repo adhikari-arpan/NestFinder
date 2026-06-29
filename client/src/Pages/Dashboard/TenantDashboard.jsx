@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
+import logo from '../../assests/NestFinder Logo.png';
 import {
   Heart, Sparkles, Settings, MessageSquare, CheckCircle, Clock,
   ArrowRight, SlidersHorizontal, Filter, Search, Check, Map
@@ -45,8 +46,6 @@ export const TenantDashboard = () => {
   const [college, setCollege] = useState(tenantPreferences.poiCollege);
   const [prefAmenities, setPrefAmenities] = useState(tenantPreferences.essentialAmenities);
   const [isSavedPrefs, setIsSavedPrefs] = useState(false);
-
-  if (!currentUser || currentUser.role !== 'tenant') return null;
 
   const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
   const tenantInquiries = inquiries.filter(inq =>
@@ -99,7 +98,9 @@ export const TenantDashboard = () => {
     <div className="container animate-fade-in py-8 px-6 pb-20">
 
       {/* Welcome Banner */}
+      
       <div className="welcome-banner-card animate-fade-in mb-10">
+        <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
         <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
           Welcome, {currentUser.name}!
         </h2>

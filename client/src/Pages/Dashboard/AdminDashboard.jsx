@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
+import logo from '../../assests/NestFinder Logo.png';
 
 import { 
   ShieldAlert, 
@@ -73,7 +74,9 @@ export const AdminDashboard = () => {
     <div className="container animate-fade-in px-6 pt-12 pb-20 text-left">
 
       {/* Header */}
+      
       <div className="border-b border-[var(--border-color)] pb-6 mb-8">
+        <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
         <h1 className="text-[1.6rem] font-extrabold flex items-center gap-2">
           <ShieldAlert size={28} className="text-[var(--primary)]" />
           Administrative Moderation Board

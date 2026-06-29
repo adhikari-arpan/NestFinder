@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
+import logo from '../../assests/NestFinder Logo.png';
 import { 
   Building, 
   MessageSquare, 
@@ -20,7 +21,8 @@ export const LandlordDashboard = () => {
     inquiries, 
     replyToInquiry, 
     createListing, 
-    currentUser 
+    currentUser,
+    logoutUser
   } = useContext(AppContext);
   
   const location = useLocation();
@@ -44,8 +46,6 @@ export const LandlordDashboard = () => {
       navigate('/dashboard/landlord', { replace: true });
     }
   }, [location.search]);
-
-  if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) return null;
 
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
@@ -116,8 +116,10 @@ export const LandlordDashboard = () => {
     <div className="container animate-fade-in px-6 pt-12 pb-20 text-left">
 
       {/* Welcome Banner */}
+      
       <div className="flex justify-between items-start flex-wrap gap-6 border-b border-[var(--border-color)] pb-7 mb-8">
         {/* Left: Avatar + Welcome */}
+        <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
         <div className="flex items-center gap-4">
           <img
             src={currentUser?.avatar}
@@ -131,6 +133,14 @@ export const LandlordDashboard = () => {
             </p>
           </div>
         </div>
+
+        {/* Temporary Logout button */}
+      <button
+        style={{ padding: '10px 20px', fontSize: '16px', fontWeight: '600', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+        onClick={logoutUser}
+      >
+        Logout
+      </button>
 
         {/* Add Room CTA */}
         <button

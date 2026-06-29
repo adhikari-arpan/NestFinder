@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
+import logo from '../assests/NestFinder Logo.png';
 import { 
   Home, 
   Sparkles, 
@@ -58,12 +59,8 @@ export const Navbar = () => {
       <div className="container flex justify-between items-center relative">
 
         {/* Logo */}
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-extrabold text-[1.4rem] text-[var(--primary)]"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          <Home size={24} style={{ fill: 'var(--primary)', color: '#ffffff' }} />
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <img src={logo} alt="NestFinder" style={{ height: '38px', width: 'auto' }} />
           <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
         </Link>
 
