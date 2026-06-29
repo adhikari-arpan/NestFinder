@@ -11,6 +11,7 @@ import {
 export const TenantDashboard = () => {
   const {
     currentUser,
+    logoutUser,
     savedListings,
     listings,
     inquiries,
@@ -28,27 +29,27 @@ export const TenantDashboard = () => {
     }
   }, [currentUser, navigate]);
 
-  const [activeTab, setActiveTab]               = useState('saved');
-  const [searchQuery, setSearchQuery]           = useState('');
-  const [selectedType, setSelectedType]         = useState('all');
-  const [maxBudget, setMaxBudget]               = useState(25000);
+  const [activeTab, setActiveTab] = useState('saved');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState('all');
+  const [maxBudget, setMaxBudget] = useState(25000);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [activeListingId, setActiveListingId]   = useState(null);
+  const [activeListingId, setActiveListingId] = useState(null);
   const [highlightListingId, setHighlightListingId] = useState(null);
-  const [mapCenter, setMapCenter]               = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
 
-  const [budget, setBudget]           = useState(tenantPreferences.budget);
-  const [city, setCity]               = useState(tenantPreferences.preferredCity);
-  const [sharing, setSharing]         = useState(tenantPreferences.sharing);
-  const [roomType, setRoomType]       = useState(tenantPreferences.roomType);
-  const [college, setCollege]         = useState(tenantPreferences.poiCollege);
+  const [budget, setBudget] = useState(tenantPreferences.budget);
+  const [city, setCity] = useState(tenantPreferences.preferredCity);
+  const [sharing, setSharing] = useState(tenantPreferences.sharing);
+  const [roomType, setRoomType] = useState(tenantPreferences.roomType);
+  const [college, setCollege] = useState(tenantPreferences.poiCollege);
   const [prefAmenities, setPrefAmenities] = useState(tenantPreferences.essentialAmenities);
-  const [isSavedPrefs, setIsSavedPrefs]   = useState(false);
+  const [isSavedPrefs, setIsSavedPrefs] = useState(false);
 
   if (!currentUser || currentUser.role !== 'tenant') return null;
 
-  const bookmarkedRooms  = listings.filter(l => savedListings.includes(l.id));
-  const tenantInquiries  = inquiries.filter(inq =>
+  const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
+  const tenantInquiries = inquiries.filter(inq =>
     inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
   );
 
@@ -83,7 +84,7 @@ export const TenantDashboard = () => {
       const matchesSearch =
         searchQuery === '' ||
         listing.location?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType   = selectedType === 'all' || listing.type === selectedType;
+      const matchesType = selectedType === 'all' || listing.type === selectedType;
       const matchesBudget = listing.price <= maxBudget;
       return matchesSearch && matchesType && matchesBudget;
     })
@@ -106,6 +107,14 @@ export const TenantDashboard = () => {
           Let your search begin
         </p>
       </div>
+
+      {/* Temporary Logout button */}
+      <button
+        style={{ padding: '10px 20px', fontSize: '16px', fontWeight: '600', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+        onClick={logoutUser}
+      >
+        Logout
+      </button>
 
       <div className="search-split-layout">
 
