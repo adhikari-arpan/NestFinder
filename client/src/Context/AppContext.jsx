@@ -297,7 +297,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
   //user login process
   const loginUser = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) { alert(error.message); return }
+    if (error) return { success: false, message: error.message }
 
     // fetch role from profiles table
     const { data: profile } = await supabase
@@ -308,6 +308,7 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
 
     setCurrentUser({ ...data.user, ...profile })
     addNotification(`Logged in successfully`, `Welcome back, ${profile.name}!`, 'auth');
+    return { success: true, message: '' }
   }
 
   const logoutUser = () => {
@@ -322,8 +323,8 @@ export const AppContextProvider = ({ children }) => {   //childern= app and prov
         data: { name, phone, role }   // goes into raw_user_meta_data → trigger reads it
       }
     })
-    if (error) { alert(error.message); return }
-    alert('Check your email to confirm your account!')
+    if (error) return { success: false, message: error.message }
+    return { success: true, message: 'Account created Successfully! Please sign in.' }
   }
 
   // Restore session on page load

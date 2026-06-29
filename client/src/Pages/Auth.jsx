@@ -79,48 +79,62 @@ export const Auth = () => {
   const navigate = useNavigate();
   const isDark = theme === 'dark';
 
-  const [activeTab, setActiveTab]       = useState('login');
+  const [activeTab, setActiveTab] = useState('login');
   const [selectedRole, setSelectedRole] = useState('tenant');
-  const [name, setName]                 = useState('');
-  const [email, setEmail]               = useState('');
-  const [password, setPassword]         = useState('');
-  const [phone, setPhone]               = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [formMsg, setFormMsg] = useState({ text: '', type: '' });
 
   useEffect(() => {
     if (!currentUser) return;
-    if (currentUser.role === 'tenant')   navigate('/dashboard/tenant');
+    if (currentUser.role === 'tenant') navigate('/dashboard/tenant');
     if (currentUser.role === 'landlord') navigate('/dashboard/landlord');
-    if (currentUser.role === 'admin')    navigate('/dashboard/admin');
+    if (currentUser.role === 'admin') navigate('/dashboard/admin');
   }, [currentUser]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormMsg({ text: '', type: '' }); // clear previous message
+
     if (activeTab === 'login') {
-      if (!email || !password) { alert("Please fill in email and password."); return; }
-      loginUser(email, password);
+      if (!email || !password) {
+        setFormMsg({ text: 'Please fill in email and password.', type: 'error' });
+        return;
+      }
+      const result = await loginUser(email, password);
+      if (result && !result.success) {
+        setFormMsg({ text: result.message, type: 'error' });
+      }
     } else {
-      if (!name || !email || !password || !phone) { alert("Please fill all signup fields."); return; }
-      signupUser(email, password, name, phone, selectedRole);
+      if (!name || !email || !password || !phone) {
+        setFormMsg({ text: 'Please fill all signup fields.', type: 'error' });
+        return;
+      }
+      const result = await signupUser(email, password, name, phone, selectedRole);
+      setFormMsg({ text: result.message, type: result.success ? 'success' : 'error' });
     }
   };
 
-  const roles    = [{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }, { val: 'admin', label: '🛡️ Admin' }];
+  const roles = [{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }, { val: 'admin', label: '🛡️ Admin' }];
   const features = [{ icon: '🏠', text: 'Verified room listings across Kathmandu valley' }, { icon: '🤖', text: 'AI-powered recommendations for your budget' }, { icon: '🗺️', text: 'Map-based search with nearby colleges & hospitals' }];
-  const stats    = [{ num: '500+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
+  const stats = [{ num: '500+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
 
-  const pageBg       = isDark ? 'linear-gradient(135deg,#090d16 0%,#0d1117 60%,#0a1a12 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#fafbff 60%,#f0fdf4 100%)';
-  const cardBg       = isDark ? 'rgba(255,255,255,0.042)' : 'rgba(255,255,255,0.9)';
-  const cardBorder   = isDark ? 'rgba(255,255,255,0.09)'  : 'rgba(99,102,241,0.16)';
-  const cardShadow   = isDark ? '0 32px 80px rgba(0,0,0,0.6)' : '0 20px 60px rgba(99,102,241,0.13), 0 4px 20px rgba(0,0,0,0.05)';
-  const tabBarBg     = isDark ? 'rgba(255,255,255,0.05)'  : 'rgba(99,102,241,0.07)';
-  const headingColor = isDark ? 'rgba(255,255,255,0.92)'  : '#1e1b4b';
-  const subColor     = isDark ? 'rgba(255,255,255,0.4)'   : '#4338ca';
-  const switchColor  = isDark ? 'rgba(255,255,255,0.4)'   : '#374151';
-  const dividerColor = isDark ? 'rgba(255,255,255,0.06)'  : 'rgba(99,102,241,0.10)';
-  const linkColor    = isDark ? '#818cf8' : '#4f46e5';
+  // Switching between dark and white modes
+  const pageBg = isDark ? 'linear-gradient(135deg,#090d16 0%,#0d1117 60%,#0a1a12 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#fafbff 60%,#f0fdf4 100%)';
+  const cardBg = isDark ? 'rgba(255,255,255,0.042)' : 'rgba(255,255,255,0.9)';
+  const cardBorder = isDark ? 'rgba(255,255,255,0.09)' : 'rgba(99,102,241,0.16)';
+  const cardShadow = isDark ? '0 32px 80px rgba(0,0,0,0.6)' : '0 20px 60px rgba(99,102,241,0.13), 0 4px 20px rgba(0,0,0,0.05)';
+  const tabBarBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(99,102,241,0.07)';
+  const headingColor = isDark ? 'rgba(255,255,255,0.92)' : '#1e1b4b';
+  const subColor = isDark ? 'rgba(255,255,255,0.4)' : '#4338ca';
+  const switchColor = isDark ? 'rgba(255,255,255,0.4)' : '#374151';
+  const dividerColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.10)';
+  const linkColor = isDark ? '#818cf8' : '#4f46e5';
   const tabInactiveColor = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(67,56,202,0.65)';
-  const roleActiveText   = isDark ? '#c7d2fe' : '#4338ca';
+  const roleActiveText = isDark ? '#c7d2fe' : '#4338ca';
   const roleInactiveText = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(67,56,202,0.6)';
 
   return (
@@ -178,12 +192,11 @@ export const Auth = () => {
         {/* Tabs */}
         <div className="flex rounded-xl p-[5px]" style={{ background: tabBarBg, marginBottom: '1.75rem' }}>
           {['login', 'signup'].map(tab => (
-            <button key={tab} type="button" onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-3 rounded-[9px] border-none cursor-pointer font-bold text-[0.85rem] transition-all duration-200 ${
-                activeTab === tab
-                  ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
-                  : 'bg-transparent hover:opacity-70'
-              }`}
+            <button key={tab} type="button" onClick={() => { setActiveTab(tab); setFormMsg({ text: '', type: '' }); }}
+              className={`flex-1 py-3 rounded-[9px] border-none cursor-pointer font-bold text-[0.85rem] transition-all duration-200 ${activeTab === tab
+                ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
+                : 'bg-transparent hover:opacity-70'
+                }`}
               style={activeTab !== tab ? { color: tabInactiveColor } : {}}>
               {tab === 'login' ? 'Sign In' : 'Create Account'}
             </button>
@@ -240,6 +253,25 @@ export const Auth = () => {
               </button>
             }
           />
+
+          {/* Success Failure Message */}
+          {formMsg.text && (
+            <div style={{
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              fontSize: '0.85rem',
+              fontWeight: 500,
+              background: formMsg.type === 'error'
+                ? 'rgba(239,68,68,0.12)'
+                : 'rgba(16,185,129,0.12)',
+              border: `1px solid ${formMsg.type === 'error'
+                ? 'rgba(239,68,68,0.3)'
+                : 'rgba(16,185,129,0.3)'}`,
+              color: formMsg.type === 'error' ? '#f87171' : '#34d399',
+            }}>
+              {formMsg.text}
+            </div>
+          )}
 
           {/* Submit */}
           <button type="submit"
