@@ -128,7 +128,7 @@ export const TenantDashboard = () => {
           {/* Filter card */}
           <div className="card p-6 border border-border-color">
             <h3 className="text-[1.15rem] flex items-center gap-2 mb-5 border-b border-border-color pb-2">
-              <Filter size={18} className="text-primary" />
+              <Filter size={15} className="text-primary" />
               <span>Refine Your Search</span>
             </h3>
 
@@ -137,16 +137,16 @@ export const TenantDashboard = () => {
               {/* Search + Type row */}
               <div className="grid gap-4" style={{ gridTemplateColumns: '1.2fr 0.8fr' }}>
 
-                <div className="form-group mb-0">
-                  <label className="form-label text-[0.7rem]">Search Zone</label>
+                <div className="form-group mb-5">
+                  <label className="form-label text-[0.5rem]">Search Zone</label>
                   <div className="relative flex items-center">
-                    <Search size={16} className="absolute left-[10px] text-text-light" />
+                    <Search size={12} className="absolute left-[10px] text-text-light" />
                     <input
                       type="text"
-                      placeholder="Baneshwor, Pulchowk, Kirtipur..."
+                      placeholder="....Pulchowk, Kirtipur...."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="form-input w-full pl-9 py-2 text-[0.9rem]"
+                      className="form-input w-full pl-5 py-2 text-[0.5rem]"
                     />
                   </div>
                 </div>
@@ -186,7 +186,7 @@ export const TenantDashboard = () => {
 
               {/* Amenity pills */}
               <div className="text-left">
-                <label className="form-label text-[0.7rem] block mb-2">Facilities Required</label>
+                <label className="form-label text-[0.5rem] block mb-2">Facilities Required</label>
                 <div className="flex flex-wrap gap-2">
                   {AMENITIES.map((amenity, i) => {
                     const active = selectedAmenities.includes(amenity);
@@ -201,13 +201,13 @@ export const TenantDashboard = () => {
                               : [...prev, amenity]
                           )
                         }
-                        className={`flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer text-[0.8rem] border transition-all duration-150
+                        className={`flex items-center gap-5 px-5 py-5 rounded-full cursor-pointer text-[1.0rem] border transition-all duration-150
                           ${active
                             ? 'bg-primary text-white border-primary'
                             : 'bg-transparent text-text-muted border-border-color hover:border-primary/40'
                           }`}
                       >
-                        {active && <Check size={12} />}
+                        {active && <Check size={10} />}
                         <span>{amenity}</span>
                       </button>
                     );
@@ -224,7 +224,7 @@ export const TenantDashboard = () => {
             {/* Results meta row */}
             <div className="flex justify-between items-center">
               <span className="text-[0.85rem] text-text-light">
-                We found <strong>{scoredListings.length}</strong> matching rooms
+                We found <strong>{scoredListings.length}</strong> matching rooms for you !
               </span>
               <span className="text-[0.75rem] text-text-light flex items-center gap-1">
                 <Sparkles size={12} className="text-accent" />
