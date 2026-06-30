@@ -143,8 +143,28 @@ export const LandlordDashboard = () => {
         {/* Left: Avatar + Welcome text */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
            <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Welcome, {currentUser?.name}</h1>
-            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Landlord Hub.</p>
+            <div>
+              <h1
+                style={{
+                  fontSize: '1.6rem',
+                  fontWeight: 800,
+                  margin: 0
+                }}
+              >
+                Welcome, {currentUser?.name}
+              </h1>
+
+              <p
+                style={{
+                  color: 'var(--text-light)',
+                  fontSize: '0.95rem',
+                  marginTop: '0.3rem',
+                  marginBottom: 0
+                }}
+              >
+                Manage your listings and connect with prospective tenants.
+              </p>
+            </div>
         </div>
       </div>
 
