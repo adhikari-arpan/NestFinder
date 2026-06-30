@@ -55,7 +55,7 @@ export const Footer = () => {
         {/* Bottom copyright */}
         <div className="border-t border-[var(--border-color)] pt-6 flex justify-between items-center flex-wrap gap-4 text-[0.85rem] text-[var(--text-light)]">
           <div>
-            &copy; {new Date().getFullYear()} NestFinder. Built for students &amp; landlords in Nepal.
+            &copy; {new Date().getFullYear()} NestFinder. Built for students and landlords in Nepal. Developed by Purnima Bhattrai and Arpan Adhikari.
           </div>
           <div className="flex gap-6">
             <a href="#" className={footerLinkClass}>Terms of Service</a>
