@@ -125,7 +125,7 @@ export const Home = () => {
       {/* ── HERO SECTION ── */}
       <section className={[
         'relative min-h-[calc(100vh-70px)] flex flex-col items-center justify-center',
-        'text-center px-6 pt-20 pb-12 overflow-hidden',
+        'text-center px-6 pt-20 pb-32 overflow-hidden',
         isDark
           ? 'bg-[linear-gradient(135deg,#090d16_0%,#0d1222_60%,#0a1a12_100%)]'
           : 'bg-[linear-gradient(135deg,#f0f4ff_0%,#fafbff_100%)]',
@@ -183,7 +183,7 @@ export const Home = () => {
         </div>
 
         {/* Stats bar */}
-        <div className="container relative z-[5] mt-14 w-full">
+        <div className="container relative z-[5] mt-14 w-full" style={{ marginBottom: '40px' }}>
           <div className="stats-row">
             <div className="stat-item"><div className="stat-number">500+</div><div className="stat-label">Active Listings</div></div>
             <div className="stat-divider" />
@@ -194,9 +194,12 @@ export const Home = () => {
         </div>
       </section>
 
+      {/* Spacer to guarantee visible gap regardless of external CSS on stats-row */}
+      <div className="w-full bg-transparent" style={{ height: '32px' }} />
+
       {/* ── FEATURES SECTION ── */}
       <section
-        className="relative py-32 pb-36"
+        className="relative pt-36 pb-36"
         style={{
           background: isDark
             ? 'linear-gradient(180deg,#0d1222 0%,#090d16 100%)'
@@ -210,25 +213,29 @@ export const Home = () => {
         <div className="absolute -bottom-16 right-[10%] w-[320px] h-[320px] rounded-full pointer-events-none"
           style={{ background: 'rgba(16,185,129,0.05)', filter: 'blur(80px)' }} />
 
-        <div className="container relative z-[1]">
+        <div className="container relative z-[1]" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
 
           {/* Section header */}
-          <div className="text-center mb-20">
+          <div
+            className="text-center"
+            style={{ marginBottom: '60px', marginLeft: 'auto', marginRight: 'auto', maxWidth: '640px', width: '100%', textAlign: 'center' }}
+          >
             <p className="text-[0.78rem] font-bold tracking-[0.14em] text-[var(--primary)] uppercase mb-4">
               WHY NESTFINDER?
             </p>
             <h2
-              className="text-[clamp(1.9rem,4vw,2.8rem)] font-extrabold mb-5 leading-tight"
+              className="text-[clamp(1.9rem,4vw,2.8rem)] font-extrabold leading-tight"
               style={{
                 color: isDark ? '#f1f5f9' : '#0f172a',
                 fontFamily: 'var(--font-display)',
+                marginBottom: '36px',
               }}
             >
               Everything you need to find<br />your ideal room
             </h2>
             <p
-              className="text-[1.05rem] max-w-[520px] mx-auto leading-[1.75]"
-              style={{ color: isDark ? '#94a3b8' : '#475569' }}
+              className="text-[1.05rem] max-w-[520px] mx-auto text-center"
+              style={{ color: isDark ? '#94a3b8' : '#475569', lineHeight: '1.9', marginTop: '0px' }}
             >
               NestFinder combines interactive maps, AI recommendations and verified listings so you can find your perfect place — efficiently and safely.
             </p>
