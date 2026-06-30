@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext} from "../../Context/AppContext";
+import logo from '../../assests/NestFinder Logo.png';
 import { 
   Building, 
   MessageSquare, 
@@ -141,32 +142,10 @@ export const LandlordDashboard = () => {
       }}>
         {/* Left: Avatar + Welcome text */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
-          <img src={currentUser?.avatar} alt="avatar" style={{ width: '62px', height: '62px', borderRadius: '50%', border: '3px solid var(--primary)', objectFit: 'cover', boxShadow: '0 0 0 4px var(--primary-light)' }} />
-          <div>
+           <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
             <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>Welcome, {currentUser?.name}</h1>
-            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Landlord Hub: Moderate active tenant requests, reply to inquiries, and list properties.</p>
-          </div>
+            <p style={{ color: 'var(--text-light)', fontSize: '0.85rem' }}>Landlord Hub.</p>
         </div>
-        <button 
-          onClick={() => setIsPostModalOpen(true)} 
-          className="landlord-add-btn" 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.35rem',
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
-            color: 'white',
-            fontWeight: 700,
-            border: 'none',
-            padding: '0.85rem 1.6rem',
-            borderRadius: 'var(--radius-md)',
-            boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
-            cursor: 'pointer',
-            transition: 'all 0.25s ease'
-          }}
-        >
-          <Plus size={18} /> Add Room Listing
-        </button>
       </div>
 
       {/* Tabs selectors: Rooms vs Inquiries */}
@@ -218,8 +197,8 @@ export const LandlordDashboard = () => {
             <div className="card text-center" style={{ padding: '4rem 1rem' }}>
               <Building size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
               <h3>No Listings Yet</h3>
-              <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem 0' }}>Submit your first room details and get matched with student search lists.</p>
-              <button onClick={() => setIsPostModalOpen(true)} className="btn btn-primary btn-sm">Post Room Form</button>
+              <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem 0' }}>Submit your first room details and get matched with tenant search lists.</p>
+              <button onClick={() => setIsPostModalOpen(true)} className="btn btn-primary btn-sm">Add Room Listing</button>
             </div>
           ) : (
             <div className="card" style={{ padding: 0, overflow: 'hidden', borderColor: 'var(--border-color)' }}>

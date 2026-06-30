@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import logo from '../assests/NestFinder Logo.png';
 import { 
@@ -12,6 +12,7 @@ import {
   Menu, 
   X, 
   ShieldAlert,
+  Plus,
 } from 'lucide-react';
 
 export const Navbar = () => {
@@ -28,6 +29,7 @@ export const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const unreadNotifs = notifications.filter(n => !n.read);
 
@@ -67,12 +69,16 @@ export const Navbar = () => {
         {/* Desktop Nav Links */}
         {currentUser && (
           <div className="hidden md:flex items-center gap-6">
-            <Link to="/" className={navLinkClass('/')}>Home</Link>
-            <Link to="/search" className={navLinkClass('/search')}>Find Rooms</Link>
-            <Link to="/ai-recommend" className={navLinkClass('/ai-recommend')}>
-              <Sparkles size={16} className="inline mr-1 align-middle text-[var(--accent)]" />
-              AI Recommendations
-            </Link>
+            {!isLandlord && (
+              <>
+                <Link to="/" className={navLinkClass('/')}>Home</Link>
+                <Link to="/search" className={navLinkClass('/search')}>Find Rooms</Link>
+                <Link to="/ai-recommend" className={navLinkClass('/ai-recommend')}>
+                  <Sparkles size={16} className="inline mr-1 align-middle text-[var(--accent)]" />
+                  AI Recommendations
+                </Link>
+              </>
+            )}
             {currentUser.role === 'tenant' && (
               <Link to="/dashboard/tenant" className={navLinkClass('/dashboard/tenant')}>My Dashboard</Link>
             )}
@@ -90,6 +96,33 @@ export const Navbar = () => {
 
         {/* Right Action Area */}
         <div className="flex items-center gap-3">
+
+          {/* Landlord: Add Room Listing CTA */}
+          {isLandlord && (
+            <button
+              onClick={() => navigate('/dashboard/landlord?action=post')}
+              className="btn btn-primary btn-sm hidden md:flex items-center gap-1"
+           
+
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.35rem',
+                          background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+                          color: 'white',
+                          fontWeight: 700,
+                          border: 'none',
+                          padding: '0.85rem 1.6rem',
+                          borderRadius: 'var(--radius-md)',
+                          boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
+                          cursor: 'pointer',
+                          transition: 'all 0.25s ease'
+                        }}>
+                      
+                        <Plus size={18} /> Add Room Listing
+                    
+            </button>
+          )}
 
           {/* Theme Toggle */}
           <button onClick={toggleTheme} className={iconBtnClass} aria-label="Toggle Theme">
@@ -197,7 +230,7 @@ export const Navbar = () => {
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="glass animate-fade-in absolute top-full left-0 right-0 bg-[var(--bg-card)] p-4 flex flex-col gap-3 rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] mt-2 border border-[var(--border-color)] z-50">
-            {[
+            {!isLandlord && [
               { to: '/', label: 'Home' },
               { to: '/search', label: 'Find Rooms' },
               { to: '/ai-recommend', label: 'AI Match Finder' },
@@ -215,7 +248,15 @@ export const Navbar = () => {
               <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">My Dashboard</Link>
             )}
             {currentUser?.role === 'landlord' && (
-              <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Landlord Hub</Link>
+              <>
+                <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Landlord Hub</Link>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); navigate('/dashboard/landlord?action=post'); }}
+                  className="btn btn-primary btn-sm flex items-center gap-1 w-fit"
+                >
+                  <Plus size={16} /> Add Room Listing
+                </button>
+              </>
             )}
             {currentUser?.role === 'admin' && (
               <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Admin Dashboard</Link>
