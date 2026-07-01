@@ -73,7 +73,9 @@ export const LandlordDashboard = () => {
 
   // Find listings belonging to logged-in Landlord
   const landlordListings = listings.filter(l =>
-    l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()
+    // l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()   // blocks the dashboard changing from the url
+
+    l.landlord?.email?.toLowerCase() === currentUser?.email?.toLowerCase()
   );
 
   // Find inquiries sent to this Landlord's listings

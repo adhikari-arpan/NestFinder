@@ -51,7 +51,9 @@ export const TenantDashboard = () => {
 
   const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
   const tenantInquiries = inquiries.filter(inq =>
-    inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
+    //don't allow changing of the dashboards from uurl
+    // inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
+    inq.tenant?.email?.toLowerCase() === currentUser?.email?.toLowerCase()
   );
 
   const handleAmenityToggle = (item) => {

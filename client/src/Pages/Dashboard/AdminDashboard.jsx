@@ -32,6 +32,12 @@ export const AdminDashboard = () => {
   // }, [currentUser]);
 
   // if (!currentUser || currentUser.role !== 'admin') return null;
+  const adminListings = listings.filter(l =>
+    // l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()   // blocks the dashboard changing from the url
+
+    l.admin?.email?.toLowerCase() === currentUser?.email?.toLowerCase()
+  );
+
 
   const [activeTab, setActiveTab] = useState('pending');
 
@@ -42,6 +48,8 @@ export const AdminDashboard = () => {
 
   const pendingListings = listings.filter(l => l.status === 'pending');
   const flaggedListings = listings.filter(l => l.status === 'flagged');
+
+  //mock users data for demonstration purposes
 
   const [mockUsers, setMockUsers] = useState([
     { id: 1, name: "Roshan Gurung", email: "roshan@gmail.com", role: "Tenant", status: "active" },
