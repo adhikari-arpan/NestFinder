@@ -17,7 +17,6 @@ export const Footer = () => {
           {/* Brand Col */}
           <div className="flex flex-col gap-5 text-left">
             <Link to="/" className="flex items-center gap-2 font-extrabold text-[1.4rem] text-[var(--primary)]">
-              <Home size={24} style={{ fill: 'var(--primary)', color: '#ffffff' }} />
               <img src={logo} alt="NestFinder" style={{ height: '38px', width: 'auto' }} />
               <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
             </Link>
