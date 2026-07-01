@@ -1,27 +1,27 @@
 import React, { useContext, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
-import logo from '../assests/NestFinder Logo.png';
-import { 
-  Home, 
-  Sparkles, 
-  Bell, 
-  Sun, 
-  Moon, 
-  LogOut, 
-  Menu, 
-  X, 
+import logo from '../assets/NestFinder Logo.png';
+import {
+  Home,
+  Sparkles,
+  Bell,
+  Sun,
+  Moon,
+  LogOut,
+  Menu,
+  X,
   ShieldAlert,
   Plus,
 } from 'lucide-react';
 
 export const Navbar = () => {
-  const { 
-    currentUser, 
-    loginUser, 
-    logoutUser, 
-    theme, 
-    toggleTheme, 
+  const {
+    currentUser,
+    loginUser,
+    logoutUser,
+    theme,
+    toggleTheme,
     notifications,
     setNotifications
   } = useContext(AppContext);
@@ -45,10 +45,9 @@ export const Navbar = () => {
   const isTenant = currentUser?.role === 'tenant';
 
   const navLinkClass = (path) =>
-    `font-medium text-[0.95rem] relative py-1 transition-colors ${
-      isActive(path)
-        ? 'text-[var(--primary)] after:content-[""] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-[var(--primary)] after:rounded-full'
-        : 'text-[var(--text-muted)] hover:text-[var(--primary)]'
+    `font-medium text-[0.95rem] relative py-1 transition-colors ${isActive(path)
+      ? 'text-[var(--primary)] after:content-[""] after:absolute after:bottom-[-4px] after:left-0 after:w-full after:h-[2px] after:bg-[var(--primary)] after:rounded-full'
+      : 'text-[var(--text-muted)] hover:text-[var(--primary)]'
     }`;
 
   const iconBtnClass =
@@ -61,7 +60,7 @@ export const Navbar = () => {
       <div className="container flex justify-between items-center relative">
 
         {/* Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <img src={logo} alt="NestFinder" style={{ height: '38px', width: 'auto' }} />
           <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
         </Link>
@@ -102,25 +101,25 @@ export const Navbar = () => {
             <button
               onClick={() => navigate('/dashboard/landlord?action=post')}
               className="btn btn-primary btn-sm hidden md:flex items-center gap-1"
-           
 
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.35rem',
-                          background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
-                          color: 'white',
-                          fontWeight: 700,
-                          border: 'none',
-                          padding: '0.85rem 1.6rem',
-                          borderRadius: 'var(--radius-md)',
-                          boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
-                          cursor: 'pointer',
-                          transition: 'all 0.25s ease'
-                        }}>
-                      
-                        <Plus size={18} /> Add Room Listing
-                    
+
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)',
+                color: 'white',
+                fontWeight: 700,
+                border: 'none',
+                padding: '0.85rem 1.6rem',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 15px rgba(99,102,241,0.35)',
+                cursor: 'pointer',
+                transition: 'all 0.25s ease'
+              }}>
+
+              <Plus size={18} /> Add Room Listing
+
             </button>
           )}
 
@@ -161,11 +160,10 @@ export const Navbar = () => {
                       notifications.map(n => (
                         <div
                           key={n.id}
-                          className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${
-                            n.read
+                          className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${n.read
                               ? 'bg-transparent border-l-[var(--border-color)]'
                               : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
-                          }`}
+                            }`}
                         >
                           <div className="font-semibold text-[0.85rem]">{n.title}</div>
                           <div className="text-[0.75rem] text-[var(--text-muted)]">{n.message}</div>
@@ -203,8 +201,8 @@ export const Navbar = () => {
                   currentUser.role === 'tenant'
                     ? '/dashboard/tenant'
                     : currentUser.role === 'landlord'
-                    ? '/dashboard/landlord'
-                    : '/dashboard/admin'
+                      ? '/dashboard/landlord'
+                      : '/dashboard/admin'
                 }
               >
                 <img

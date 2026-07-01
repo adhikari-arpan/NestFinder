@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Home, Globe, Share2, MessageSquare, Mail, Phone, MapPin } from 'lucide-react';
-import logo from '../assests/NestFinder Logo.png';
+import logo from '../assets/NestFinder Logo.png';
 
 export const Footer = () => {
   const footerLinkClass = "text-[var(--text-muted)] transition-colors hover:text-[var(--primary)]";

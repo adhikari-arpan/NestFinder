@@ -1,31 +1,31 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { AppContext} from "../../Context/AppContext";
-import logo from '../../assests/NestFinder Logo.png';
-import { 
-  Building, 
-  MessageSquare, 
-  Plus, 
-  Eye, 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle, 
-  Send, 
-  MapPin, 
+import { AppContext } from "../../Context/AppContext";
+import logo from '../../assets/NestFinder Logo.png';
+import {
+  Building,
+  MessageSquare,
+  Plus,
+  Eye,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  Send,
+  MapPin,
   FileText,
   Trash2,
   X
 } from 'lucide-react';
 
 export const LandlordDashboard = () => {
-  const { 
-    listings, 
-    inquiries, 
-    replyToInquiry, 
-    createListing, 
-    currentUser 
+  const {
+    listings,
+    inquiries,
+    replyToInquiry,
+    createListing,
+    currentUser
   } = useContext(AppContext);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -38,7 +38,7 @@ export const LandlordDashboard = () => {
 
   // Tab views: 'listings' or 'inquiries'
   const [activeTab, setActiveTab] = useState('listings');
-  
+
   // Post Listing Form Modal toggle
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -72,17 +72,17 @@ export const LandlordDashboard = () => {
   const [formAmenities, setFormAmenities] = useState([]);
 
   // Find listings belonging to logged-in Landlord
-  const landlordListings = listings.filter(l => 
+  const landlordListings = listings.filter(l =>
     l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()
   );
 
   // Find inquiries sent to this Landlord's listings
-  const landlordInquiries = inquiries.filter(inq => 
+  const landlordInquiries = inquiries.filter(inq =>
     landlordListings.some(l => l.id === inq.listingId)
   );
 
   const toggleFormAmenity = (item) => {
-    setFormAmenities(prev => 
+    setFormAmenities(prev =>
       prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
     );
   };
@@ -128,52 +128,52 @@ export const LandlordDashboard = () => {
 
   return (
     <div className="container animate-fade-in" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
-      
+
       {/* ── Welcome Banner: landlord greeting + Add Room CTA ── */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'flex-start', 
-        flexWrap: 'wrap', 
-        gap: '1.5rem', 
-        borderBottom: '1px solid var(--border-color)', 
-        paddingBottom: '1.75rem', 
-        marginBottom: '2rem' 
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        flexWrap: 'wrap',
+        gap: '1.5rem',
+        borderBottom: '1px solid var(--border-color)',
+        paddingBottom: '1.75rem',
+        marginBottom: '2rem'
       }}>
         {/* Left: Avatar + Welcome text */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
-           <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
-            <div>
-              <h1
-                style={{
-                  fontSize: '1.6rem',
-                  fontWeight: 800,
-                  margin: 0
-                }}
-              >
-                Welcome, {currentUser?.name}
-              </h1>
+          <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
+          <div>
+            <h1
+              style={{
+                fontSize: '1.6rem',
+                fontWeight: 800,
+                margin: 0
+              }}
+            >
+              Welcome, {currentUser?.name}
+            </h1>
 
-              <p
-                style={{
-                  color: 'var(--text-light)',
-                  fontSize: '0.95rem',
-                  marginTop: '0.3rem',
-                  marginBottom: 0
-                }}
-              >
-                Manage your listings and connect with prospective tenants.
-              </p>
-            </div>
+            <p
+              style={{
+                color: 'var(--text-light)',
+                fontSize: '0.95rem',
+                marginTop: '0.3rem',
+                marginBottom: 0
+              }}
+            >
+              Manage your listings and connect with prospective tenants.
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Tabs selectors: Rooms vs Inquiries */}
       <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
-        <button 
+        <button
           onClick={() => setActiveTab('listings')}
           className="tab-select-btn"
-          style={{ 
+          style={{
             padding: '0.75rem 0.5rem',
             background: 'none',
             border: 'none',
@@ -189,10 +189,10 @@ export const LandlordDashboard = () => {
         >
           <Building size={16} /> My Properties ({landlordListings.length})
         </button>
-        <button 
+        <button
           onClick={() => setActiveTab('inquiries')}
           className="tab-select-btn"
-          style={{ 
+          style={{
             padding: '0.75rem 0.5rem',
             background: 'none',
             border: 'none',
@@ -289,7 +289,7 @@ export const LandlordDashboard = () => {
               const matchedRoom = listings.find(l => l.id === inq.listingId);
               return (
                 <div key={inq.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', borderLeft: inq.status === 'unread' ? '4px solid var(--primary)' : '1px solid var(--border-color)' }}>
-                  
+
                   {/* Inquiry Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ textAlign: 'left' }}>
@@ -329,14 +329,14 @@ export const LandlordDashboard = () => {
                       {replyInquiryId === inq.id ? (
                         <form onSubmit={handleReplySubmit} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-end' }}>
                           <div className="form-group" style={{ marginBottom: 0, flex: 1 }}>
-                            <textarea 
-                              placeholder="Write your email/SMS reply here..." 
+                            <textarea
+                              placeholder="Write your email/SMS reply here..."
                               value={replyText}
                               onChange={(e) => setReplyText(e.target.value)}
-                              rows={2} 
+                              rows={2}
                               required
-                              className="form-input" 
-                              style={{ width: '100%', fontSize: '0.85rem' }} 
+                              className="form-input"
+                              style={{ width: '100%', fontSize: '0.85rem' }}
                             />
                           </div>
                           <div style={{ display: 'flex', gap: '0.25rem' }}>
@@ -367,30 +367,30 @@ export const LandlordDashboard = () => {
           POST PROPERTY MODAL / OVERLAY FORM
           ======================================= */}
       {isPostModalOpen && (
-        <div style={{ 
-          position: 'fixed', 
-          top: 0, 
-          left: 0, 
-          right: 0, 
-          bottom: 0, 
-          backgroundColor: 'rgba(0,0,0,0.5)', 
-          zIndex: 2000, 
-          display: 'flex', 
-          alignItems: 'center', 
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          zIndex: 2000,
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
           padding: '1rem'
         }}>
-          <div className="card shadow-xl animate-fade-in" style={{ 
-            width: '100%', 
-            maxWidth: '650px', 
-            maxHeight: '90vh', 
-            overflowY: 'auto', 
+          <div className="card shadow-xl animate-fade-in" style={{
+            width: '100%',
+            maxWidth: '650px',
+            maxHeight: '90vh',
+            overflowY: 'auto',
             padding: '2rem',
             position: 'relative'
           }}>
-            
+
             {/* Modal Close Trigger */}
-            <button 
+            <button
               onClick={() => setIsPostModalOpen(false)}
               style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}
             >
@@ -407,17 +407,17 @@ export const LandlordDashboard = () => {
 
             {/* Form */}
             <form onSubmit={handlePostSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              
+
               {/* Title */}
               <div className="form-group">
                 <label className="form-label">Listing Title *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Spacious Single Room near Tribhuvan University" 
-                  required 
-                  className="form-input" 
+                  placeholder="e.g. Spacious Single Room near Tribhuvan University"
+                  required
+                  className="form-input"
                 />
               </div>
 
@@ -425,13 +425,13 @@ export const LandlordDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }} className="form-row-three">
                 <div className="form-group">
                   <label className="form-label">Monthly Rent (Rs) *</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={formPrice}
                     onChange={(e) => setFormPrice(e.target.value)}
-                    placeholder="8500" 
-                    required 
-                    className="form-input" 
+                    placeholder="8500"
+                    required
+                    className="form-input"
                   />
                 </div>
                 <div className="form-group">
@@ -455,13 +455,13 @@ export const LandlordDashboard = () => {
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '0.75rem' }} className="form-row-two">
                 <div className="form-group">
                   <label className="form-label">Specific Address *</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={formLocation}
                     onChange={(e) => setFormLocation(e.target.value)}
-                    placeholder="Kumaripati, Lalitpur (behind United Academy)" 
-                    required 
-                    className="form-input" 
+                    placeholder="Kumaripati, Lalitpur (behind United Academy)"
+                    required
+                    className="form-input"
                   />
                 </div>
                 <div className="form-group">
@@ -477,13 +477,13 @@ export const LandlordDashboard = () => {
               {/* Description */}
               <div className="form-group">
                 <label className="form-label">Detailed Description *</label>
-                <textarea 
-                  value={formDesc} 
+                <textarea
+                  value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
-                  rows={3} 
+                  rows={3}
                   placeholder="Describe your flat layout, water frequency, backup electricity inverter details, guidelines etc."
-                  required 
-                  className="form-input" 
+                  required
+                  className="form-input"
                   style={{ resize: 'vertical' }}
                 />
               </div>
@@ -503,12 +503,12 @@ export const LandlordDashboard = () => {
               {/* Image URL */}
               <div className="form-group">
                 <label className="form-label">Thumbnail Image URL</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   value={formImage}
                   onChange={(e) => setFormImage(e.target.value)}
-                  placeholder="https://images.unsplash.com/..." 
-                  className="form-input" 
+                  placeholder="https://images.unsplash.com/..."
+                  className="form-input"
                 />
               </div>
 
@@ -519,14 +519,14 @@ export const LandlordDashboard = () => {
                   {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((item, idx) => {
                     const isSelected = formAmenities.includes(item);
                     return (
-                      <button 
-                        key={idx} 
+                      <button
+                        key={idx}
                         type="button"
                         onClick={() => toggleFormAmenity(item)}
                         className="btn btn-outline"
-                        style={{ 
-                          padding: '0.35rem 0.6rem', 
-                          fontSize: '0.75rem', 
+                        style={{
+                          padding: '0.35rem 0.6rem',
+                          fontSize: '0.75rem',
                           borderRadius: 'var(--radius-sm)',
                           backgroundColor: isSelected ? 'var(--primary)' : 'transparent',
                           borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',

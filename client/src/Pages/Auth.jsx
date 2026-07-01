@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
-import logo from '../assests/NestFinder Logo.png';
+import logo from '../assets/NestFinder Logo.png';
 import { Home, User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 // --- Animated Canvas Background ---
@@ -183,7 +183,7 @@ export const Auth = () => {
 
         {/* Logo */}
         <div className="flex flex-col items-center gap-3" style={{ marginBottom: '2.75rem' }}>
-         <img src={logo} alt="NestFinder" style={{ height: '100px', width: 'auto' }} />
+          <img src={logo} alt="NestFinder" style={{ height: '100px', width: 'auto' }} />
           <h2 className="text-[1.35rem] font-extrabold m-0 tracking-tight" style={{ color: headingColor }}>NestFinder</h2>
           <p className="text-[0.75rem] m-0 font-medium" style={{ color: subColor }}>Nepals's trusted rental platform</p>
         </div>

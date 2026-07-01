@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
-import logo from '../../assests/NestFinder Logo.png';
+import logo from '../../assets/NestFinder Logo.png';
 import {
   Heart, Sparkles, Settings, MessageSquare, CheckCircle, Clock,
   ArrowRight, SlidersHorizontal, Filter, Search, Check, Map
@@ -96,21 +96,21 @@ export const TenantDashboard = () => {
 
   const AMENITIES = ['WiFi', 'Hot Water', 'Parking', 'Furnished', 'Kitchen', 'Balcony', 'Backup Electricity'];
 
-    if (!currentUser) return null;
+  if (!currentUser) return null;
 
-    return (
-      <div className="container animate-fade-in py-8 px-6 pb-20">
+  return (
+    <div className="container animate-fade-in py-8 px-6 pb-20">
 
-        {/* Welcome Banner */}
-        <div className="welcome-banner-card animate-fade-in mb-10">
-          <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
-          <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
-            Welcome, {currentUser?.name}!
-          </h2>
-          <p className="text-[1.1rem] font-bold text-text-main m-0">
-            Let your search begin
-          </p>
-        </div>
+      {/* Welcome Banner */}
+      <div className="welcome-banner-card animate-fade-in mb-10">
+        <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
+        <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
+          Welcome, {currentUser?.name}!
+        </h2>
+        <p className="text-[1.1rem] font-bold text-text-main m-0">
+          Let your search begin
+        </p>
+      </div>
 
       {/* Temporary Logout button */}
       <button

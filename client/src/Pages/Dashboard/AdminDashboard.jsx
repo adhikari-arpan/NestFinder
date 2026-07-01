@@ -1,30 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
-import logo from '../../assests/NestFinder Logo.png';
+import logo from '../../assets/NestFinder Logo.png';
 
-import { 
-  ShieldAlert, 
-  CheckCircle, 
-  Trash2, 
-  UserMinus, 
-  UserCheck, 
+import {
+  ShieldAlert,
+  CheckCircle,
+  Trash2,
+  UserMinus,
+  UserCheck,
   Flag,
   AlertTriangle,
   Users,
 } from 'lucide-react';
 
 export const AdminDashboard = () => {
-  const { 
-    listings, 
-    updateListingStatus, 
-    currentUser 
+  const {
+    listings,
+    updateListingStatus,
+    currentUser
   } = useContext(AppContext);
-  
+
   const navigate = useNavigate();
 
-  
-//id=f not loggedin or not admin, redirect to auth page
+
+  //id=f not loggedin or not admin, redirect to auth page
   // useEffect(() => {
   //   if (!currentUser || currentUser.role !== 'admin') {
   //     navigate('/auth');
@@ -52,31 +52,30 @@ export const AdminDashboard = () => {
   ]);
 
   const handleUserVerify = (userId) => {
-    setMockUsers(prev => 
+    setMockUsers(prev =>
       prev.map(u => u.id === userId ? { ...u, status: 'verified' } : u)
     );
     alert(`Landlord verification status updated for User ID ${userId}`);
   };
 
   const handleUserBan = (userId) => {
-    setMockUsers(prev => 
+    setMockUsers(prev =>
       prev.map(u => u.id === userId ? { ...u, status: 'banned' } : u)
     );
     alert(`User ID ${userId} has been suspended.`);
   };
 
   const tabClass = (tab) =>
-    `flex items-center gap-1.5 px-0.5 py-3 text-[0.95rem] font-bold border-b-[3px] bg-transparent border-x-0 border-t-0 cursor-pointer transition-colors ${
-      activeTab === tab
-        ? 'text-[var(--primary)] border-b-[var(--primary)]'
-        : 'text-[var(--text-light)] border-b-transparent'
+    `flex items-center gap-1.5 px-0.5 py-3 text-[0.95rem] font-bold border-b-[3px] bg-transparent border-x-0 border-t-0 cursor-pointer transition-colors ${activeTab === tab
+      ? 'text-[var(--primary)] border-b-[var(--primary)]'
+      : 'text-[var(--text-light)] border-b-transparent'
     }`;
 
   return (
     <div className="container animate-fade-in px-6 pt-12 pb-20 text-left">
 
       {/* Header */}
-      
+
       <div className="border-b border-[var(--border-color)] pb-6 mb-8">
         <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
         <h1 className="text-[1.6rem] font-extrabold flex items-center gap-2">
