@@ -2,6 +2,10 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import logo from '../../assets/NestFinder Logo.png';
+import { MapContainer as LeafletMap, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
 import {
   Building,
   MessageSquare,
@@ -16,6 +20,25 @@ import {
   Trash2,
   X
 } from 'lucide-react';
+
+
+// Fix default marker icon (Leaflet + bundlers issue)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+// Click-to-pin handler component
+const LocationPicker = ({ onPick }) => {
+  useMapEvents({
+    click(e) {
+      onPick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+  return null;
+};
 
 export const LandlordDashboard = () => {
   const {
@@ -53,6 +76,10 @@ export const LandlordDashboard = () => {
       navigate('/dashboard/landlord', { replace: true });
     }
   }, [location.search]);
+  useEffect(() => {
+  document.body.style.overflow = isPostModalOpen ? 'hidden' : '';
+  return () => { document.body.style.overflow = ''; };
+}, [isPostModalOpen]);
 
   //rendering blocking gaurd: if user is not logged in or not a landlord/admin, return null
   // if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) return null;
@@ -95,6 +122,10 @@ export const LandlordDashboard = () => {
       alert("Please fill in all required fields.");
       return;
     }
+    if (!formLat || !formLng) {
+    alert("Please pin the location on the map.");
+    return;
+   }
 
     createListing({
       title: formTitle,
@@ -368,190 +399,219 @@ export const LandlordDashboard = () => {
       {/* =======================================
           POST PROPERTY MODAL / OVERLAY FORM
           ======================================= */}
-      {isPostModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          zIndex: 2000,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem'
-        }}>
-          <div className="card shadow-xl animate-fade-in" style={{
-            width: '100%',
-            maxWidth: '650px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: '2rem',
-            position: 'relative'
-          }}>
+{isPostModalOpen && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    overflowY: 'auto',
+    zIndex: 2000,
+    padding: '2.5rem 1.5rem 5rem',
+    backgroundColor: 'var(--bg-app)'
+  }}>
+    <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
-            {/* Modal Close Trigger */}
-            <button
-              onClick={() => setIsPostModalOpen(false)}
-              style={{ position: 'absolute', top: '15px', right: '15px', background: 'none', border: 'none', color: 'var(--text-light)', cursor: 'pointer' }}
-            >
-              <X size={22} />
-            </button>
+      {/* Page Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div>
+          <h2 style={{ fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Plus style={{ color: 'var(--primary)' }} size={24} /> Add Room / Flat Listing
+          </h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
+            Provide specifications. Newly listed rentals start as pending for admin checks.
+          </p>
+        </div>
+        <button
+          onClick={() => setIsPostModalOpen(false)}
+          className="btn btn-outline btn-sm"
+          style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+        >
+          <X size={18} /> Cancel
+        </button>
+      </div>
 
-            {/* Modal Header */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Plus style={{ color: 'var(--primary)' }} size={22} /> Add Room / Flat Listing
-              </h2>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-light)' }}>Provide specifications. Newly listed rentals start as pending for admin checks.</p>
+      {/* Form */}
+      <form onSubmit={handlePostSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+
+        <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+
+          {/* Title */}
+          <div className="form-group">
+            <label className="form-label">Listing Title *</label>
+            <input
+              type="text"
+              value={formTitle}
+              onChange={(e) => setFormTitle(e.target.value)}
+              placeholder="e.g. Spacious Single Room near Tribhuvan University"
+              required
+              className="form-input"
+            />
+          </div>
+
+          {/* Price & Types */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }} className="form-row-three">
+            <div className="form-group">
+              <label className="form-label">Monthly Rent (Rs) *</label>
+              <input
+                type="number"
+                value={formPrice}
+                onChange={(e) => setFormPrice(e.target.value)}
+                placeholder="Rs xxxxx"
+                required
+                className="form-input"
+              />
             </div>
+            <div className="form-group">
+              <label className="form-label">Housing Type *</label>
+              <select value={formType} onChange={(e) => setFormType(e.target.value)} className="form-input">
+                <option value="Room">Single Room</option>
+                <option value="Flat">Full Flat</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Sharing Type *</label>
+              <select value={formSharing} onChange={(e) => setFormSharing(e.target.value)} className="form-input">
+                <option value="Single">Single Room</option>
+                <option value="Shared">Shared Room</option>
+                <option value="Private">Private flat</option>
+              </select>
+            </div>
+          </div>
 
-            {/* Form */}
-            <form onSubmit={handlePostSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Location details */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '0.75rem' }} className="form-row-two">
+            <div className="form-group">
+              <label className="form-label">Specific Address *</label>
+              <input
+                type="text"
+                value={formLocation}
+                onChange={(e) => setFormLocation(e.target.value)}
+                placeholder="Kumaripati, Lalitpur (behind United Academy)"
+                required
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">City *</label>
+              <select value={formCity} onChange={(e) => setFormCity(e.target.value)} className="form-input">
+                <option value="Kathmandu">Kathmandu</option>
+                <option value="Lalitpur">Lalitpur</option>
+                <option value="Bhaktapur">Bhaktapur</option>
+              </select>
+            </div>
+          </div>
 
-              {/* Title */}
-              <div className="form-group">
-                <label className="form-label">Listing Title *</label>
-                <input
-                  type="text"
-                  value={formTitle}
-                  onChange={(e) => setFormTitle(e.target.value)}
-                  placeholder="e.g. Spacious Single Room near Tribhuvan University"
-                  required
-                  className="form-input"
-                />
-              </div>
+          {/* Description */}
+          <div className="form-group">
+            <label className="form-label">Detailed Description *</label>
+            <textarea
+              value={formDesc}
+              onChange={(e) => setFormDesc(e.target.value)}
+              rows={3}
+              placeholder="Describe your flat layout, water frequency, backup electricity inverter details, guidelines etc."
+              required
+              className="form-input"
+              style={{ resize: 'vertical' }}
+            />
+          </div>
 
-              {/* Price & Types */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }} className="form-row-three">
-                <div className="form-group">
-                  <label className="form-label">Monthly Rent (Rs) *</label>
-                  <input
-                    type="number"
-                    value={formPrice}
-                    onChange={(e) => setFormPrice(e.target.value)}
-                    placeholder="8500"
-                    required
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Housing Type *</label>
-                  <select value={formType} onChange={(e) => setFormType(e.target.value)} className="form-input">
-                    <option value="Room">Single Room</option>
-                    <option value="Flat">Full Flat</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Sharing Type *</label>
-                  <select value={formSharing} onChange={(e) => setFormSharing(e.target.value)} className="form-input">
-                    <option value="Single">Single Room</option>
-                    <option value="Shared">Shared Room</option>
-                    <option value="Private">Private flat</option>
-                  </select>
-                </div>
-              </div>
+          {/* Image URL */}
+          <div className="form-group">
+            <label className="form-label">Thumbnail Image URL</label>
+            <input
+              type="url"
+              value={formImage}
+              onChange={(e) => setFormImage(e.target.value)}
+              placeholder="https://images.unsplash.com/..."
+              className="form-input"
+            />
+          </div>
 
-              {/* Location details */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '0.75rem' }} className="form-row-two">
-                <div className="form-group">
-                  <label className="form-label">Specific Address *</label>
-                  <input
-                    type="text"
-                    value={formLocation}
-                    onChange={(e) => setFormLocation(e.target.value)}
-                    placeholder="Kumaripati, Lalitpur (behind United Academy)"
-                    required
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">City *</label>
-                  <select value={formCity} onChange={(e) => setFormCity(e.target.value)} className="form-input">
-                    <option value="Kathmandu">Kathmandu</option>
-                    <option value="Lalitpur">Lalitpur</option>
-                    <option value="Bhaktapur">Bhaktapur</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="form-group">
-                <label className="form-label">Detailed Description *</label>
-                <textarea
-                  value={formDesc}
-                  onChange={(e) => setFormDesc(e.target.value)}
-                  rows={3}
-                  placeholder="Describe your flat layout, water frequency, backup electricity inverter details, guidelines etc."
-                  required
-                  className="form-input"
-                  style={{ resize: 'vertical' }}
-                />
-              </div>
-
-              {/* Map Coordinates Mock simulation inputs */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Latitude coordinate *</label>
-                  <input type="text" value={formLat} onChange={(e) => setFormLat(e.target.value)} className="form-input" required />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Longitude coordinate *</label>
-                  <input type="text" value={formLng} onChange={(e) => setFormLng(e.target.value)} className="form-input" required />
-                </div>
-              </div>
-
-              {/* Image URL */}
-              <div className="form-group">
-                <label className="form-label">Thumbnail Image URL</label>
-                <input
-                  type="url"
-                  value={formImage}
-                  onChange={(e) => setFormImage(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="form-input"
-                />
-              </div>
-
-              {/* Amenities checkboxes */}
-              <div className="form-group" style={{ textAlign: 'left' }}>
-                <label className="form-label">Amenities Included</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.25rem' }}>
-                  {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((item, idx) => {
-                    const isSelected = formAmenities.includes(item);
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => toggleFormAmenity(item)}
-                        className="btn btn-outline"
-                        style={{
-                          padding: '0.35rem 0.6rem',
-                          fontSize: '0.75rem',
-                          borderRadius: 'var(--radius-sm)',
-                          backgroundColor: isSelected ? 'var(--primary)' : 'transparent',
-                          borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
-                          color: isSelected ? 'white' : 'var(--text-muted)'
-                        }}
-                      >
-                        {item}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Actions submit */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
-                <button type="button" onClick={() => setIsPostModalOpen(false)} className="btn btn-outline btn-sm">Cancel</button>
-                <button type="submit" className="btn btn-primary btn-sm">Publish Listing</button>
-              </div>
-
-            </form>
+          {/* Amenities checkboxes */}
+          <div className="form-group" style={{ textAlign: 'left' }}>
+            <label className="form-label">Amenities Included</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.25rem' }}>
+              {["WiFi", "Hot Water", "Parking", "Furnished", "Kitchen", "Balcony", "Backup Electricity"].map((item, idx) => {
+                const isSelected = formAmenities.includes(item);
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => toggleFormAmenity(item)}
+                    className="btn btn-outline"
+                    style={{
+                      padding: '0.35rem 0.6rem',
+                      fontSize: '0.75rem',
+                      borderRadius: 'var(--radius-sm)',
+                      backgroundColor: isSelected ? 'var(--primary)' : 'transparent',
+                      borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
+                      color: isSelected ? 'white' : 'var(--text-muted)'
+                    }}
+                  >
+                    {item}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Map Pin Card */}
+        <div className="card" style={{ padding: '1.5rem' }}>
+          <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
+            <MapPin size={14} style={{ display: 'inline', marginRight: '0.25rem' }} />
+            Pin Exact Location on Map *
+          </label>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: '0.75rem' }}>
+            Click anywhere on the map to drop a pin. Coordinates fill in automatically.
+          </p>
+
+          <div style={{ height: '350px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+            <LeafletMap
+              center={[Number(formLat) || 27.6850, Number(formLng) || 85.3200]}
+              zoom={13}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution='&copy; OpenStreetMap contributors'
+              />
+              <LocationPicker
+                onPick={(lat, lng) => {
+                  setFormLat(lat.toFixed(6));
+                  setFormLng(lng.toFixed(6));
+                }}
+              />
+              {formLat && formLng && (
+                <Marker position={[Number(formLat), Number(formLng)]} />
+              )}
+            </LeafletMap>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Latitude</label>
+              <input type="text" value={formLat} readOnly className="form-input" style={{ backgroundColor: 'var(--bg-app)' }} />
+            </div>
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <label className="form-label">Longitude</label>
+              <input type="text" value={formLng} readOnly className="form-input" style={{ backgroundColor: 'var(--bg-app)' }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Actions submit */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+          <button type="button" onClick={() => setIsPostModalOpen(false)} className="btn btn-outline btn-sm">Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm">Publish Listing</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+)}
 
       <style>{`
         .listing-table tr:hover, .poi-table tr:hover {
