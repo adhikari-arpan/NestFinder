@@ -114,13 +114,13 @@ export const TenantDashboard = () => {
         </p>
       </div>
 
-      {/* Temporary Logout button */}
+      {/* Temporary Logout button
       <button
         style={{ padding: '10px 20px', fontSize: '16px', fontWeight: '600', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
         onClick={logoutUser}
       >
         Logout
-      </button>
+      </button> */}
 
       <div className="search-split-layout">
 
@@ -129,7 +129,7 @@ export const TenantDashboard = () => {
 
           {/* Filter card */}
           <div className="card p-6 border border-border-color">
-            <h3 className="text-[1.15rem] flex items-center gap-2 mb-5 border-b border-border-color pb-2">
+            <h3 className="text-[1.15rem] flex items-center gap-2 mb-5" >
               <Filter size={15} className="text-primary" />
               <span>Refine Your Search</span>
             </h3>
@@ -140,7 +140,7 @@ export const TenantDashboard = () => {
               <div className="grid gap-4" style={{ gridTemplateColumns: '1.2fr 0.8fr' }}>
 
                 <div className="form-group mb-5">
-                  <label className="form-label text-[0.5rem]">Search Zone</label>
+                  <label className="form-label text-[0.5rem] mt-10">Search Zone</label>
                   <div className="relative flex items-center">
                     <Search size={12} className="absolute left-[10px] text-text-light" />
                     <input
@@ -148,13 +148,13 @@ export const TenantDashboard = () => {
                       placeholder="....Pulchowk, Kirtipur...."
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
-                      className="form-input w-full pl-5 py-2 text-[0.5rem]"
+                      className="form-input w-full pl-9 py-2 text-[0.5rem]"
                     />
                   </div>
                 </div>
 
                 <div className="form-group mb-0">
-                  <label className="form-label text-[0.7rem]">Room Type</label>
+                  <label className="form-label text-[0.7rem] mt-10">Room Type</label>
                   <select
                     value={selectedType}
                     onChange={e => setSelectedType(e.target.value)}
@@ -188,8 +188,8 @@ export const TenantDashboard = () => {
 
               {/* Amenity pills */}
               <div className="text-left">
-                <label className="form-label text-[0.5rem] block mb-2">Facilities Required</label>
-                <div className="flex flex-wrap gap-2">
+                <label className="form-label text-[0.5rem] block mb-4"> Choose Facilities that are Required</label>
+                <div className="flex flex-wrap gap-3">
                   {AMENITIES.map((amenity, i) => {
                     const active = selectedAmenities.includes(amenity);
                     return (
@@ -203,13 +203,18 @@ export const TenantDashboard = () => {
                               : [...prev, amenity]
                           )
                         }
-                        className={`flex items-center gap-5 px-5 py-5 rounded-full cursor-pointer text-[1.0rem] border transition-all duration-150
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full cursor-pointer text-[0.8rem] font-semibold border transition-all duration-200
                           ${active
-                            ? 'bg-primary text-white border-primary'
-                            : 'bg-transparent text-text-muted border-border-color hover:border-primary/40'
+                            ? 'text-white border-transparent shadow-[0_0_16px_rgba(251,191,36,0.55)]'
+                            : 'bg-[rgba(99,102,241,0.08)] text-primary border-[rgba(99,102,241,0.25)] hover:border-primary/50'
                           }`}
+                                          
+                        style={active ? {
+                          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                          boxShadow: '0 0 16px rgba(251,191,36,0.6), 0 0 4px rgba(251,191,36,0.4)'
+                        } : {}}
                       >
-                        {active && <Check size={10} />}
+                        {active && <Check size={12} />}
                         <span>{amenity}</span>
                       </button>
                     );

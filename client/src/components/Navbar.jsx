@@ -68,18 +68,9 @@ export const Navbar = () => {
         {/* Desktop Nav Links */}
         {currentUser && (
           <div className="hidden md:flex items-center gap-6">
-            {!isLandlord && (
-              <>
-                <Link to="/" className={navLinkClass('/')}>Home</Link>
-                <Link to="/search" className={navLinkClass('/search')}>Find Rooms</Link>
-                <Link to="/ai-recommend" className={navLinkClass('/ai-recommend')}>
-                  <Sparkles size={16} className="inline mr-1 align-middle text-[var(--accent)]" />
-                  AI Recommendations
-                </Link>
-              </>
-            )}
+
             {currentUser.role === 'tenant' && (
-              <Link to="/dashboard/tenant" className={navLinkClass('/dashboard/tenant')}>My Dashboard</Link>
+              <Link to="/dashboard/tenant" className={navLinkClass('/dashboard/tenant')}>Tenant Hub</Link>
             )}
             {currentUser.role === 'landlord' && (
               <Link to="/dashboard/landlord" className={navLinkClass('/dashboard/landlord')}>Landlord Hub</Link>
@@ -192,7 +183,7 @@ export const Navbar = () => {
                   className="btn btn-secondary btn-sm hidden md:flex items-center gap-1"
                 >
                   <Sparkles size={16} />
-                  <span>Find Match</span>
+                  <span>Find Your Match With AI</span>
                 </Link>
               )}
 
