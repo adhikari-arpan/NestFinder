@@ -1,4 +1,5 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import logo from '../assets/NestFinder Logo.png';
@@ -28,6 +29,8 @@ export const Navbar = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifPos, setNotifPos] = useState({ top: 0, right: 0 });
+  const bellBtnRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -53,11 +56,47 @@ export const Navbar = () => {
   const iconBtnClass =
     'bg-transparent border-none text-[var(--text-main)] w-[38px] h-[38px] rounded-[var(--radius-md)] cursor-pointer flex items-center justify-center transition-all hover:bg-[var(--border-color)] hover:text-[var(--primary)]';
 
+  // Compute the bell button's position each time the dropdown opens,
+  // so the portal can be placed with fixed coordinates instead of
+  // being laid out as a flex sibling inside the navbar.
+  const openNotifs = () => {
+    if (bellBtnRef.current) {
+      const rect = bellBtnRef.current.getBoundingClientRect();
+      setNotifPos({
+        top: rect.bottom + 8, // 8px gap below the bell, like top-[130%] did
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setNotifOpen(prev => !prev);
+  };
+
+  // Keep the dropdown aligned to the bell on resize/scroll while open,
+  // since it's now positioned with fixed coordinates rather than
+  // inheriting position from a relative parent.
+  useEffect(() => {
+    if (!notifOpen) return;
+    const updatePos = () => {
+      if (bellBtnRef.current) {
+        const rect = bellBtnRef.current.getBoundingClientRect();
+        setNotifPos({
+          top: rect.bottom + 8,
+          right: window.innerWidth - rect.right,
+        });
+      }
+    };
+    window.addEventListener('resize', updatePos);
+    window.addEventListener('scroll', updatePos, true);
+    return () => {
+      window.removeEventListener('resize', updatePos);
+      window.removeEventListener('scroll', updatePos, true);
+    };
+  }, [notifOpen]);
+
   return (
     <nav
       className="glass sticky-nav sticky top-0 z-[1000] border-b border-[var(--border-color)] py-3 transition-[background] duration-[var(--transition-normal)]"
     >
-      <div className="container flex justify-between items-center relative">
+      <div className="container flex justify-between items-center relative flex-nowrap">
 
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -68,7 +107,6 @@ export const Navbar = () => {
         {/* Desktop Nav Links */}
         {currentUser && (
           <div className="hidden md:flex items-center gap-6">
-
             {currentUser.role === 'tenant' && (
               <Link to="/dashboard/tenant" className={navLinkClass('/dashboard/tenant')}>Tenant Hub</Link>
             )}
@@ -92,8 +130,6 @@ export const Navbar = () => {
             <button
               onClick={() => navigate('/dashboard/landlord?action=post')}
               className="btn btn-primary btn-sm hidden md:flex items-center gap-1"
-
-
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -108,9 +144,7 @@ export const Navbar = () => {
                 cursor: 'pointer',
                 transition: 'all 0.25s ease'
               }}>
-
               <Plus size={18} /> Add Room Listing
-
             </button>
           )}
 
@@ -122,7 +156,12 @@ export const Navbar = () => {
           {/* Notifications */}
           {currentUser && (
             <div className="relative">
-              <button onClick={() => setNotifOpen(!notifOpen)} className={iconBtnClass} aria-label="Notifications">
+              <button
+                ref={bellBtnRef}
+                onClick={openNotifs}
+                className={iconBtnClass}
+                aria-label="Notifications"
+              >
                 <Bell size={20} />
                 {unreadNotifs.length > 0 && (
                   <span className="absolute top-1 right-1 bg-[var(--danger)] text-white text-[0.65rem] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center border-2 border-[var(--bg-card)]">
@@ -131,41 +170,67 @@ export const Navbar = () => {
                 )}
               </button>
 
-              {notifOpen && (
-                <div className="card shadow-xl absolute top-[130%] right-[-50px] w-[320px] max-h-[400px] overflow-y-auto z-[1010] p-4 border border-[var(--border-color)]">
-                  <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--border-color)]">
-                    <h4 className="text-[0.95rem]">Notifications</h4>
-                    {unreadNotifs.length > 0 && (
-                      <button
-                        onClick={markAllRead}
-                        className="bg-transparent border-none text-[var(--primary)] text-[0.75rem] cursor-pointer font-semibold"
-                      >
-                        Mark all read
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {notifications.length === 0 ? (
-                      <p className="text-center text-[0.85rem] p-4">No notifications</p>
-                    ) : (
-                      notifications.map(n => (
-                        <div
-                          key={n.id}
-                          className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${n.read
-                              ? 'bg-transparent border-l-[var(--border-color)]'
-                              : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
-                            }`}
+              {notifOpen && createPortal(
+                <>
+                  {/* Invisible backdrop to close on outside click */}
+                  <div
+                    onClick={() => setNotifOpen(false)}
+                    style={{ position: 'fixed', inset: 0, zIndex: 1005 }}
+                  />
+
+                  <div
+                    className="card shadow-xl w-[320px] max-h-[400px] overflow-y-auto p-4 border border-[var(--border-color)]"
+                    style={{
+                      position: 'fixed',
+                      top: notifPos.top,
+                      right: notifPos.right,
+                      zIndex: 1010,
+                    }}
+                  >
+                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--border-color)]">
+                      <h4 className="text-[0.95rem]">Notifications</h4>
+                      <div className="flex items-center gap-3">
+                        {unreadNotifs.length > 0 && (
+                          <button
+                            onClick={markAllRead}
+                            className="bg-transparent border-none text-[var(--primary)] text-[0.75rem] cursor-pointer font-semibold"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setNotifOpen(false)}
+                          className="bg-transparent border-none text-[var(--text-light)] cursor-pointer flex items-center justify-center hover:text-[var(--primary)]"
+                          aria-label="Close notifications"
                         >
-                          <div className="font-semibold text-[0.85rem]">{n.title}</div>
-                          <div className="text-[0.75rem] text-[var(--text-muted)]">{n.message}</div>
-                          <span className="text-[0.65rem] text-[var(--text-light)]">
-                            {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        </div>
-                      ))
-                    )}
+                          <X size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {notifications.length === 0 ? (
+                        <p className="text-center text-[0.85rem] p-4">No notifications</p>
+                      ) : (
+                        notifications.map(n => (
+                          <div
+                            key={n.id}
+                            className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${n.read
+                                ? 'bg-transparent border-l-[var(--border-color)]'
+                                : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
+                              }`}
+                          >
+                            <div className="font-semibold text-[0.85rem]">{n.title}</div>
+                            <div className="text-[0.75rem] text-[var(--text-muted)]">{n.message}</div>
+                            <span className="text-[0.65rem] text-[var(--text-light)]">
+                              {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
+                </>,
+                document.body
               )}
             </div>
           )}
@@ -219,20 +284,6 @@ export const Navbar = () => {
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
           <div className="glass animate-fade-in absolute top-full left-0 right-0 bg-[var(--bg-card)] p-4 flex flex-col gap-3 rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] mt-2 border border-[var(--border-color)] z-50">
-            {!isLandlord && [
-              { to: '/', label: 'Home' },
-              { to: '/search', label: 'Find Rooms' },
-              { to: '/ai-recommend', label: 'AI Match Finder' },
-            ].map(({ to, label }) => (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
-              >
-                {label}
-              </Link>
-            ))}
             {currentUser?.role === 'tenant' && (
               <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">My Dashboard</Link>
             )}
