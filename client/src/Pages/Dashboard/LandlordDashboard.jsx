@@ -47,6 +47,7 @@ export const LandlordDashboard = () => {
     inquiries,
     replyToInquiry,
     createListing,
+    deleteListing,
     currentUser
   } = useContext(AppContext);
 
@@ -68,9 +69,15 @@ export const LandlordDashboard = () => {
   const [replyText, setReplyText] = useState('');
   const [replyInquiryId, setReplyInquiryId] = useState(null);
 
+  // Submission States
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [confirmedListing, setConfirmedListing] = useState(null);
+
+  // Delete states
+  const [listingToDelete, setListingToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   // Check URL query parameters to open modal by default
   useEffect(() => {
@@ -175,6 +182,26 @@ export const LandlordDashboard = () => {
       setSubmitError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Deletion Handling
+  const handleConfirmDelete = async () => {
+    if (!listingToDelete) return;
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      const result = await deleteListing(listingToDelete.id);
+      if (!result.success) {
+        setDeleteError(result.message);
+        return;
+      }
+      setListingToDelete(null);
+    } catch (err) {
+      console.error('Unexpected error deleting listing:', err);
+      setDeleteError('Something went wrong. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -289,6 +316,7 @@ export const LandlordDashboard = () => {
                     <th style={{ padding: '1rem' }}>Pricing</th>
                     <th style={{ padding: '1rem' }}>Views</th>
                     <th style={{ padding: '1rem' }}>Verification Status</th>
+                    <th style={{ padding: '1rem' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,6 +353,15 @@ export const LandlordDashboard = () => {
                             <AlertTriangle size={12} /> Flagged / In Review
                           </span>
                         )}
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <button
+                          onClick={() => setListingToDelete(item)}
+                          className="btn btn-outline btn-sm"
+                          style={{ color: 'var(--danger, #dc2626)', borderColor: 'var(--danger, #dc2626)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -690,6 +727,58 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       )}
+
+
+      {/* =======================================
+          DELETE CONFIRMATION MODAL
+          ======================================= */}
+      {listingToDelete && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem',
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <div className="card" style={{ maxWidth: '420px', width: '100%', padding: '2rem', textAlign: 'center' }}>
+            <AlertTriangle size={44} style={{ color: 'var(--danger, #dc2626)', marginBottom: '1rem' }} />
+            <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>Delete this listing?</h2>
+            <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+              "{listingToDelete.title}" and all its photos, inquiries, and reviews will be permanently removed. This can't be undone.
+            </p>
+            {deleteError && (
+              <p style={{ color: 'var(--danger, #dc2626)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+                {deleteError}
+              </p>
+            )}
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => { setListingToDelete(null); setDeleteError(''); }}
+                className="btn btn-outline btn-sm"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="btn btn-primary btn-sm"
+                style={{ backgroundColor: 'var(--danger, #dc2626)', borderColor: 'var(--danger, #dc2626)' }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting…' : 'Delete Listing'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <style>{`
         .listing-table tr:hover, .poi-table tr:hover {
           background-color: var(--primary-light);

@@ -141,7 +141,7 @@ export const AppContextProvider = ({ children }) => {
   // Listings CRUD
   // ------------------------------------------------------------
   const createListing = async (formData) => {
-    if (!currentUser) return;
+    if (!currentUser) return { success: false, message: 'You must be logged in to post a listing.' };
     try {
       const newListing = await api.createListing(formData, currentUser.id);
       setListings((prev) => [newListing, ...prev]);
@@ -151,8 +151,10 @@ export const AppContextProvider = ({ children }) => {
         `Your room "${newListing.title}" is pending admin moderation.`,
         "listing"
       );
+      return { success: true, listing: newListing };
     } catch (err) {
       console.error('Failed to create listing:', err.message);
+      return { success: false, message: err.message || 'Something went wrong. Please try again.' };
     }
   };
 
@@ -165,6 +167,17 @@ export const AppContextProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Failed to update listing status:', err.message);
+    }
+  };
+
+  const deleteListing = async (id) => {
+    try {
+      await api.deleteListing(id);
+      setListings((prev) => prev.filter((l) => l.id !== id));
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to delete listing:', err.message);
+      return { success: false, message: err.message || 'Could not delete this listing. Please try again.' };
     }
   };
 
@@ -290,6 +303,7 @@ export const AppContextProvider = ({ children }) => {
         toggleTheme,
         createListing,
         updateListingStatus,
+        deleteListing,
         getRecommendedListings,
         calculateRecommendationScore,
       }}

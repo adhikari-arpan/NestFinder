@@ -27,11 +27,11 @@ function mapListingRow(row) {
     amenities: row.amenities || [],
     landlord: row.profiles
       ? {
-          name: row.profiles.name,
-          phone: row.profiles.phone,
-          email: row.profiles.email,
-          verified: row.profiles.is_verified,
-        }
+        name: row.profiles.name,
+        phone: row.profiles.phone,
+        email: row.profiles.email,
+        verified: row.profiles.is_verified,
+      }
       : null,
     nearbyPOIs: (row.listing_pois || []).map((p) => ({
       name: p.name,
@@ -167,6 +167,23 @@ export async function updateListingStatus(id, newStatus) {
   if (error) throw error;
 }
 
+export async function deleteListing(id) {
+  try {
+    const { data: files } = await supabase.storage.from(IMAGE_BUCKET).list(id);
+    if (files?.length) {
+      const paths = files.map((f) => `${id}/${f.name}`);
+      await supabase.storage.from(IMAGE_BUCKET).remove(paths);
+    }
+  } catch (err) {
+    console.warn('Could not clean up listing images from storage:', err.message);
+  }
+
+  // listing_images, listing_pois, reviews, saved_listings, and inquiries
+  // all cascade-delete via the FK constraints in the schema.
+  const { error } = await supabase.from('listings').delete().eq('id', id);
+  if (error) throw error;
+}
+
 // ------------------------------------------------------------
 // Saved listings
 // ------------------------------------------------------------
@@ -245,5 +262,13 @@ export async function addNotification(userId, title, message, type = 'info') {
   const { error } = await supabase
     .from('notifications')
     .insert({ user_id: userId, title, message, type });
+  if (error) throw error;
+}
+
+export async function markNotificationRead(notificationId) {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read: true })
+    .eq('id', notificationId);
   if (error) throw error;
 }
