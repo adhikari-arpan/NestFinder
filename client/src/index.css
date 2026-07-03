@@ -1,0 +1,1049 @@
+/* ==========================================
+   NestFinder - Global Styles & Design System
+   ========================================== */
+
+@import "tailwindcss";
+
+/* Design Tokens & Variables */
+:root {
+  /* Colors */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-light: rgba(99, 102, 241, 0.1);
+  
+  --secondary: #10b981;
+  --secondary-hover: #059669;
+  --secondary-light: rgba(16, 185, 129, 0.1);
+  
+  --accent: #f59e0b;
+  --accent-light: rgba(245, 158, 11, 0.1);
+  --danger: #ef4444;
+  --danger-light: rgba(239, 68, 68, 0.1);
+  
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', var(--font-sans);
+
+  /* Light Theme Defaults */
+  --bg-app: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #ffffff;
+  --bg-sidebar: #ffffff;
+  --border-color: #e2e8f0;
+  --border-color-focus: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-light: #64748b;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Hero overlay gradient: adapts per theme.
+     Light mode: clean warm gradient so canvas art stays visible + text is readable */
+  --hero-overlay: linear-gradient(
+    180deg,
+    rgba(248, 250, 252, 0.78) 0%,
+    rgba(241, 243, 255, 0.42) 40%,
+    rgba(248, 250, 252, 0.55) 70%,
+    rgba(248, 250, 252, 0.82) 100%
+  );
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  --bg-app: #090d16;
+  --bg-card: #111827;
+  --bg-card-hover: #1e293b;
+  --bg-sidebar: #0f172a;
+  --border-color: #1f2937;
+  --border-color-focus: #374151;
+  --text-main: #f9fafb;
+  --text-muted: #d1d5db;
+  --text-light: #9ca3af;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+  
+  --glass-bg: rgba(17, 24, 39, 0.7);
+  --glass-border: rgba(31, 41, 55, 0.5);
+
+  /* Dark mode hero overlay: deep dark tint for white text readability */
+  --hero-overlay: linear-gradient(180deg, rgba(9,13,22,0.58) 0%, rgba(9,13,22,0.32) 50%, rgba(9,13,22,0.72) 100%);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  overflow-x: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text-main);
+}
+
+h1 { font-size: 2.5rem; letter-spacing: -0.025em; }
+h2 { font-size: 2rem; letter-spacing: -0.02em; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+p {
+  color: var(--text-muted);
+}
+
+/* Layout Utilities */
+.container {
+  width: 100%;
+  max-width: 1285px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.grid-cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-cols-2, .grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-outline:hover {
+  background-color: var(--border-color);
+  color: var(--text-main);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--text-muted);
+}
+
+.btn-ghost:hover {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.05rem;
+  border-radius: var(--radius-lg);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Glassmorphism Elements */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+}
+
+/* Cards */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-light);
+}
+
+/* Inputs & Form Controls */
+.form-group {
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-input {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  transition: all var(--transition-fast);
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+  background-color: var(--bg-card);
+}
+
+.form-checkbox {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-primary { background-color: var(--primary-light); color: var(--primary); }
+.badge-secondary { background-color: var(--secondary-light); color: var(--secondary); }
+.badge-accent { background-color: var(--accent-light); color: var(--accent); }
+.badge-danger { background-color: var(--danger-light); color: var(--danger); }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-app);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Custom styles for Leaflet elements to look sleek */
+.leaflet-container {
+  font-family: var(--font-sans) !important;
+  background-color: var(--bg-app) !important;
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-xl) !important;
+  padding: 4px !important;
+}
+
+.leaflet-popup-tip {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.leaflet-bar {
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-md) !important;
+  border-radius: var(--radius-md) !important;
+  overflow: hidden !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--bg-card) !important;
+  color: var(--text-main) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  transition: all var(--transition-fast) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--bg-card-hover) !important;
+  color: var(--primary) !important;
+}
+
+/* Custom Marker Styling */
+.custom-div-icon {
+  background: none;
+  border: none;
+}
+
+.map-marker-pin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--primary);
+  position: absolute;
+  transform: rotate(-45deg);
+  left: 50%;
+  top: 50%;
+  margin: -20px 0 0 -20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 2px solid #ffffff;
+  transition: all var(--transition-fast);
+}
+
+.map-marker-pin::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.map-marker-pin.active {
+  background: var(--secondary);
+  transform: rotate(-45deg) scale(1.15);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
+}
+
+/* Split screen layout for SearchMap page */
+.search-map-layout {
+  display: flex;
+  height: calc(100vh - 70px); /* Subtract Navbar height */
+  overflow: hidden;
+}
+
+.search-sidebar {
+  width: 40%;
+  height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+}
+
+.map-viewport {
+  width: 60%;
+  height: 100%;
+  position: relative;
+}
+
+@media (max-width: 968px) {
+  .search-map-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .search-sidebar {
+    width: 100%;
+    height: 500px;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .map-viewport {
+    width: 100%;
+    height: 400px;
+  }
+}
+
+/* =======================================================
+   NestFinder Redesign UI Enhancements & Micro-animations
+   ======================================================= */
+
+.glow-btn {
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+  animation: pulse-glow 2.5s infinite ease-in-out;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glow-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: all 0.8s ease;
+  z-index: -1;
+}
+
+.glow-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.6);
+  background: linear-gradient(135deg, var(--primary-hover) 0%, #6d28d9 100%);
+}
+
+.glow-btn:hover::before {
+  left: 100%;
+}
+
+.glow-btn:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 15px rgba(124, 58, 237, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+  }
+}
+
+.role-card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.role-radio-card {
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  background: var(--bg-card);
+  transition: all var(--transition-normal);
+  text-align: center;
+}
+
+.role-radio-card:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-3px);
+}
+
+.role-radio-card.active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: var(--shadow-md);
+}
+
+.role-icon-lg {
+  font-size: 2.2rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Glass login container */
+.glass-login-container {
+  animation: modal-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Welcome Banner */
+.welcome-banner-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.05) 100%);
+  border: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  padding: 2rem;
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.welcome-banner-card::after {
+  content: '🏠';
+  position: absolute;
+  right: -10px;
+  bottom: -20px;
+  font-size: 7.5rem;
+  opacity: 0.04;
+  pointer-events: none;
+  transform: rotate(-15deg);
+}
+
+/* Highlighted Map Container */
+.highlight-map-container {
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-normal);
+}
+
+.highlight-map-container:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-xl);
+}
+
+.map-badge-helper {
+  background: var(--primary);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+}
+
+/* Custom Facility Toggle Button */
+.facility-pill {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.facility-pill:hover {
+  border-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.facility-pill.active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+  box-shadow: 0 3px 8px rgba(99, 102, 241, 0.3);
+}
+
+.search-split-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+
+@media (max-width: 1024px) {
+  .search-split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   ADDED FOR REDESIGN: Modal Popups, Feature Grid, and Animated Abstract SVG Art
+   ========================================================================== */
+
+/* 1. Modal Overlay Backdrop (Covers entire screen, blurs background) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(9, 13, 22, 0.65); /* Sleek dark tint */
+  backdrop-filter: blur(10px); /* Modern blur effect */
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000; /* Ensures it floats above navbar */
+  padding: 1.5rem;
+  animation: fade-in-backdrop 0.3s ease-out forwards;
+}
+
+@keyframes fade-in-backdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 2. Features Grid & Cards (Explaining "Why NestFinder" before login) */
+.features-section-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-align: center;
+  margin-top: 5rem;
+  margin-bottom: 3rem;
+  background: linear-gradient(135deg, var(--text-main) 40%, var(--primary) 100%);
+}
+
+.features-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 5rem;
+}
+
+.feature-redesign-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  text-align: left;
+  transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature-redesign-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-light);
+  box-shadow: var(--shadow-lg);
+}
+
+.feature-icon-wrapper {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+/* 3. SVG Abstract Art Keyframe Animations (Creating smooth motion representing features) */
+
+/* Slow rotation representing the AI recommendation matching orbit */
+@keyframes spin-slow-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Vertical floating representing location pins searching on maps */
+@keyframes float-y-slowly {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes float-y-quickly {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Pulsing opacity/scale for AI connecting nodes */
+@keyframes node-pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Drawing line dash effect for mapping lines */
+@keyframes line-dash-flow {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+/* CSS classes mapping to the SVG abstract art elements */
+.art-spin-bg {
+  transform-origin: center;
+  animation: spin-slow-cw 35s linear infinite;
+}
+
+.art-float-pin-1 {
+  animation: float-y-slowly 4.5s ease-in-out infinite;
+}
+
+.art-float-pin-2 {
+  animation: float-y-quickly 3.5s ease-in-out infinite;
+}
+
+.art-pulse-dot {
+  transform-origin: center;
+  animation: node-pulse-glow 2.5s infinite ease-in-out;
+}
+
+.art-line-flow {
+  stroke-dasharray: 8, 4;
+  animation: line-dash-flow 2s linear infinite;
+}
+
+/* ==========================================================================
+   GUEST HERO — Full-screen landing, centered CTA, scroll section
+   ========================================================================== */
+
+/* ── Hero Badge (top label above headline) ── */
+.hero-badge {
+  display: inline-block;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  color: #a5b4fc;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 1.1rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+
+/* ── Hero headline ── */
+.hero-headline {
+  font-size: clamp(2.6rem, 6vw, 4.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #f8fafc;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-display);
+  text-shadow: 0 2px 40px rgba(0,0,0,0.5);
+}
+
+/* Gradient text span inside headline */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8 0%, #34d399 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Hero sub-tagline ── */
+.hero-sub {
+  font-size: 1.15rem;
+  color: rgba(209, 213, 219, 0.85);
+  max-width: 480px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.6;
+}
+
+/* ── Primary hero CTA button (centered) ── */
+.hero-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  color: #ffffff;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: var(--radius-full);  /* pill shape */
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 30px rgba(99, 102, 241, 0.5), 0 0 0 0 rgba(99,102,241,0.4);
+  animation: hero-btn-pulse 3s ease-in-out infinite;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  z-index: 1;
+}
+
+/* Shimmer sweep on hover */
+.hero-cta-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.7s ease;
+}
+
+.hero-cta-btn:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 8px 40px rgba(99, 102, 241, 0.7);
+}
+
+.hero-cta-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.hero-cta-btn:active {
+  transform: translateY(-1px) scale(1.01);
+}
+
+@keyframes hero-btn-pulse {
+  0%, 100% { box-shadow: 0 4px 30px rgba(99,102,241,0.5), 0 0 0 0 rgba(99,102,241,0.3); }
+  50%       { box-shadow: 0 4px 30px rgba(99,102,241,0.6), 0 0 0 12px rgba(99,102,241,0); }
+}
+
+/* ── Scroll hint below CTA ── */
+.scroll-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: rgba(228, 231, 236, 0.7);
+  font-size: 0.8rem;
+  margin-top: 2.5rem;
+  justify-content: center;
+  animation: bounce-hint 2s ease-in-out infinite;
+}
+
+@keyframes bounce-hint {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50%       { transform: translateY(5px); opacity: 1; }
+}
+
+/* ── Fade-in-up for hero content stagger ── */
+.animate-fade-in-up {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: fade-in-up-kf 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fade-in-up-kf {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Stats Row ── */
+.stats-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem 3rem;
+  margin-top: 4rem;
+  box-shadow: var(--shadow-md);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 1;
+  min-width: 100px;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 900;
+  font-family: var(--font-display);
+  background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  font-weight: 500;
+  text-align: center;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background: var(--border-color);
+  flex-shrink: 0;
+}
+
+/* Responsive: hide dividers on small screens */
+@media (max-width: 640px) {
+  .stat-divider { display: none; }
+  .stats-row { gap: 1.5rem; }
+  .hero-headline { font-size: 2.2rem; }
+  .hero-sub { font-size: 1rem; }
+  .hero-cta-btn { font-size: 0.95rem; padding: 0.85rem 2rem; }
+  .features-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .features-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   LIGHT MODE HERO ADAPTATIONS
+   In light mode the hero overlay is a clean wash, so text must be dark.
+   These rules switch hero text to rich dark colours when NOT in dark mode.
+   ========================================================================== */
+
+/* When body is NOT in dark theme, override hero text to dark colours */
+body:not([data-theme="dark"]) .hero-headline {
+  color: #0f172a;          /* deep slate instead of pure indigo */
+  text-shadow: 0 1px 20px rgba(248,250,252,0.7);
+}
+
+body:not([data-theme="dark"]) .hero-sub {
+  color: rgba(51, 65, 85, 0.9);   /* slate-700 for clean readability */
+}
+
+body:not([data-theme="dark"]) .hero-badge {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: #4338ca;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
+}
+
+body:not([data-theme="dark"]) .scroll-hint {
+  color: rgba(71, 85, 105, 0.65);
+}
+
+body:not([data-theme="dark"]) .hero-cta-btn {
+  box-shadow: 0 4px 25px rgba(99, 102, 241, 0.35), 0 0 0 0 rgba(99,102,241,0.25);
+}
+
+/* ==========================================================================
+   3-COLUMN ROLE CARD GRID (for the 3-option role selector in the modal)
+   ========================================================================== */
+
+/* Ensure role cards still look good in the 3-column layout */
+.role-radio-card {
+  min-height: 90px;
+}
+
