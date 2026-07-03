@@ -68,6 +68,10 @@ export const LandlordDashboard = () => {
   const [replyText, setReplyText] = useState('');
   const [replyInquiryId, setReplyInquiryId] = useState(null);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [confirmedListing, setConfirmedListing] = useState(null);
+
   // Check URL query parameters to open modal by default
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -117,8 +121,10 @@ export const LandlordDashboard = () => {
     );
   };
 
-  const handlePostSubmit = (e) => {
+  const handlePostSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
+
     if (!formTitle || !formDesc || !formPrice || !formLocation) {
       alert("Please fill in all required fields.");
       return;
@@ -132,28 +138,44 @@ export const LandlordDashboard = () => {
       return;
     }
 
-    createListing({
-      title: formTitle,
-      description: formDesc,
-      price: Number(formPrice),
-      type: formType,
-      sharing: formSharing,
-      location: formLocation,
-      city: formCity,
-      latitude: Number(formLat) || 27.6850,
-      longitude: Number(formLng) || 85.3200,
-      images: formImages,
-      amenities: formAmenities
-    });
+    setIsSubmitting(true);
+    try {
+      const result = await createListing({
+        title: formTitle,
+        description: formDesc,
+        price: Number(formPrice),
+        type: formType,
+        sharing: formSharing,
+        location: formLocation,
+        city: formCity,
+        latitude: Number(formLat) || 27.6850,
+        longitude: Number(formLng) || 85.3200,
+        images: formImages,
+        amenities: formAmenities
+      });
 
-    // Reset Form
-    setFormTitle('');
-    setFormDesc('');
-    setFormPrice('');
-    setFormLocation('');
-    setFormAmenities([]);
-    setFormImage('');
-    setIsPostModalOpen(false);
+      if (!result.success) {
+        setSubmitError(result.message);
+        return;
+      }
+
+      // Reset form
+      setFormTitle('');
+      setFormDesc('');
+      setFormPrice('');
+      setFormLocation('');
+      setFormAmenities([]);
+      setFormImages([]);
+
+      // Swap the post modal for a confirmation modal
+      setIsPostModalOpen(false);
+      setConfirmedListing(result.listing);
+    } catch (err) {
+      console.error('Unexpected error posting listing:', err);
+      setSubmitError('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReplySubmit = (e) => {
@@ -604,9 +626,18 @@ export const LandlordDashboard = () => {
               </div>
 
               {/* Actions submit */}
+              {submitError && (
+                <p style={{ color: 'var(--danger, #dc2626)', fontSize: '0.85rem', textAlign: 'right' }}>
+                  {submitError}
+                </p>
+              )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setIsPostModalOpen(false)} className="btn btn-outline btn-sm">Cancel</button>
-                <button type="submit" className="btn btn-primary btn-sm">Publish Listing</button>
+                <button type="button" onClick={() => setIsPostModalOpen(false)} className="btn btn-outline btn-sm" disabled={isSubmitting}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
+                  {isSubmitting ? 'Publishing…' : 'Publish Listing'}
+                </button>
               </div>
 
             </form>
@@ -614,6 +645,51 @@ export const LandlordDashboard = () => {
         </div>
       )}
 
+
+      {/* =======================================
+    CONFIRMATION MODAL — shown after a successful submit
+    ======================================= */}
+      {confirmedListing && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 2100,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1.5rem',
+          backgroundColor: 'rgba(0,0,0,0.5)'
+        }}>
+          <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '2.5rem 2rem', textAlign: 'center' }}>
+            <CheckCircle size={52} style={{ color: 'var(--secondary, #16a34a)', marginBottom: '1rem' }} />
+            <h2 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>Listing Submitted!</h2>
+            <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              "{confirmedListing.title}" has been posted and is <strong>pending admin review</strong>.
+              You'll get a notification once it's verified and live for tenants to see.
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => setConfirmedListing(null)}
+                className="btn btn-outline btn-sm"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmedListing(null);
+                  setActiveTab('listings');
+                }}
+                className="btn btn-primary btn-sm"
+              >
+                View My Properties
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <style>{`
         .listing-table tr:hover, .poi-table tr:hover {
           background-color: var(--primary-light);
