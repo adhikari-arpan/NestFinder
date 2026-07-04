@@ -13,7 +13,7 @@ import {
   Menu,
   X,
   ShieldAlert,
-  Plus,
+  Plus
 } from 'lucide-react';
 
 export const Navbar = () => {
@@ -29,6 +29,7 @@ export const Navbar = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [notifPos, setNotifPos] = useState({ top: 0, right: 0 });
   const bellBtnRef = useRef(null);
   const location = useLocation();
@@ -73,6 +74,23 @@ export const Navbar = () => {
   // Keep the dropdown aligned to the bell on resize/scroll while open,
   // since it's now positioned with fixed coordinates rather than
   // inheriting position from a relative parent.
+
+  // Logout confirmation
+    const handleLogout = () => {
+      setShowLogoutConfirm(true);
+    };
+
+    const confirmLogout = () => {
+      setShowLogoutConfirm(false);
+      logoutUser();
+      navigate('/');
+    };
+
+    const cancelLogout = () => {
+      setShowLogoutConfirm(false);
+    };
+
+
   useEffect(() => {
     if (!notifOpen) return;
     const updatePos = () => {
@@ -261,12 +279,26 @@ export const Navbar = () => {
                       : '/dashboard/admin'
                 }
               >
-                <img
-                  src={currentUser.avatar}
-                  alt="avatar"
-                  className="w-9 h-9 rounded-full border-2 border-[var(--primary)] object-cover"
-                />
+                
               </Link>
+
+              {/* logout button */}
+              <button
+                onClick={handleLogout}
+                className="hidden md:flex items-center justify-center gap-2 border-none cursor-pointer font-bold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+                  padding: '0.6rem 1.4rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.9rem',
+                  minWidth: '110px',
+                  paddingLeft: '1rem',
+                }}
+              >
+                <LogOut size={17} style={{ marginLeft: '2px', flexShrink: 0 }} />
+                Logout
+              </button>
             </div>
           ) : (
             <Link to="/auth" className="btn btn-primary btn-sm">Sign In</Link>
@@ -307,6 +339,77 @@ export const Navbar = () => {
           </div>
         )}
       </div>
+      {/* Logout Confirmation Popup */}
+      {showLogoutConfirm && createPortal(
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={cancelLogout}
+            style={{
+              position: 'fixed', inset: 0, zIndex: 2000,
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(4px)',
+            }}
+          />
+
+          {/* Popup Card */}
+          <div style={{
+            position: 'fixed',
+            top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 2001,
+            width: '100%', maxWidth: '380px',
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '2rem 2rem 1.75rem',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '50%',
+              background: 'var(--primary-light)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 1.25rem',
+            }}>
+              <LogOut size={22} style={{ color: 'var(--primary)' }} />
+            </div>
+
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+               Are you sure you want to Logout from NestFinder?
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
+              You can sign back in anytime.
+            </p>
+
+            {/* Buttons */}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={cancelLogout}
+                className="btn btn-outline"
+                style={{ flex: 1, fontWeight: 700 }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                style={{
+                  flex: 1, border: 'none', borderRadius: 'var(--radius-md)',
+                  padding: '0.75rem', cursor: 'pointer', fontWeight: 700,
+                  fontSize: '0.9rem', color: 'white',
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                }}
+              >
+                <LogOut size={15} /> Yes, Logout
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
     </nav>
   );
 };
