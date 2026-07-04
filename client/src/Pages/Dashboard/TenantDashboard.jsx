@@ -24,13 +24,13 @@ export const TenantDashboard = () => {
 
 
   // if not logged in or not a tenant, redirect to auth page
-  // useEffect(() => {
-  //   if (!currentUser) {
-  //     navigate('/auth');
-  //   } else if (currentUser.role !== 'tenant') {
-  //     navigate('/auth');
-  //   }
-  // }, [currentUser, navigate]);
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/');
+    } else if (currentUser.role !== 'tenant') {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   const [activeTab, setActiveTab] = useState('saved');
   const [searchQuery, setSearchQuery] = useState('');
@@ -114,13 +114,7 @@ export const TenantDashboard = () => {
         </p>
       </div>
 
-      {/* Temporary Logout button
-      <button
-        style={{ padding: '10px 20px', fontSize: '16px', fontWeight: '600', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
-        onClick={logoutUser}
-      >
-        Logout
-      </button> */}
+    
 
       <div className="search-split-layout">
 
