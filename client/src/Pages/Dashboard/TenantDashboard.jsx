@@ -167,7 +167,7 @@ export const TenantDashboard = () => {
             {currentUser?.profilePicture ? (
               <img src={currentUser.profilePicture} alt="Profile" />
             ) : (
-              <User size={32} className="text-primary" />
+              <User size={40} className="text-primary" />
             )}
           </div>
           <span className="text-[0.75rem] font-bold text-text-muted">Your Profile</span>
@@ -175,9 +175,10 @@ export const TenantDashboard = () => {
       </div>
 
       {/* Profile Overlay Panel */}
-      {profileMenuOpen && (
-        <div className="profile-overlay-backdrop" onClick={() => setProfileMenuOpen(false)} />
-      )}
+      <div 
+        className={`profile-overlay-backdrop ${profileMenuOpen ? 'open' : ''}`} 
+        onClick={() => setProfileMenuOpen(false)} 
+      />
       <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
@@ -204,41 +205,6 @@ export const TenantDashboard = () => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h4 className="text-[1rem] font-bold mb-4 flex items-center gap-2">
-            <MessageSquare size={16} className="text-primary" /> Your Inquiries
-          </h4>
-          
-          <div className="flex flex-col gap-3">
-            {tenantInquiries.length === 0 ? (
-              <div className="text-center p-4 text-[0.85rem] text-text-muted border border-border-color rounded-[var(--radius-md)] bg-bg-app">
-                You haven't made any inquiries yet.
-              </div>
-            ) : (
-              tenantInquiries.map(inq => (
-                <div key={inq.id} className="inquiry-card">
-                  <div className="flex justify-between items-start">
-                    <strong className="text-[0.9rem] text-primary">{inq.listings?.title || 'Unknown Room'}</strong>
-                    <span className="text-[0.7rem] text-text-light">{new Date(inq.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <p className="text-[0.85rem] text-text-main m-0 mt-1">"{inq.message}"</p>
-                  
-                  {inq.status === 'replied' ? (
-                    <div className="inquiry-reply">
-                      <strong className="block text-[0.75rem] text-primary mb-1">Landlord Reply:</strong>
-                      {inq.reply_text}
-                    </div>
-                  ) : (
-                    <div className="text-[0.75rem] text-accent mt-2 flex items-center gap-1">
-                      <Clock size={12} /> Pending landlord response
-                    </div>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
         <div className="mt-auto pt-4 border-t border-border-color">
           <button 
             className="btn btn-primary w-full flex justify-center items-center gap-2"
@@ -249,74 +215,93 @@ export const TenantDashboard = () => {
         </div>
       </div>
 
-      {/* 2. Room Carousel Section */}
-      <div className="carousel-section">
-        <div className="carousel-container">
-          <div className="flex-1">
-            <RoomCarousel listings={listings} />
-          </div>
-          <div className="glowing-arrow" onClick={() => navigate('/rooms')}>
-            <ArrowRight size={24} />
-          </div>
+      {/* 2. AI Match Horizontal CTA */}
+      <div className="ai-cta-horizontal">
+        <Sparkles size={48} className="text-primary" />
+        <div>
+          <h3 className="text-[1.8rem] font-extrabold text-text-main m-0 leading-tight">
+            Let's refine your room search with the help of our AI
+          </h3>
+          <p className="text-[1rem] text-text-muted mt-2 mb-0">
+            Find the perfect room tailored exactly to your preferences.
+          </p>
         </div>
-        
         <button 
-          className="btn btn-primary btn-lg" 
-          onClick={() => navigate('/rooms')}
-          style={{ whiteSpace: 'nowrap' }}
+          className="glow-btn btn-lg mt-2 rounded-[var(--radius-full)] px-8 font-bold text-[1.1rem]"
+          onClick={() => navigate('/ai-recommend')}
         >
-          View All Rooms →
+          Find Your Match with AI
         </button>
       </div>
 
-      {/* 3. Favorites + AI Section */}
-      <div className="favorites-ai-section">
-        {/* Left: Favorites */}
-        <div className="favorites-panel">
-          <h3 className="text-[1.2rem] font-bold flex items-center gap-2 mb-2">
-            <Heart size={20} className="text-danger fill-danger" /> Your Favourites
-          </h3>
-          
-          {bookmarkedRooms.length > 0 ? (
-            <div className="favorites-grid">
-              {bookmarkedRooms.map(room => (
-                <RoomCard key={room.id} room={room} score={calculateRecommendationScore(room, tenantPreferences)} />
-              ))}
-            </div>
-          ) : (
-            <div className="empty-favorites">
-              <Heart size={48} className="text-border-color mb-3" />
-              <p className="font-medium text-[1.1rem]">No favourites yet</p>
-              <p className="text-[0.9rem] max-w-[250px] mt-2">
-                Your favourite rooms will be visible here once you save them.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Right: AI Match */}
-        <div className="ai-cta-panel">
-          <Sparkles size={48} className="text-primary" />
-          <h3 className="text-[1.5rem] font-extrabold text-text-main m-0 leading-tight">
-            Let's refine your search with our AI
-          </h3>
-          <p className="text-[0.95rem] text-text-muted m-0">
-            Find the perfect room tailored exactly to your preferences.
-          </p>
-          <button 
-            className="glow-btn btn-lg mt-2 rounded-[var(--radius-full)] px-8 font-bold text-[1.1rem]"
-            onClick={() => navigate('/ai-recommend')}
-          >
-            Find Your Match with AI
-          </button>
-        </div>
+      {/* 3. Favorites Section (Full Width) */}
+      <div className="favorites-panel w-full">
+        <h3 className="text-[1.4rem] font-bold flex items-center gap-2 mb-2">
+          <Heart size={24} className="text-danger fill-danger" /> Your Favourites
+        </h3>
+        
+        {bookmarkedRooms.length > 0 ? (
+          <div className="favorites-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+            {bookmarkedRooms.map(room => (
+              <RoomCard key={room.id} room={room} score={calculateRecommendationScore(room, tenantPreferences)} />
+            ))}
+          </div>
+        ) : (
+          <div className="empty-favorites">
+            <Heart size={48} className="text-border-color mb-3" />
+            <p className="font-medium text-[1.1rem]">No favourites yet</p>
+            <p className="text-[0.9rem] max-w-[250px] mt-2 text-center">
+              Your favourite rooms will be visible here once you save them.
+            </p>
+          </div>
+        )}
       </div>
 
-      {/* 4. Full-width Map Section */}
+      {/* 4. Your Inquiries Section */}
+      <div className="favorites-panel w-full">
+        <h3 className="text-[1.4rem] font-bold flex items-center gap-2 mb-2">
+          <MessageSquare size={24} className="text-primary" /> Your Inquiries
+        </h3>
+        
+        {tenantInquiries.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+            {tenantInquiries.map(inq => (
+              <div key={inq.id} className="inquiry-card">
+                <div className="flex justify-between items-start">
+                  <strong className="text-[1rem] text-primary">{inq.listings?.title || 'Unknown Room'}</strong>
+                  <span className="text-[0.8rem] text-text-light">{new Date(inq.created_at).toLocaleDateString()}</span>
+                </div>
+                <p className="text-[0.9rem] text-text-main m-0 mt-2">"{inq.message}"</p>
+                
+                {inq.status === 'replied' ? (
+                  <div className="inquiry-reply mt-3">
+                    <strong className="block text-[0.8rem] text-primary mb-1">Landlord Reply:</strong>
+                    {inq.reply_text}
+                  </div>
+                ) : (
+                  <div className="text-[0.8rem] text-accent mt-3 flex items-center gap-1">
+                    <Clock size={14} /> Pending landlord response
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="empty-favorites" style={{ padding: '3rem 2rem' }}>
+            <MessageSquare size={48} className="text-border-color mb-3" />
+            <p className="font-medium text-[1.1rem]">No inquiries yet</p>
+            <p className="text-[0.9rem] max-w-[250px] mt-2 text-center">
+              You haven't made any inquiries yet.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* 5. Full-width Map Section */}
       <div>
         <div className="flex justify-between items-center mb-3">
-          <h3 className="text-[1.2rem] font-bold flex items-center gap-2">
-            🗺️ Use Map to Choose Place
+          <h3 className="text-[1.4rem] font-bold flex items-center gap-2">
+            🗺️ Map View
           </h3>
           <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
             Click pins to review
@@ -335,6 +320,34 @@ export const TenantDashboard = () => {
             onMarkerClick={handleMarkerClick}
             currentCenter={mapCenter}
           />
+        </div>
+      </div>
+
+      {/* 6. All Available Rooms (Carousel Section) */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-[1.4rem] font-bold flex items-center gap-2 m-0">
+            All Available Rooms
+          </h3>
+        </div>
+        
+        <div className="carousel-section" style={{ marginTop: 0 }}>
+          <div className="carousel-container">
+            <div className="flex-1">
+              <RoomCarousel listings={listings} />
+            </div>
+            <div className="glowing-arrow" onClick={() => navigate('/rooms')}>
+              <ArrowRight size={24} />
+            </div>
+          </div>
+          
+          <button 
+            className="btn btn-primary btn-lg" 
+            onClick={() => navigate('/rooms')}
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            View All Rooms →
+          </button>
         </div>
       </div>
 
