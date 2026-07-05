@@ -283,7 +283,7 @@ export const Navbar = () => {
               </Link>
 
               {/* logout button */}
-              <button
+              {/* <button
                 onClick={handleLogout}
                 className="hidden md:flex items-center justify-center gap-2 border-none cursor-pointer font-bold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
                 style={{
@@ -298,7 +298,7 @@ export const Navbar = () => {
               >
                 <LogOut size={17} style={{ marginLeft: '2px', flexShrink: 0 }} />
                 Logout
-              </button>
+              </button> */}
             </div>
           ) : (
             <Link to="/auth" className="btn btn-primary btn-sm">Sign In</Link>
