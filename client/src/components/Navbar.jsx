@@ -282,23 +282,7 @@ export const Navbar = () => {
                 
               </Link>
 
-              {/* logout button */}
-              <button
-                onClick={handleLogout}
-                className="hidden md:flex items-center justify-center gap-2 border-none cursor-pointer font-bold text-white transition-all hover:-translate-y-0.5 hover:opacity-90"
-                style={{
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
-                  padding: '0.6rem 1.4rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.9rem',
-                  minWidth: '110px',
-                  paddingLeft: '1rem',
-                }}
-              >
-                <LogOut size={17} style={{ marginLeft: '2px', flexShrink: 0 }} />
-                Logout
-              </button>
+
             </div>
           ) : (
             <Link to="/auth" className="btn btn-primary btn-sm">Sign In</Link>
