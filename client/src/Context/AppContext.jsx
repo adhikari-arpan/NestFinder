@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import supabase from '../../db/supabaseClient';
 import * as api from '../api/listingsapi';
+import * as aiApi from '../api/aiApi';
 
 export const AppContext = createContext();
 
@@ -30,9 +31,6 @@ export const AppContextProvider = ({ children }) => {
 
   const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
-  // ------------------------------------------------------------
-  // Load listings once on mount (and expose a manual refresh)
-  // ------------------------------------------------------------
   const refreshListings = useCallback(async () => {
     setListingsLoading(true);
     try {
@@ -218,9 +216,7 @@ export const AppContextProvider = ({ children }) => {
 
   // ------------------------------------------------------------
   // Recommendation scoring — unchanged, runs client-side on
-  // whatever listings are currently loaded. Swap this out for a
-  // call to your Flask AI service if you want embedding-based
-  // similarity instead of the rule-based score.
+  // whatever listings are currently loaded: Rule-based score.
   // ------------------------------------------------------------
   const calculateRecommendationScore = (listing, prefs) => {
     if (!prefs) return 0;
@@ -280,6 +276,37 @@ export const AppContextProvider = ({ children }) => {
       .sort((a, b) => b.matchScore - a.matchScore);
   };
 
+  // ------------------------------------------------------------
+  // AI-powered recommendations via the Flask embedding service.
+  // Falls back to the rule-based scoring above if the AI service
+  // is unreachable, so the tenant flow never fully breaks.
+  // ------------------------------------------------------------
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState('');
+
+  const getAIRecommendedListings = async (prefs = tenantPreferences) => {
+    setAiLoading(true);
+    setAiError('');
+    try {
+      const scores = await aiApi.fetchAIRecommendations(prefs);
+      const scoreMap = Object.fromEntries(scores.map((s) => [s.id, s]));
+      return listings
+        .filter((l) => l.status === "verified")
+        .map((l) => ({
+          ...l,
+          matchScore: scoreMap[l.id]?.matchScore ?? 0,
+          semanticScore: scoreMap[l.id]?.semanticScore ?? 0,
+        }))
+        .sort((a, b) => b.matchScore - a.matchScore);
+    } catch (err) {
+      console.error('AI recommendation failed, falling back to rule-based:', err.message);
+      setAiError('AI service unavailable — showing rule-based matches instead.');
+      return getRecommendedListings(prefs);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -305,6 +332,9 @@ export const AppContextProvider = ({ children }) => {
         updateListingStatus,
         deleteListing,
         getRecommendedListings,
+        getAIRecommendedListings,
+        aiLoading,
+        aiError,
         calculateRecommendationScore,
       }}
     >

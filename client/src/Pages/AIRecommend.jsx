@@ -1,25 +1,27 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
-import { 
-  Sparkles, 
-  ChevronRight, 
-  ChevronLeft, 
-  Check, 
-  Brain, 
-  Cpu, 
+import {
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Brain,
+  Cpu,
 } from 'lucide-react';
 
 export const AIRecommend = () => {
   const navigate = useNavigate();
-  const { 
-    tenantPreferences, 
-    setTenantPreferences, 
-    getRecommendedListings, 
+  const {
+    tenantPreferences,
+    setTenantPreferences,
+    getRecommendedListings,
+    getAIRecommendedListings,
+    aiError,
   } = useContext(AppContext);
 
   const [step, setStep] = useState(1);
-  
+
   const [budget, setBudget] = useState(tenantPreferences.budget);
   const [city, setCity] = useState(tenantPreferences.preferredCity);
   const [sharing, setSharing] = useState(tenantPreferences.sharing);
@@ -27,7 +29,10 @@ export const AIRecommend = () => {
   const [amenities, setAmenities] = useState(tenantPreferences.essentialAmenities);
   const [college, setCollege] = useState(tenantPreferences.poiCollege);
   const [aiLoadingText, setAiLoadingText] = useState('Vectorizing preferences...');
-  
+
+  const [activePreferences, setActivePreferences] = useState(null);
+  const [aiResults, setAiResults] = useState([]);
+
   const collegesList = [
     "Tribhuvan University",
     "Pulchowk Campus",
@@ -45,20 +50,22 @@ export const AIRecommend = () => {
   const prevStep = () => setStep(prev => prev - 1);
 
   const toggleAmenity = (item) => {
-    setAmenities(prev => 
+    setAmenities(prev =>
       prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
     );
   };
 
   const handleRunAssessment = () => {
-    setTenantPreferences({
+    const prefs = {
       budget,
       preferredCity: city,
       sharing,
       roomType,
       essentialAmenities: amenities,
       poiCollege: college
-    });
+    };
+    setTenantPreferences(prefs);
+    setActivePreferences(prefs);
     nextStep();
   };
 
@@ -67,14 +74,24 @@ export const AIRecommend = () => {
       const timer1 = setTimeout(() => setAiLoadingText("Generating embedding vector representing your preferences..."), 800);
       const timer2 = setTimeout(() => setAiLoadingText("Calculating cosine similarity distances using all-MiniLM-L6-v2 model..."), 1600);
       const timer3 = setTimeout(() => setAiLoadingText("Sorting match listings by density weight matrices..."), 2400);
-      const timer4 = setTimeout(() => setStep(6), 3200);
-      return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); clearTimeout(timer4); };
+
+      const startedAt = Date.now();
+      getAIRecommendedListings(activePreferences).then((results) => {
+        // Keep the loading screen up for at least ~3.2s total so the
+        // status text isn't cut off mid-sentence if the API responds fast.
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, 3200 - elapsed);
+        setTimeout(() => {
+          setAiResults(results);
+          setStep(6);
+        }, remaining);
+      });
+
+      return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); };
     } else {
       setAiLoadingText("Vectorizing preferences...");
     }
   }, [step]);
-
-  const recommendedResults = getRecommendedListings();
 
   const generateMatchExplanations = (room) => {
     const reasons = [];
@@ -89,7 +106,7 @@ export const AIRecommend = () => {
     const matchPOI = room.nearbyPOIs.find(poi =>
       poi.type === "College" &&
       (poi.name.toLowerCase().includes(college.toLowerCase()) ||
-       college.toLowerCase().includes(poi.name.toLowerCase()))
+        college.toLowerCase().includes(poi.name.toLowerCase()))
     );
     if (matchPOI) {
       reasons.push({ text: `Extremely close to ${poiNameShort(college)} (${matchPOI.distance}m distance)`, positive: true });
@@ -141,9 +158,8 @@ export const AIRecommend = () => {
             { num: 4, label: "College Proximity" }
           ].map((s) => (
             <div key={s.num} className={`flex items-center gap-2 transition-opacity ${step >= s.num ? 'opacity-100' : 'opacity-40'}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[0.85rem] text-white ${
-                step === s.num ? 'bg-[var(--primary)]' : step > s.num ? 'bg-[var(--secondary)]' : 'bg-[var(--border-color)]'
-              }`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[0.85rem] text-white ${step === s.num ? 'bg-[var(--primary)]' : step > s.num ? 'bg-[var(--secondary)]' : 'bg-[var(--border-color)]'
+                }`}>
                 {step > s.num ? <Check size={14} /> : s.num}
               </span>
               <span className="text-[0.85rem] font-semibold hidden sm:inline">{s.label}</span>
@@ -265,15 +281,13 @@ export const AIRecommend = () => {
                   <div
                     key={idx}
                     onClick={() => toggleAmenity(fac)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-[var(--secondary-light)] border-[var(--secondary)]'
-                        : 'bg-transparent border-[var(--border-color)]'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] border cursor-pointer transition-all ${isSelected
+                      ? 'bg-[var(--secondary-light)] border-[var(--secondary)]'
+                      : 'bg-transparent border-[var(--border-color)]'
+                      }`}
                   >
-                    <div className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center text-white transition-colors ${
-                      isSelected ? 'bg-[var(--secondary)] border-[var(--secondary)]' : 'bg-transparent border-[var(--border-color)]'
-                    }`}>
+                    <div className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center text-white transition-colors ${isSelected ? 'bg-[var(--secondary)] border-[var(--secondary)]' : 'bg-transparent border-[var(--border-color)]'
+                      }`}>
                       {isSelected && <Check size={14} />}
                     </div>
                     <span className="text-[0.92rem] font-medium">{fac}</span>
@@ -355,6 +369,9 @@ export const AIRecommend = () => {
               <p className="text-[0.85rem] text-[var(--text-muted)]">
                 Preferences: Rs. {budget.toLocaleString()} • {roomType} • {sharing} sharing • {college ? poiNameShort(college) : 'No College'}
               </p>
+              {aiError && (
+                <p className="text-[0.78rem] text-[var(--accent)] mt-1">⚠ {aiError}</p>
+              )}
             </div>
             <button onClick={() => setStep(1)} className="btn btn-outline btn-sm">Modify Preferences</button>
           </div>
@@ -364,12 +381,12 @@ export const AIRecommend = () => {
 
             {/* Left: Matched Listings */}
             <div className="flex flex-col gap-6">
-              <h3 className="text-[1.1rem] text-[var(--text-light)] font-semibold">Matched Listings ({recommendedResults.length})</h3>
+              <h3 className="text-[1.1rem] text-[var(--text-light)] font-semibold">Matched Listings ({aiResults.length})</h3>
 
-              {recommendedResults.length === 0 ? (
+              {aiResults.length === 0 ? (
                 <p>No listings verified inside the database.</p>
               ) : (
-                recommendedResults.map(item => {
+                aiResults.map(item => {
                   const reasons = generateMatchExplanations(item);
                   return (
                     <div key={item.id} className="card shadow-sm p-0">
