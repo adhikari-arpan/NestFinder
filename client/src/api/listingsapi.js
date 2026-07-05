@@ -159,18 +159,6 @@ export async function uploadListingImages(listingId, files) {
   return urls;
 }
 
-export async function uploadListingImages(listingId, files) {
-  const urls = [];
-  for (const file of files) {
-    const path = `${listingId}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from(IMAGE_BUCKET).upload(path, file);
-    if (error) throw error;
-    const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
-    urls.push(data.publicUrl);
-  }
-  return urls;
-}
-
 function extractStoragePath(url) {
   const marker = `/${IMAGE_BUCKET}/`;
   const idx = url.indexOf(marker);
