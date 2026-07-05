@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppContextProvider } from "./Context/AppContext";
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { AllRooms } from './Pages/AllRooms';
 
 // Pages
 import { Home } from './Pages/Home';
@@ -32,6 +33,7 @@ function App() {
             <Route path="/search" element={<SearchMap />} />
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/ai-recommend" element={<AIRecommend />} />
+            <Route path="/rooms" element={<AllRooms />} />
 
 
             {/* Role Dashboards */}
