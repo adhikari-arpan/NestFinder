@@ -51,9 +51,9 @@ export const TenantDashboard = () => {
 
   const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
   const tenantInquiries = inquiries.filter(inq =>
-    //don't allow changing of the dashboards from uurl
-    // inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
-    inq.tenant?.email?.toLowerCase() === currentUser?.email?.toLowerCase()
+    //don't allow changing of the dashboards from url
+    inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
+    
   );
 
   const handleAmenityToggle = (item) => {
@@ -227,44 +227,23 @@ export const TenantDashboard = () => {
               <span className="text-[0.85rem] text-text-light">
                 We found <strong>{scoredListings.length}</strong> matching rooms for you !
               </span>
+             
+
+              {/* View all room button*/}
+              <Link
+                to="/rooms"
+                className="btn btn-primary btn-sm"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem' }}
+              >
+                View All Rooms →
+              </Link>
               <span className="text-[0.75rem] text-text-light flex items-center gap-1">
                 <Sparkles size={12} className="text-accent" />
                 Sorted by AI Match Score
               </span>
             </div>
 
-            {/* Scrollable cards */}
-            <div className="flex flex-col gap-4 max-h-[550px] overflow-y-auto pr-1">
-              {scoredListings.length === 0 ? (
-                <div className="card text-center py-12 px-4">
-                  <p className="text-text-light">No active rooms match these filters.</p>
-                </div>
-              ) : (
-                scoredListings.map(listing => (
-                  <div
-                    key={listing.id}
-                    id={`tenant-room-card-${listing.id}`}
-                    onMouseEnter={() => setHighlightListingId(listing.id)}
-                    onMouseLeave={() => setHighlightListingId(null)}
-                    className={`relative rounded-[var(--radius-lg)] transition-all duration-[250ms]
-                      ${activeListingId === listing.id
-                        ? 'border-2 border-primary'
-                        : 'border-2 border-transparent'
-                      }`}
-                  >
-                    {/* AI match score badge */}
-                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-[0.6rem] py-1 rounded-[var(--radius-sm)] text-[0.75rem] font-bold text-white shadow-sm"
-                      style={{ backgroundColor: 'rgba(99,102,241,0.95)', backdropFilter: 'blur(4px)' }}
-                    >
-                      <Sparkles size={10} className="fill-white" />
-                      <span>{listing.matchScore}% Match</span>
-                    </div>
 
-                    <RoomCard room={listing} />
-                  </div>
-                ))
-              )}
-            </div>
           </div>
         </div>
 
