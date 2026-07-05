@@ -159,6 +159,78 @@ export async function uploadListingImages(listingId, files) {
   return urls;
 }
 
+export async function uploadListingImages(listingId, files) {
+  const urls = [];
+  for (const file of files) {
+    const path = `${listingId}/${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from(IMAGE_BUCKET).upload(path, file);
+    if (error) throw error;
+    const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+    urls.push(data.publicUrl);
+  }
+  return urls;
+}
+
+function extractStoragePath(url) {
+  const marker = `/${IMAGE_BUCKET}/`;
+  const idx = url.indexOf(marker);
+  return idx >= 0 ? url.slice(idx + marker.length) : null;
+}
+
+export async function updateListing(id, formData) {
+  const { error: updateError } = await supabase
+    .from('listings')
+    .update({
+      title: formData.title,
+      description: formData.description,
+      price: Number(formData.price),
+      type: formData.type,
+      sharing: formData.sharing,
+      location: formData.location,
+      city: formData.city,
+      geom: `SRID=4326;POINT(${formData.longitude} ${formData.latitude})`,
+      amenities: formData.amenities || [],
+    })
+    .eq('id', id);
+  if (updateError) throw updateError;
+
+  if (formData.images) {
+    const { data: currentImages } = await supabase
+      .from('listing_images')
+      .select('url')
+      .eq('listing_id', id);
+
+    const keptUrls = formData.images.filter((img) => typeof img === 'string');
+    const newFiles = formData.images.filter((img) => img instanceof File);
+    const removedUrls = (currentImages || [])
+      .map((r) => r.url)
+      .filter((url) => !keptUrls.includes(url));
+
+    if (removedUrls.length) {
+      const paths = removedUrls.map(extractStoragePath).filter(Boolean);
+      if (paths.length) {
+        try {
+          await supabase.storage.from(IMAGE_BUCKET).remove(paths);
+        } catch (err) {
+          console.warn('Could not remove old images from storage:', err.message);
+        }
+      }
+    }
+
+    const uploadedUrls = newFiles.length ? await uploadListingImages(id, newFiles) : [];
+    const allUrls = [...keptUrls, ...uploadedUrls];
+
+    await supabase.from('listing_images').delete().eq('listing_id', id);
+    if (allUrls.length) {
+      const imageRows = allUrls.map((url, i) => ({ listing_id: id, url, sort_order: i }));
+      const { error: imgError } = await supabase.from('listing_images').insert(imageRows);
+      if (imgError) throw imgError;
+    }
+  }
+
+  return fetchListingById(id);
+}
+
 // ------------------------------------------------------------
 // Moderation (admin dashboard)
 // ------------------------------------------------------------

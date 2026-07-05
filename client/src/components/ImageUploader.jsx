@@ -47,9 +47,13 @@ export default function ImageUploader({ files, onChange, maxFiles = MAX_FILES })
     // Object URLs for previews — created per file, revoked on cleanup.
     const [previews, setPreviews] = useState([]);
     useEffect(() => {
-        const urls = files.map((f) => URL.createObjectURL(f));
+        const urls = files.map((f) => (typeof f === 'string' ? f : URL.createObjectURL(f)));
         setPreviews(urls);
-        return () => urls.forEach((u) => URL.revokeObjectURL(u));
+        return () => {
+            urls.forEach((u, i) => {
+                if (typeof files[i] !== 'string') URL.revokeObjectURL(u);
+            });
+        };
     }, [files]);
 
     const handleFiles = useCallback(
