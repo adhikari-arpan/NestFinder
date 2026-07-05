@@ -5,23 +5,116 @@ import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
 import logo from '../../assets/NestFinder Logo.png';
 import {
-  Heart, Sparkles, Settings, MessageSquare, CheckCircle, Clock,
-  ArrowRight, SlidersHorizontal, Filter, Search, Check, Map
+  Heart, Sparkles, MessageSquare, CheckCircle, Clock,
+  ArrowRight, User, Image as ImageIcon, Trash2, LogOut, X
 } from 'lucide-react';
+
+const RoomCarousel = ({ listings }) => {
+  const [current, setCurrent] = useState(0);
+
+  // Collect all room images from listings
+  const images = listings
+    .filter(l => l.images?.length > 0)
+    .flatMap(l => l.images.map(img => ({ url: img, title: l.title, location: l.location, price: l.price })));
+
+  useEffect(() => {
+    if (images.length === 0) return;
+    const timer = setInterval(() => {
+      setCurrent(prev => (prev + 1) % images.length);
+    }, 3000); // changes every 3 seconds
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  if (images.length === 0) return null;
+
+  const img = images[current];
+
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      height: '220px',
+      borderRadius: 'var(--radius-lg)',
+      overflow: 'hidden',
+    }}>
+      {/* Sliding image */}
+      <img
+        key={current}
+        src={img.url}
+        alt={img.title}
+        style={{
+          width: '100%', height: '100%', objectFit: 'cover',
+          animation: 'carouselFade 0.6s ease-in-out',
+        }}
+      />
+
+      {/* Blur overlay at bottom with room info */}
+      <div style={{
+        position: 'absolute', bottom: 0, left: 0, right: 0,
+        padding: '1rem 1.25rem',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)',
+        color: 'white',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+      }}>
+        <div>
+          <p style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+            {img.title}
+          </p>
+          <p style={{ fontSize: '0.75rem', margin: 0, opacity: 0.85 }}>📍 {img.location}</p>
+        </div>
+        <span style={{
+          fontSize: '0.8rem', fontWeight: 800,
+          background: 'rgba(99,102,241,0.9)',
+          padding: '0.2rem 0.6rem', borderRadius: '6px',
+        }}>
+          Rs. {img.price?.toLocaleString()}/mo
+        </span>
+      </div>
+
+      {/* Dot indicators */}
+      <div style={{
+        position: 'absolute', top: '10px', right: '12px',
+        display: 'flex', gap: '5px',
+      }}>
+        {images.map((_, i) => (
+          <div key={i} onClick={() => setCurrent(i)} style={{
+            width: i === current ? '18px' : '6px',
+            height: '6px',
+            borderRadius: '999px',
+            background: i === current ? 'white' : 'rgba(255,255,255,0.45)',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+          }} />
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes carouselFade {
+          from { opacity: 0; transform: scale(1.02); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 export const TenantDashboard = () => {
   const {
     currentUser,
     logoutUser,
     savedListings,
-    listings,
     inquiries,
+    listings,
     tenantPreferences,
-    setTenantPreferences
+    calculateRecommendationScore
   } = useContext(AppContext);
 
   const navigate = useNavigate();
 
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [activeListingId, setActiveListingId] = useState(null);
+  const [highlightListingId, setHighlightListingId] = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
 
   // if not logged in or not a tenant, redirect to auth page
   useEffect(() => {
@@ -32,250 +125,221 @@ export const TenantDashboard = () => {
     }
   }, [currentUser, navigate]);
 
-  const [activeTab, setActiveTab] = useState('saved');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
-  const [maxBudget, setMaxBudget] = useState(25000);
-  const [selectedAmenities, setSelectedAmenities] = useState([]);
-  const [activeListingId, setActiveListingId] = useState(null);
-  const [highlightListingId, setHighlightListingId] = useState(null);
-  const [mapCenter, setMapCenter] = useState(null);
-
-  const [budget, setBudget] = useState(tenantPreferences.budget);
-  const [city, setCity] = useState(tenantPreferences.preferredCity);
-  const [sharing, setSharing] = useState(tenantPreferences.sharing);
-  const [roomType, setRoomType] = useState(tenantPreferences.roomType);
-  const [college, setCollege] = useState(tenantPreferences.poiCollege);
-  const [prefAmenities, setPrefAmenities] = useState(tenantPreferences.essentialAmenities);
-  const [isSavedPrefs, setIsSavedPrefs] = useState(false);
-
   const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
+  
+  // Filter inquiries for this tenant
   const tenantInquiries = inquiries.filter(inq =>
-    //don't allow changing of the dashboards from url
-    inq.tenantEmail.toLowerCase() === currentUser?.email.toLowerCase()
-    
+    inq.tenantEmail?.toLowerCase() === currentUser?.email?.toLowerCase()
   );
 
-  const handleAmenityToggle = (item) => {
-    setPrefAmenities(prev =>
-      prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
-    );
+  const handleMarkerClick = (listingId) => {
+    setActiveListingId(listingId);
   };
 
-  const handlePreferencesSubmit = (e) => {
-    e.preventDefault();
-    setTenantPreferences({
-      budget,
-      preferredCity: city,
-      sharing,
-      roomType,
-      essentialAmenities: prefAmenities,
-      poiCollege: college,
-    });
-    setIsSavedPrefs(true);
-    setTimeout(() => setIsSavedPrefs(false), 3000);
+  const handleLogout = () => {
+    logoutUser();
+    navigate('/');
   };
-
-  const handleMarkerClick = (listing) => {
-    setActiveListingId(listing.id);
-    const element = document.getElementById(`tenant-room-card-${listing.id}`);
-    if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-
-  const scoredListings = listings
-    .filter(listing => {
-      const matchesSearch =
-        searchQuery === '' ||
-        listing.location?.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = selectedType === 'all' || listing.type === selectedType;
-      const matchesBudget = listing.price <= maxBudget;
-      return matchesSearch && matchesType && matchesBudget;
-    })
-    .map(listing => ({
-      ...listing,
-      matchScore: Math.floor(Math.random() * 40) + 60,
-    }));
-
-  const AMENITIES = ['WiFi', 'Hot Water', 'Parking', 'Furnished', 'Kitchen', 'Balcony', 'Backup Electricity'];
 
   if (!currentUser) return null;
 
   return (
-    <div className="container animate-fade-in py-8 px-6 pb-20">
+    <div className="container animate-fade-in py-8 px-6 pb-20 tenant-dashboard">
 
-      {/* Welcome Banner */}
-      <div className="welcome-banner-card animate-fade-in mb-10">
-        <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
-        <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
-          Welcome, {currentUser?.name}!
-        </h2>
-        <p className="text-[1.1rem] font-bold text-text-main m-0">
-          Let your search begin
-        </p>
+      {/* 1. Welcome Banner with Profile */}
+      <div className="welcome-banner-redesign animate-fade-in">
+        <div>
+          <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto', marginBottom: '1rem' }} />
+          <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
+            Welcome, {currentUser?.name}!
+          </h2>
+          <p className="text-[1.1rem] font-bold text-text-main m-0">
+            Let your search begin
+          </p>
+        </div>
+
+        <div className="flex flex-col items-center gap-2 relative z-[5]">
+          <div 
+            className="profile-circle" 
+            onClick={() => setProfileMenuOpen(true)}
+            title="Click to view profile menu"
+          >
+            {currentUser?.profilePicture ? (
+              <img src={currentUser.profilePicture} alt="Profile" />
+            ) : (
+              <User size={32} className="text-primary" />
+            )}
+          </div>
+          <span className="text-[0.75rem] font-bold text-text-muted">Your Profile</span>
+        </div>
       </div>
 
-    
+      {/* Profile Overlay Panel */}
+      {profileMenuOpen && (
+        <div className="profile-overlay-backdrop" onClick={() => setProfileMenuOpen(false)} />
+      )}
+      <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
+            <User size={20} className="text-primary" /> Profile Menu
+          </h3>
+          <button 
+            className="btn btn-ghost p-2" 
+            onClick={() => setProfileMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
+        </div>
 
-      <div className="search-split-layout">
+        <div className="flex flex-col gap-3 mb-8">
+          <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
+            <User size={18} /> Edit Profile
+          </div>
+          <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
+            <ImageIcon size={18} /> Change Profile Picture
+          </div>
+          <div className="profile-menu-item text-danger border-[rgba(239,68,68,0.2)] hover:bg-danger-light hover:border-danger hover:text-danger" onClick={() => alert('Delete Profile Picture functionality coming soon!')}>
+            <Trash2 size={18} /> Delete Profile Picture
+          </div>
+        </div>
 
-        {/* ── Left column: Search & listings ── */}
-        <div className="flex flex-col gap-6">
-
-          {/* Filter card */}
-          <div className="card p-6 border border-border-color">
-            <h3 className="text-[1.15rem] flex items-center gap-2 mb-5" >
-              <Filter size={15} className="text-primary" />
-              <span>Refine Your Search</span>
-            </h3>
-
-            <div className="flex flex-col gap-5">
-
-              {/* Search + Type row */}
-              <div className="grid gap-4" style={{ gridTemplateColumns: '1.2fr 0.8fr' }}>
-
-                <div className="form-group mb-5">
-                  <label className="form-label text-[0.5rem] mt-10">Search Zone</label>
-                  <div className="relative flex items-center">
-                    <Search size={12} className="absolute left-[10px] text-text-light" />
-                    <input
-                      type="text"
-                      placeholder="....Pulchowk, Kirtipur...."
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      className="form-input w-full pl-9 py-2 text-[0.5rem]"
-                    />
+        <div className="mb-6">
+          <h4 className="text-[1rem] font-bold mb-4 flex items-center gap-2">
+            <MessageSquare size={16} className="text-primary" /> Your Inquiries
+          </h4>
+          
+          <div className="flex flex-col gap-3">
+            {tenantInquiries.length === 0 ? (
+              <div className="text-center p-4 text-[0.85rem] text-text-muted border border-border-color rounded-[var(--radius-md)] bg-bg-app">
+                You haven't made any inquiries yet.
+              </div>
+            ) : (
+              tenantInquiries.map(inq => (
+                <div key={inq.id} className="inquiry-card">
+                  <div className="flex justify-between items-start">
+                    <strong className="text-[0.9rem] text-primary">{inq.listings?.title || 'Unknown Room'}</strong>
+                    <span className="text-[0.7rem] text-text-light">{new Date(inq.created_at).toLocaleDateString()}</span>
                   </div>
+                  <p className="text-[0.85rem] text-text-main m-0 mt-1">"{inq.message}"</p>
+                  
+                  {inq.status === 'replied' ? (
+                    <div className="inquiry-reply">
+                      <strong className="block text-[0.75rem] text-primary mb-1">Landlord Reply:</strong>
+                      {inq.reply_text}
+                    </div>
+                  ) : (
+                    <div className="text-[0.75rem] text-accent mt-2 flex items-center gap-1">
+                      <Clock size={12} /> Pending landlord response
+                    </div>
+                  )}
                 </div>
-
-                <div className="form-group mb-0">
-                  <label className="form-label text-[0.7rem] mt-10">Room Type</label>
-                  <select
-                    value={selectedType}
-                    onChange={e => setSelectedType(e.target.value)}
-                    className="form-input py-2 text-[0.9rem]"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="Room">Single Room</option>
-                    <option value="Flat">Full Flat</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Budget slider */}
-              <div className="form-group mb-0">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="form-label text-[0.7rem]">Max Budget Limit</label>
-                  <strong className="text-[0.9rem] text-primary">
-                    Rs. {maxBudget.toLocaleString('en-IN')}/mo
-                  </strong>
-                </div>
-                <input
-                  type="range"
-                  min="4000"
-                  max="40000"
-                  step="1000"
-                  value={maxBudget}
-                  onChange={e => setMaxBudget(Number(e.target.value))}
-                  className="w-full cursor-pointer accent-primary"
-                />
-              </div>
-
-              {/* Amenity pills */}
-              <div className="text-left">
-                <label className="form-label text-[0.5rem] block mb-4"> Choose Facilities that are Required</label>
-                <div className="flex flex-wrap gap-3">
-                  {AMENITIES.map((amenity, i) => {
-                    const active = selectedAmenities.includes(amenity);
-                    return (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() =>
-                          setSelectedAmenities(prev =>
-                            prev.includes(amenity)
-                              ? prev.filter(a => a !== amenity)
-                              : [...prev, amenity]
-                          )
-                        }
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full cursor-pointer text-[0.8rem] font-semibold border transition-all duration-200
-                          ${active
-                            ? 'text-white border-transparent shadow-[0_0_16px_rgba(251,191,36,0.55)]'
-                            : 'bg-[rgba(99,102,241,0.08)] text-primary border-[rgba(99,102,241,0.25)] hover:border-primary/50'
-                          }`}
-                                          
-                        style={active ? {
-                          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                          boxShadow: '0 0 16px rgba(251,191,36,0.6), 0 0 4px rgba(251,191,36,0.4)'
-                        } : {}}
-                      >
-                        {active && <Check size={12} />}
-                        <span>{amenity}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Results list */}
-          <div className="flex flex-col gap-4">
-
-            {/* Results meta row */}
-            <div className="flex justify-between items-center">
-              <span className="text-[0.85rem] text-text-light">
-                We found <strong>{scoredListings.length}</strong> matching rooms for you !
-              </span>
-             
-
-              {/* View all room button*/}
-              <Link
-                to="/rooms"
-                className="btn btn-primary btn-sm"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.75rem' }}
-              >
-                View All Rooms →
-              </Link>
-              <span className="text-[0.75rem] text-text-light flex items-center gap-1">
-                <Sparkles size={12} className="text-accent" />
-                Sorted by AI Match Score
-              </span>
-            </div>
-
-
+              ))
+            )}
           </div>
         </div>
 
-        {/* ── Right column: Map ── */}
-        <div className="flex flex-col gap-4">
-
-          <div className="flex justify-between items-center">
-            <span className="text-[0.85rem] text-text-light flex items-center gap-1">
-              🗺️ Use Map to Choose Place
-            </span>
-            <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
-              Click pins to review
-            </span>
-          </div>
-
-          <div className="highlight-map-container relative h-[700px]">
-            <div className="map-badge-helper absolute top-[15px] right-[15px] z-[999]">
-              <Map size={14} />
-              <span>Map Discovery Mode</span>
-            </div>
-
-            <MapContainer
-              listings={scoredListings}
-              activeListingId={activeListingId}
-              highlightListingId={highlightListingId}
-              onMarkerClick={handleMarkerClick}
-              currentCenter={mapCenter}
-            />
-          </div>
+        <div className="mt-auto pt-4 border-t border-border-color">
+          <button 
+            className="btn btn-primary w-full flex justify-center items-center gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut size={18} /> Logout
+          </button>
         </div>
-
       </div>
+
+      {/* 2. Room Carousel Section */}
+      <div className="carousel-section">
+        <div className="carousel-container">
+          <div className="flex-1">
+            <RoomCarousel listings={listings} />
+          </div>
+          <div className="glowing-arrow" onClick={() => navigate('/rooms')}>
+            <ArrowRight size={24} />
+          </div>
+        </div>
+        
+        <button 
+          className="btn btn-primary btn-lg" 
+          onClick={() => navigate('/rooms')}
+          style={{ whiteSpace: 'nowrap' }}
+        >
+          View All Rooms →
+        </button>
+      </div>
+
+      {/* 3. Favorites + AI Section */}
+      <div className="favorites-ai-section">
+        {/* Left: Favorites */}
+        <div className="favorites-panel">
+          <h3 className="text-[1.2rem] font-bold flex items-center gap-2 mb-2">
+            <Heart size={20} className="text-danger fill-danger" /> Your Favourites
+          </h3>
+          
+          {bookmarkedRooms.length > 0 ? (
+            <div className="favorites-grid">
+              {bookmarkedRooms.map(room => (
+                <RoomCard key={room.id} room={room} score={calculateRecommendationScore(room, tenantPreferences)} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-favorites">
+              <Heart size={48} className="text-border-color mb-3" />
+              <p className="font-medium text-[1.1rem]">No favourites yet</p>
+              <p className="text-[0.9rem] max-w-[250px] mt-2">
+                Your favourite rooms will be visible here once you save them.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Right: AI Match */}
+        <div className="ai-cta-panel">
+          <Sparkles size={48} className="text-primary" />
+          <h3 className="text-[1.5rem] font-extrabold text-text-main m-0 leading-tight">
+            Let's refine your search with our AI
+          </h3>
+          <p className="text-[0.95rem] text-text-muted m-0">
+            Find the perfect room tailored exactly to your preferences.
+          </p>
+          <button 
+            className="glow-btn btn-lg mt-2 rounded-[var(--radius-full)] px-8 font-bold text-[1.1rem]"
+            onClick={() => navigate('/ai-recommend')}
+          >
+            Find Your Match with AI
+          </button>
+        </div>
+      </div>
+
+      {/* 4. Full-width Map Section */}
+      <div>
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-[1.2rem] font-bold flex items-center gap-2">
+            🗺️ Use Map to Choose Place
+          </h3>
+          <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
+            Click pins to review
+          </span>
+        </div>
+
+        <div className="map-section-full relative">
+          <div className="map-badge-helper absolute top-[15px] right-[15px] z-[999]">
+            🗺️ Map Discovery Mode
+          </div>
+
+          <MapContainer
+            listings={listings}
+            activeListingId={activeListingId}
+            highlightListingId={highlightListingId}
+            onMarkerClick={handleMarkerClick}
+            currentCenter={mapCenter}
+          />
+        </div>
+      </div>
+
     </div>
   );
 };
+
+export default TenantDashboard;
