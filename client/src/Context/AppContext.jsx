@@ -179,6 +179,17 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  const updateListing = async (id, formData) => {
+    try {
+      const updated = await api.updateListing(id, formData);
+      setListings((prev) => prev.map((l) => (l.id === id ? updated : l)));
+      return { success: true, listing: updated };
+    } catch (err) {
+      console.error('Failed to update listing:', err.message);
+      return { success: false, message: err.message || 'Could not update this listing. Please try again.' };
+    }
+  };
+
   // ------------------------------------------------------------
   // Inquiries
   // ------------------------------------------------------------
@@ -331,6 +342,7 @@ export const AppContextProvider = ({ children }) => {
         createListing,
         updateListingStatus,
         deleteListing,
+        updateListing,
         getRecommendedListings,
         getAIRecommendedListings,
         aiLoading,

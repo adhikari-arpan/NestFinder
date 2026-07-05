@@ -46,9 +46,10 @@ export const LandlordDashboard = () => {
     inquiries,
     replyToInquiry,
     createListing,
+    updateListing,
     deleteListing,
     currentUser,
-    logoutUser // was missing — this is why logout wasn't redirecting
+    logoutUser
   } = useContext(AppContext);
 
   const location = useLocation();
@@ -72,12 +73,16 @@ export const LandlordDashboard = () => {
   // Submission States
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [confirmedListing, setConfirmedListing] = useState(null);
 
   // Delete states
   const [listingToDelete, setListingToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  // Edit Related States
+  const [confirmedListing, setConfirmedListing] = useState(null);
+  const [confirmedAction, setConfirmedAction] = useState('created'); // 'created' | 'updated'
+  const [editingListing, setEditingListing] = useState(null);
 
   // Check URL query parameters to open modal by default
   useEffect(() => {
@@ -122,6 +127,44 @@ export const LandlordDashboard = () => {
     );
   };
 
+  const resetForm = () => {
+    setFormTitle('');
+    setFormDesc('');
+    setFormPrice('');
+    setFormType('Room');
+    setFormSharing('Single');
+    setFormLocation('');
+    setFormCity('Kathmandu');
+    setFormLat('27.6850');
+    setFormLng('85.3200');
+    setFormImages([]);
+    setFormAmenities([]);
+  };
+
+  const openCreateModal = () => {
+    setEditingListing(null);
+    resetForm();
+    setSubmitError('');
+    setIsPostModalOpen(true);
+  };
+
+  const openEditModal = (item) => {
+    setEditingListing(item);
+    setFormTitle(item.title);
+    setFormDesc(item.description);
+    setFormPrice(String(item.price));
+    setFormType(item.type);
+    setFormSharing(item.sharing);
+    setFormLocation(item.location);
+    setFormCity(item.city);
+    setFormLat(String(item.latitude));
+    setFormLng(String(item.longitude));
+    setFormImages(item.images || []); // existing URLs — ImageUploader now handles these
+    setFormAmenities(item.amenities || []);
+    setSubmitError('');
+    setIsPostModalOpen(true);
+  };
+
   const handlePostSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -139,40 +182,39 @@ export const LandlordDashboard = () => {
       return;
     }
 
+    const payload = {
+      title: formTitle,
+      description: formDesc,
+      price: Number(formPrice),
+      type: formType,
+      sharing: formSharing,
+      location: formLocation,
+      city: formCity,
+      latitude: Number(formLat) || 27.6850,
+      longitude: Number(formLng) || 85.3200,
+      images: formImages,
+      amenities: formAmenities
+    };
+
+    const wasEditing = !!editingListing;
     setIsSubmitting(true);
     try {
-      const result = await createListing({
-        title: formTitle,
-        description: formDesc,
-        price: Number(formPrice),
-        type: formType,
-        sharing: formSharing,
-        location: formLocation,
-        city: formCity,
-        latitude: Number(formLat) || 27.6850,
-        longitude: Number(formLng) || 85.3200,
-        images: formImages,
-        amenities: formAmenities
-      });
+      const result = wasEditing
+        ? await updateListing(editingListing.id, payload)
+        : await createListing(payload);
 
       if (!result.success) {
         setSubmitError(result.message);
         return;
       }
 
-      // Reset form
-      setFormTitle('');
-      setFormDesc('');
-      setFormPrice('');
-      setFormLocation('');
-      setFormAmenities([]);
-      setFormImages([]);
-
-      // Swap the post modal for a confirmation modal
+      resetForm();
       setIsPostModalOpen(false);
+      setEditingListing(null);
       setConfirmedListing(result.listing);
+      setConfirmedAction(wasEditing ? 'updated' : 'created');
     } catch (err) {
-      console.error('Unexpected error posting listing:', err);
+      console.error('Unexpected error saving listing:', err);
       setSubmitError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -400,7 +442,7 @@ export const LandlordDashboard = () => {
               <Building size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
               <h3>No Listings Yet</h3>
               <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem 0' }}>Submit your first room details and get matched with tenant search lists.</p>
-              <button onClick={() => setIsPostModalOpen(true)} className="btn btn-primary btn-sm">Add Room Listing</button>
+              <button onClick={openCreateModal} className="btn btn-primary btn-sm">Add Room Listing</button>
             </div>
           ) : (
             <div className="card" style={{ padding: 0, overflow: 'hidden', borderColor: 'var(--border-color)' }}>
@@ -449,14 +491,24 @@ export const LandlordDashboard = () => {
                           </span>
                         )}
                       </td>
+                      {/* Edit and Delete button */}
                       <td style={{ padding: '1rem' }}>
-                        <button
-                          onClick={() => setListingToDelete(item)}
-                          className="btn btn-outline btn-sm"
-                          style={{ color: 'var(--danger, #dc2626)', borderColor: 'var(--danger, #dc2626)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={() => openEditModal(item)}
+                            className="btn btn-outline btn-sm"
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <FileText size={14} /> Edit
+                          </button>
+                          <button
+                            onClick={() => setListingToDelete(item)}
+                            className="btn btn-outline btn-sm"
+                            style={{ color: 'var(--danger, #dc2626)', borderColor: 'var(--danger, #dc2626)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -576,14 +628,16 @@ export const LandlordDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Plus style={{ color: 'var(--primary)' }} size={24} /> Add Room / Flat Listing
+                  <Plus style={{ color: 'var(--primary)' }} size={24} /> {editingListing ? 'Edit Room / Flat Listing' : 'Add Room / Flat Listing'}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
-                  Provide specifications. Newly listed rentals start as pending for admin checks.
+                  {editingListing
+                    ? 'Update the details below — changes save immediately.'
+                    : 'Provide specifications. Newly listed rentals start as pending for admin checks.'}
                 </p>
               </div>
               <button
-                onClick={() => setIsPostModalOpen(false)}
+                onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }}
                 className="btn btn-outline btn-sm"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
               >
@@ -762,11 +816,11 @@ export const LandlordDashboard = () => {
                 </p>
               )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setIsPostModalOpen(false)} className="btn btn-outline btn-sm" disabled={isSubmitting}>
+                <button type="button" onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }} className="btn btn-outline btn-sm" disabled={isSubmitting}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
-                  {isSubmitting ? 'Publishing…' : 'Publish Listing'}
+                  {isSubmitting ? 'Saving…' : editingListing ? 'Save Changes' : 'Publish Listing'}
                 </button>
               </div>
 
@@ -794,10 +848,15 @@ export const LandlordDashboard = () => {
         }}>
           <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '2.5rem 2rem', textAlign: 'center' }}>
             <CheckCircle size={52} style={{ color: 'var(--secondary, #16a34a)', marginBottom: '1rem' }} />
-            <h2 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>Listing Submitted!</h2>
+            <h2 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>
+              {confirmedAction === 'updated' ? 'Listing Updated!' : 'Listing Submitted!'}
+            </h2>
             <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              "{confirmedListing.title}" has been posted and is <strong>pending admin review</strong>.
-              You'll get a notification once it's verified and live for tenants to see.
+              {confirmedAction === 'updated' ? (
+                <>"{confirmedListing.title}" has been updated successfully.</>
+              ) : (
+                <>"{confirmedListing.title}" has been posted and is <strong>pending admin review</strong>. You'll get a notification once it's verified and live for tenants to see.</>
+              )}
             </p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
               <button
