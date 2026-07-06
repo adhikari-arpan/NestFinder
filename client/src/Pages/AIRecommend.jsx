@@ -135,17 +135,17 @@ export const AIRecommend = () => {
       : 'border-[var(--border-color)] bg-transparent hover:border-[var(--primary-light)]'}`;
 
   return (
-    <div className="container px-4 sm:px-10 pt-16 pb-32 text-left max-w-[1200px] min-h-[140vh] bg-gradient-to-b from-[rgba(99,102,241,0.03)] to-transparent">
+       <div className="container px-4 sm:px-10 pb-32 text-left max-w-[1200px] min-h-[140vh] bg-gradient-to-b from-[rgba(99,102,241,0.03)] to-transparent" style={{ paddingTop: '40px' }}>
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 mb-12">
-        <div className="w-16 h-16 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[#7c3aed] flex items-center justify-center text-white shadow-lg transform -rotate-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 style={{ marginBottom: '60px' }}>">
+         <div className="w-16 h-16 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[#7c3aed] flex items-center justify-center text-white shadow-lg transform -rotate-6">
           <Brain size={42} />
         </div>
         <div>
           <h1 className="text-[2rem] sm:text-[2.5rem] font-extrabold m-0 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
             AI Room Finder Assistant
           </h1>
-          <p className="text-[var(--text-muted)] text-[1rem] mt-2 font-medium">
+          <p className="text-[var(--text-muted)] text-[1rem] mt-2 font-medium" style={{ marginBottom: '20px' }}>
             Smart preference matching powered by Next-Gen AI.
           </p>
         </div>
@@ -153,7 +153,7 @@ export const AIRecommend = () => {
 
       {/* Progress Tracker */}
       {step <= 4 && (
-        <div className="flex justify-between items-center gap-2 mb-16 bg-[var(--bg-card)] px-8 py-6 rounded-[var(--radius-md)] border border-[var(--border-color)]">
+        <div className="flex justify-between items-center gap-5 bg-[var(--bg-card)] px-8 py-6 rounded-[var(--radius-md)] border border-[var(--border-color)]" style={{ marginBottom: '50px' }}>
           {[
             { num: 1, label: "Budget & Location" },
             { num: 2, label: "Room Spec" },
