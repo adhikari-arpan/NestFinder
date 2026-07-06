@@ -3,14 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { MapContainer } from '../components/MapContainer';
 import { RoomCard } from '../components/RoomCard';
-import { 
-  MapPin, 
-  Heart, 
-  Send, 
-  Phone, 
-  Mail, 
-  CheckCircle2, 
-  ArrowLeft, 
+import {
+  MapPin,
+  Heart,
+  Send,
+  Phone,
+  Mail,
+  CheckCircle2,
+  ArrowLeft,
   Share2,
   Calendar,
   Eye,
@@ -21,17 +21,17 @@ import {
 export const RoomDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { 
-    listings, 
-    savedListings, 
-    toggleSaveListing, 
-    sendInquiry, 
+  const {
+    listings,
+    savedListings,
+    toggleSaveListing,
+    sendInquiry,
     currentUser,
     calculateRecommendationScore
   } = useContext(AppContext);
 
-  const room = listings.find(l => l.id === Number(id));
-  
+  const room = listings.find(l => l.id === id);
+
   const [activeImage, setActiveImage] = useState('');
   const [inquirySent, setInquirySent] = useState(false);
   const [contactForm, setContactForm] = useState({
@@ -137,9 +137,8 @@ export const RoomDetails = () => {
                   <button
                     key={index}
                     onClick={() => setActiveImage(img)}
-                    className={`w-20 h-[60px] rounded-[var(--radius-sm)] overflow-hidden p-0 cursor-pointer border ${
-                      activeImage === img ? 'border-2 border-[var(--primary)]' : 'border border-[var(--border-color)]'
-                    }`}
+                    className={`w-20 h-[60px] rounded-[var(--radius-sm)] overflow-hidden p-0 cursor-pointer border ${activeImage === img ? 'border-2 border-[var(--primary)]' : 'border border-[var(--border-color)]'
+                      }`}
                   >
                     <img src={img} alt={`thumbnail ${index}`} className="w-full h-full object-cover" />
                   </button>
@@ -238,12 +237,12 @@ export const RoomDetails = () => {
           <div className="card shadow-lg flex flex-col gap-5 border border-[var(--border-color)] p-6">
             <div className="flex items-center gap-3">
               <div className="w-[50px] h-[50px] rounded-full bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center font-bold text-[1.2rem]">
-                {room.landlord.name.charAt(0)}
+                {room.landlord?.name?.charAt(0) || '?'}
               </div>
               <div className="text-left">
                 <h3 className="text-[1.05rem] flex items-center gap-1">
-                  {room.landlord.name}
-                  {room.landlord.verified && (
+                  {room.landlord?.name || 'Unknown Landlord'}
+                  {room.landlord?.verified && (
                     <CheckCircle2 size={16} style={{ color: 'var(--secondary)', fill: 'var(--secondary-light)' }} title="Verified Landlord" />
                   )}
                 </h3>
@@ -254,11 +253,11 @@ export const RoomDetails = () => {
             <div className="flex flex-col gap-2 border-t border-b border-[var(--border-color)] py-3 text-[0.88rem]">
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-[var(--primary)]" />
-                <span><strong>Phone:</strong> {room.landlord.phone}</span>
+                <span><strong>Phone:</strong> {room.landlord?.phone || 'Not available'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={14} className="text-[var(--primary)]" />
-                <span><strong>Email:</strong> {room.landlord.email}</span>
+                <span><strong>Email:</strong> {room.landlord?.email || 'Not available'}</span>
               </div>
             </div>
 
