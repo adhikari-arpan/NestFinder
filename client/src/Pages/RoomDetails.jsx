@@ -35,11 +35,24 @@ export const RoomDetails = () => {
   const [activeImage, setActiveImage] = useState('');
   const [inquirySent, setInquirySent] = useState(false);
   const [contactForm, setContactForm] = useState({
-    name: currentUser ? currentUser.name : '',
-    email: currentUser ? currentUser.email : '',
-    phone: '',
+    name: currentUser?.name || '',
+    email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
     message: 'Hello, I am interested in this listing. Please let me know when I can visit it.'
   });
+
+  // currentUser often isn't ready on the very first render (it loads async via session restore in AppContext), so fill in any fields
+  // that are still blank once it becomes available — without overwriting anything the tenant may have already typed.
+  useEffect(() => {
+    if (currentUser) {
+      setContactForm((prev) => ({
+        ...prev,
+        name: prev.name || currentUser.name || '',
+        email: prev.email || currentUser.email || '',
+        phone: prev.phone || currentUser.phone || '',
+      }));
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (room && room.images && room.images.length > 0) {
