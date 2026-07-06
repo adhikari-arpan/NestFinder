@@ -76,19 +76,19 @@ export const Navbar = () => {
   // inheriting position from a relative parent.
 
   // Logout confirmation
-    const handleLogout = () => {
-      setShowLogoutConfirm(true);
-    };
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
 
-    const confirmLogout = () => {
-      setShowLogoutConfirm(false);
-      logoutUser();
-      navigate('/');
-    };
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    logoutUser();
+    navigate('/');
+  };
 
-    const cancelLogout = () => {
-      setShowLogoutConfirm(false);
-    };
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
+  };
 
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export const Navbar = () => {
 
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <img src={logo} alt="NestFinder" style={{ height: '38px', width: 'auto' }} />
+          <img src={logo} alt="NestFinder" style={{ height: '40px', width: 'auto' }} />
           <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
         </Link>
 
@@ -233,8 +233,8 @@ export const Navbar = () => {
                           <div
                             key={n.id}
                             className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${n.read
-                                ? 'bg-transparent border-l-[var(--border-color)]'
-                                : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
+                              ? 'bg-transparent border-l-[var(--border-color)]'
+                              : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
                               }`}
                           >
                             <div className="font-semibold text-[0.85rem]">{n.title}</div>
@@ -279,7 +279,7 @@ export const Navbar = () => {
                       : '/dashboard/admin'
                 }
               >
-                
+
               </Link>
 
               {/* logout button */}
@@ -377,7 +377,7 @@ export const Navbar = () => {
             </div>
 
             <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>
-               Are you sure you want to Logout from NestFinder?
+              Are you sure you want to Logout from NestFinder?
             </h3>
             <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
               You can sign back in anytime.

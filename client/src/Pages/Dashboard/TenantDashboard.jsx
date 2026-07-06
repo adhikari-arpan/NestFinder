@@ -373,7 +373,7 @@ export const TenantDashboard = () => {
       <div>
         <div className="flex justify-between items-center mb-3">
           <h3 className="text-[1.4rem] font-bold flex items-center gap-2">
-            🗺️ Map View
+            🗺️ All Available Rooms in Map View
           </h3>
           <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
             Click pins to review
@@ -397,12 +397,6 @@ export const TenantDashboard = () => {
 
       {/* 6. All Available Rooms (Carousel Section) */}
       <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-[1.4rem] font-bold flex items-center gap-2 m-0">
-            All Available Rooms
-          </h3>
-        </div>
-
         <div className="carousel-section" style={{ marginTop: 0 }}>
           <div className="carousel-container">
             <div className="flex-1">

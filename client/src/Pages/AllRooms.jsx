@@ -65,10 +65,6 @@ export const AllRooms = () => {
                 : `Showing ${verifiedRooms.length} verified listings across Kathmandu valley`}
             </p>
           </div>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-light)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <Sparkles size={13} style={{ color: 'var(--accent)' }} />
-            Sorted by AI Match Score
-          </span>
         </div>
       </div>
 
