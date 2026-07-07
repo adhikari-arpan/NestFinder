@@ -4,6 +4,10 @@
 
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* Design Tokens & Variables */
 :root {
   /* Colors */
