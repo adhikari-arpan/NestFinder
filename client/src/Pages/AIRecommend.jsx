@@ -29,6 +29,7 @@ export const AIRecommend = () => {
   const [amenities, setAmenities] = useState(tenantPreferences.essentialAmenities);
   const [college, setCollege] = useState(tenantPreferences.poiCollege);
   const [aiLoadingText, setAiLoadingText] = useState('Vectorizing preferences...');
+  const [radius, setRadius] = useState(1000); // default 1km in meters
 
   const [activePreferences, setActivePreferences] = useState(null);
   const [aiResults, setAiResults] = useState([]);
@@ -62,7 +63,8 @@ export const AIRecommend = () => {
       sharing,
       roomType,
       essentialAmenities: amenities,
-      poiCollege: college
+      poiCollege: college,
+      radius
     };
     setTenantPreferences(prefs);
     setActivePreferences(prefs);
@@ -103,14 +105,30 @@ export const AIRecommend = () => {
     if (room.city.toLowerCase() === city.toLowerCase()) {
       reasons.push({ text: `Located in your preferred city (${city})`, positive: true });
     }
-    const matchPOI = room.nearbyPOIs.find(poi =>
-      poi.type === "College" &&
-      (poi.name.toLowerCase().includes(college.toLowerCase()) ||
-        college.toLowerCase().includes(poi.name.toLowerCase()))
-    );
-    if (matchPOI) {
-      reasons.push({ text: `Extremely close to ${poiNameShort(college)} (${matchPOI.distance}m distance)`, positive: true });
-    }
+      const matchPOI = room.nearbyPOIs?.find(poi =>
+        poi.type === "College" &&
+        (poi.name.toLowerCase().includes(college.toLowerCase()) ||
+          college.toLowerCase().includes(poi.name.toLowerCase()))
+      );
+      if (matchPOI) {
+        const dist = matchPOI.distance;
+        const withinRadius = dist <= radius;
+        const distLabel = dist >= 1000 ? `${(dist/1000).toFixed(1)}km` : `${dist}m`;
+        const radiusLabel = radius >= 1000 ? `${(radius/1000).toFixed(1)}km` : `${radius}m`;
+
+        if (withinRadius) {
+          const walkLabel = dist <= 500 ? 'walking distance' : dist <= 1500 ? 'short walk' : 'within your radius';
+          reasons.push({
+            text: `${distLabel} from ${college} — within ${walkLabel} (your radius: ${radiusLabel})`,
+            positive: true
+          });
+        } else {
+          reasons.push({
+            text: `${distLabel} from ${college} — outside your ${radiusLabel} radius`,
+            positive: false
+          });
+        }
+      }
     const presentAmenities = amenities.filter(a => room.amenities.includes(a));
     const missingAmenities = amenities.filter(a => !room.amenities.includes(a));
     if (presentAmenities.length > 0) {
@@ -329,6 +347,46 @@ export const AIRecommend = () => {
                 <option key={idx} value={col}>🎓 {col}</option>
               ))}
             </select>
+            {/* Radius Input */}
+          <div className="form-group mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <label className="form-label">Search Radius from Campus</label>
+              <strong className="text-[1.1rem] text-[var(--primary)]">
+                {radius >= 1000 ? `${(radius/1000).toFixed(1)} km` : `${radius} m`}
+              </strong>
+            </div>
+            <input
+              type="range" min="200" max="5000" step="100"
+              value={radius}
+              onChange={e => setRadius(Number(e.target.value))}
+              className="w-full cursor-pointer accent-[var(--primary)]"
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-[0.75rem] text-[var(--text-light)]">200m (walking)</span>
+              <span className="text-[0.75rem] text-[var(--text-light)]">5km (cycling)</span>
+            </div>
+            <div className="flex gap-2 mt-3 flex-wrap">
+              {[
+                { label: '🚶 Walking (500m)', val: 500 },
+                { label: '🏃 Near (1km)', val: 1000 },
+                { label: '🚲 Cycling (3km)', val: 3000 },
+              ].map(opt => (
+                <button
+                  key={opt.val}
+                  type="button"
+                  onClick={() => setRadius(opt.val)}
+                  className="text-[0.78rem] px-3 py-1.5 rounded-full border cursor-pointer font-semibold transition-all"
+                  style={radius === opt.val ? {
+                    background: 'var(--primary)', color: 'white', border: '1px solid var(--primary)'
+                  } : {
+                    background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-color)'
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
             <span className="text-[0.85rem] text-[var(--text-light)] mt-2 block">
               Our model computes walk distances directly to this landmark location using geometric bounds.
             </span>
@@ -380,6 +438,8 @@ export const AIRecommend = () => {
             </div>
             <button onClick={() => setStep(1)} className="btn btn-outline btn-sm">Modify Preferences</button>
           </div>
+
+          
 
           {/* Results Grid - Full Width, No Sidebar */}
           <div className="flex flex-col gap-8 w-full mt-4">
