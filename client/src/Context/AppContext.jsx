@@ -282,7 +282,7 @@ export const AppContextProvider = ({ children }) => {
 
   const getRecommendedListings = (prefs = tenantPreferences) => {
     return listings
-      .filter((l) => l.status === "verified")
+      // .filter((l) => l.status === "verified") // Temporarily disabled for development
       .map((listing) => ({ ...listing, matchScore: calculateRecommendationScore(listing, prefs) }))
       .sort((a, b) => b.matchScore - a.matchScore);
   };
@@ -302,7 +302,7 @@ export const AppContextProvider = ({ children }) => {
       const scores = await aiApi.fetchAIRecommendations(prefs);
       const scoreMap = Object.fromEntries(scores.map((s) => [s.id, s]));
       return listings
-        .filter((l) => l.status === "verified")
+        // .filter((l) => l.status === "verified") // Temporarily disabled for development
         .map((l) => ({
           ...l,
           matchScore: scoreMap[l.id]?.matchScore ?? 0,

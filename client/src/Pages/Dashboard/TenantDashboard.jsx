@@ -386,11 +386,13 @@ export const TenantDashboard = () => {
           </div>
 
           <MapContainer
-            listings={listings}
+            listings={scoredListings}
             activeListingId={activeListingId}
             highlightListingId={highlightListingId}
             onMarkerClick={handleMarkerClick}
             currentCenter={mapCenter}
+            radius={tenantPreferences.radius || 1000}
+            college={tenantPreferences.poiCollege}
           />
         </div>
       </div>
