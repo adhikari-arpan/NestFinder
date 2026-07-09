@@ -22,8 +22,10 @@ function mapListingRow(row) {
     latitude: row.latitude,
     longitude: row.longitude,
     images: (row.listing_images || [])
-      .sort((a, b) => a.sort_order - b.sort_order)
-      .map((img) => img.url),
+      .slice()
+      .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+      .map((img) => img.url)
+      .filter(Boolean),
     amenities: row.amenities || [],
     landlord: row.profiles
       ? {

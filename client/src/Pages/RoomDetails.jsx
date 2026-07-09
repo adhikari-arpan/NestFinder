@@ -55,12 +55,12 @@ export const RoomDetails = () => {
   }, [currentUser]);
 
   useEffect(() => {
-    if (room && room.images && room.images.length > 0) {
+    if (room?.images?.length > 0) {
       setActiveImage(room.images[0]);
     }
     setInquirySent(false);
     window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [room, id]);
+  }, [id, room?.images?.[0]]);
 
   if (!room) {
     return (
@@ -105,7 +105,6 @@ export const RoomDetails = () => {
 
   return (
     <div className="container animate-fade-in px-6 pt-8 pb-20 text-left">
-
       {/* Nav Row */}
       <div className="flex justify-between items-center mb-6">
         <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm flex items-center gap-1">
