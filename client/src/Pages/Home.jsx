@@ -120,12 +120,12 @@ export const Home = () => {
 
   // ── GUEST VIEW ──────────────────────────────────────────────────────────────
   if (!currentUser) return (
-    <div className="flex flex-col text-[var(--text-main)] overflow-x-hidden">
+    <div className="flex flex-col text-[var(--text-main)]">
 
       {/* ── HERO SECTION ── */}
       <section className={[
         'relative min-h-[calc(100vh-70px)] flex flex-col items-center justify-center',
-        'text-center px-6 pt-20 pb-32 overflow-hidden',
+        'text-center px-6 pt-20 pb-32',
         isDark
           ? 'bg-[linear-gradient(135deg,#090d16_0%,#0d1222_60%,#0a1a12_100%)]'
           : 'bg-[linear-gradient(135deg,#f0f4ff_0%,#fafbff_100%)]',
@@ -171,7 +171,7 @@ export const Home = () => {
           </div>
 
           {/* CTA */}
-          <Link to="/auth" className="hero-cta-btn mt-2" style={{ textDecoration: 'none' }}>
+          <Link to="/auth" className="hero-cta-btn mt-2" style={{ textDecoration: 'none'}}>
             Get Started • Sign In <ArrowRight size={18} />
           </Link>
 
@@ -292,7 +292,7 @@ export const Home = () => {
 
           {/* Bottom CTA */}
           <div className="text-center mt-20">
-            <Link to="/auth" className="hero-cta-btn" style={{ textDecoration: 'none' }}>
+            <Link to="/auth" className="hero-cta-btn" style={{ textDecoration: 'none', position: 'relative',bottom:'20px' }}>
               Start Finding Rooms <ArrowRight size={18} />
             </Link>
           </div>

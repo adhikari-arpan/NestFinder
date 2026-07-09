@@ -25,7 +25,12 @@ export const RoomCard = ({ room, score }) => {
       {/* Media Section */}
       <div className="card-media relative h-[200px] overflow-hidden">
         <img
-          src={room.images[0] || "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"}
+        src={
+        (Array.isArray(room.images) ? room.images[0] : room.images) ||
+        room.image_url ||
+        room.image ||
+        "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
+}
           alt={room.title}
           className="room-img w-full h-full object-cover transition-transform duration-[var(--transition-normal)] select-none group-hover:scale-105"
         />

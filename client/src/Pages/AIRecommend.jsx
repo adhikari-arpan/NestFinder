@@ -1,25 +1,27 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
-import { 
-  Sparkles, 
-  ChevronRight, 
-  ChevronLeft, 
-  Check, 
-  Brain, 
-  Cpu, 
+import {
+  Sparkles,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+  Brain,
+  Cpu,
 } from 'lucide-react';
 
 export const AIRecommend = () => {
   const navigate = useNavigate();
-  const { 
-    tenantPreferences, 
-    setTenantPreferences, 
-    getRecommendedListings, 
+  const {
+    tenantPreferences,
+    setTenantPreferences,
+    getRecommendedListings,
+    getAIRecommendedListings,
+    aiError,
   } = useContext(AppContext);
 
   const [step, setStep] = useState(1);
-  
+
   const [budget, setBudget] = useState(tenantPreferences.budget);
   const [city, setCity] = useState(tenantPreferences.preferredCity);
   const [sharing, setSharing] = useState(tenantPreferences.sharing);
@@ -27,7 +29,11 @@ export const AIRecommend = () => {
   const [amenities, setAmenities] = useState(tenantPreferences.essentialAmenities);
   const [college, setCollege] = useState(tenantPreferences.poiCollege);
   const [aiLoadingText, setAiLoadingText] = useState('Vectorizing preferences...');
-  
+  const [radius, setRadius] = useState(1000); // default 1km in meters
+
+  const [activePreferences, setActivePreferences] = useState(null);
+  const [aiResults, setAiResults] = useState([]);
+
   const collegesList = [
     "Tribhuvan University",
     "Pulchowk Campus",
@@ -45,20 +51,23 @@ export const AIRecommend = () => {
   const prevStep = () => setStep(prev => prev - 1);
 
   const toggleAmenity = (item) => {
-    setAmenities(prev => 
+    setAmenities(prev =>
       prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
     );
   };
 
   const handleRunAssessment = () => {
-    setTenantPreferences({
+    const prefs = {
       budget,
       preferredCity: city,
       sharing,
       roomType,
       essentialAmenities: amenities,
-      poiCollege: college
-    });
+      poiCollege: college,
+      radius
+    };
+    setTenantPreferences(prefs);
+    setActivePreferences(prefs);
     nextStep();
   };
 
@@ -67,14 +76,24 @@ export const AIRecommend = () => {
       const timer1 = setTimeout(() => setAiLoadingText("Generating embedding vector representing your preferences..."), 800);
       const timer2 = setTimeout(() => setAiLoadingText("Calculating cosine similarity distances using all-MiniLM-L6-v2 model..."), 1600);
       const timer3 = setTimeout(() => setAiLoadingText("Sorting match listings by density weight matrices..."), 2400);
-      const timer4 = setTimeout(() => setStep(6), 3200);
-      return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); clearTimeout(timer4); };
+
+      const startedAt = Date.now();
+      getAIRecommendedListings(activePreferences).then((results) => {
+        // Keep the loading screen up for at least ~3.2s total so the
+        // status text isn't cut off mid-sentence if the API responds fast.
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, 3200 - elapsed);
+        setTimeout(() => {
+          setAiResults(results);
+          setStep(6);
+        }, remaining);
+      });
+
+      return () => { clearTimeout(timer1); clearTimeout(timer2); clearTimeout(timer3); };
     } else {
       setAiLoadingText("Vectorizing preferences...");
     }
   }, [step]);
-
-  const recommendedResults = getRecommendedListings();
 
   const generateMatchExplanations = (room) => {
     const reasons = [];
@@ -86,14 +105,30 @@ export const AIRecommend = () => {
     if (room.city.toLowerCase() === city.toLowerCase()) {
       reasons.push({ text: `Located in your preferred city (${city})`, positive: true });
     }
-    const matchPOI = room.nearbyPOIs.find(poi =>
-      poi.type === "College" &&
-      (poi.name.toLowerCase().includes(college.toLowerCase()) ||
-       college.toLowerCase().includes(poi.name.toLowerCase()))
-    );
-    if (matchPOI) {
-      reasons.push({ text: `Extremely close to ${poiNameShort(college)} (${matchPOI.distance}m distance)`, positive: true });
-    }
+      const matchPOI = room.nearbyPOIs?.find(poi =>
+        poi.type === "College" &&
+        (poi.name.toLowerCase().includes(college.toLowerCase()) ||
+          college.toLowerCase().includes(poi.name.toLowerCase()))
+      );
+      if (matchPOI) {
+        const dist = matchPOI.distance;
+        const withinRadius = dist <= radius;
+        const distLabel = dist >= 1000 ? `${(dist/1000).toFixed(1)}km` : `${dist}m`;
+        const radiusLabel = radius >= 1000 ? `${(radius/1000).toFixed(1)}km` : `${radius}m`;
+
+        if (withinRadius) {
+          const walkLabel = dist <= 500 ? 'walking distance' : dist <= 1500 ? 'short walk' : 'within your radius';
+          reasons.push({
+            text: `${distLabel} from ${college} — within ${walkLabel} (your radius: ${radiusLabel})`,
+            positive: true
+          });
+        } else {
+          reasons.push({
+            text: `${distLabel} from ${college} — outside your ${radiusLabel} radius`,
+            positive: false
+          });
+        }
+      }
     const presentAmenities = amenities.filter(a => room.amenities.includes(a));
     const missingAmenities = amenities.filter(a => !room.amenities.includes(a));
     if (presentAmenities.length > 0) {
@@ -111,29 +146,32 @@ export const AIRecommend = () => {
   };
 
   // Reusable step nav button styles
-  const stepNavClass = "flex justify-between border-t border-[var(--border-color)] pt-5";
+  const stepNavClass = "flex justify-between border-t border-[var(--border-color)] pt-8 mt-4";
   const selBtnClass = (active) =>
-    `btn btn-outline flex-1 transition-colors ${active
-      ? 'border-[var(--primary)] bg-[var(--primary-light)] text-[var(--primary)]'
-      : 'border-[var(--border-color)] bg-transparent'}`;
+    `btn flex-1 transition-all duration-200 border-2 ${active
+      ? 'border-[var(--primary)] bg-[var(--primary)] text-white shadow-md transform scale-[1.02]'
+      : 'border-[var(--border-color)] bg-transparent hover:border-[var(--primary-light)]'}`;
 
   return (
-    <div className="container px-6 pt-12 pb-24 text-left max-w-[900px]">
-
+       <div className="container px-4 sm:px-10 pb-32 text-left max-w-[1200px] min-h-[140vh] bg-gradient-to-b from-[rgba(99,102,241,0.03)] to-transparent" style={{ paddingTop: '40px' }}>
       {/* Page Header */}
-      <div className="flex items-center gap-3 mb-10">
-        <div className="w-12 h-12 rounded-[var(--radius-md)] bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)]">
-          <Brain size={26} />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 style={{ marginBottom: '60px' }}>">
+         <div className="w-16 h-16 rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[#7c3aed] flex items-center justify-center text-white shadow-lg transform -rotate-6">
+          <Brain size={42} />
         </div>
         <div>
-          <h1 className="text-[1.8rem] font-extrabold m-0">AI Room Finder Assistant</h1>
-          <p className="text-[var(--text-light)] text-[0.9rem]">Smart preference matching powered by sentence embedding calculations.</p>
+          <h1 className="text-[2rem] sm:text-[2.5rem] font-extrabold m-0 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)]">
+            AI Room Finder Assistant
+          </h1>
+          <p className="text-[var(--text-muted)] text-[1rem] mt-2 font-medium" style={{ marginBottom: '20px' }}>
+            Smart preference matching powered by Next-Gen AI.
+          </p>
         </div>
       </div>
 
       {/* Progress Tracker */}
       {step <= 4 && (
-        <div className="flex justify-between items-center gap-2 mb-12 bg-[var(--bg-card)] px-6 py-4 rounded-[var(--radius-md)] border border-[var(--border-color)]">
+        <div className="flex justify-between items-center gap-5 bg-[var(--bg-card)] px-8 py-6 rounded-[var(--radius-md)] border border-[var(--border-color)]" style={{ marginBottom: '50px' }}>
           {[
             { num: 1, label: "Budget & Location" },
             { num: 2, label: "Room Spec" },
@@ -141,9 +179,8 @@ export const AIRecommend = () => {
             { num: 4, label: "College Proximity" }
           ].map((s) => (
             <div key={s.num} className={`flex items-center gap-2 transition-opacity ${step >= s.num ? 'opacity-100' : 'opacity-40'}`}>
-              <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[0.85rem] text-white ${
-                step === s.num ? 'bg-[var(--primary)]' : step > s.num ? 'bg-[var(--secondary)]' : 'bg-[var(--border-color)]'
-              }`}>
+              <span className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[0.85rem] text-white ${step === s.num ? 'bg-[var(--primary)]' : step > s.num ? 'bg-[var(--secondary)]' : 'bg-[var(--border-color)]'
+                }`}>
                 {step > s.num ? <Check size={14} /> : s.num}
               </span>
               <span className="text-[0.85rem] font-semibold hidden sm:inline">{s.label}</span>
@@ -155,7 +192,7 @@ export const AIRecommend = () => {
 
       {/* STEP 1 */}
       {step === 1 && (
-        <div className="card animate-fade-in flex flex-col gap-8">
+        <div className="card shadow-lg border border-[var(--border-color)] bg-[var(--bg-card)] animate-fade-in flex flex-col gap-10 p-8 sm:p-12 rounded-[var(--radius-lg)]">
           <div>
             <h2 className="text-[1.4rem] mb-2">Step 1: Budget Boundaries & City</h2>
             <p className="text-[var(--text-muted)] text-[0.9rem]">Set your maximum budget constraints and search zone in Kathmandu Valley.</p>
@@ -163,15 +200,17 @@ export const AIRecommend = () => {
 
           <div className="flex flex-col gap-6">
             <div className="form-group">
-              <label className="form-label">Preferred City</label>
-              <div className="flex gap-4">
-                {["Lalitpur", "Kathmandu"].map(item => (
-                  <button key={item} onClick={() => setCity(item)} type="button" className={selBtnClass(city === item)}>
-                    📍 {item}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <label className="form-label">Preferred City</label>
+            <select
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              className="form-input w-full p-4 text-[1rem] cursor-pointer"
+            >
+              {["Kathmandu", "Lalitpur", "Bhaktapur"].map((c) => (
+                <option key={c} value={c}>📍 {c}</option>
+              ))}
+            </select>
+          </div>
 
             <div className="form-group">
               <div className="flex justify-between items-center">
@@ -198,7 +237,7 @@ export const AIRecommend = () => {
 
       {/* STEP 2 */}
       {step === 2 && (
-        <div className="card animate-fade-in flex flex-col gap-8">
+        <div className="card shadow-lg border border-[var(--border-color)] bg-[var(--bg-card)] animate-fade-in flex flex-col gap-10 p-8 sm:p-12 rounded-[var(--radius-lg)]">
           <div>
             <h2 className="text-[1.4rem] mb-2">Step 2: Room Layout</h2>
             <p className="text-[var(--text-muted)] text-[0.9rem]">Select whether you require a single private bedroom or a full independent flat.</p>
@@ -250,7 +289,7 @@ export const AIRecommend = () => {
 
       {/* STEP 3 */}
       {step === 3 && (
-        <div className="card animate-fade-in flex flex-col gap-8">
+        <div className="card shadow-lg border border-[var(--border-color)] bg-[var(--bg-card)] animate-fade-in flex flex-col gap-10 p-8 sm:p-12 rounded-[var(--radius-lg)]">
           <div>
             <h2 className="text-[1.4rem] mb-2">Step 3: Essential Facilities</h2>
             <p className="text-[var(--text-muted)] text-[0.9rem]">Check any facilities that are non-negotiable for you. Our model penalizes listings missing these items.</p>
@@ -265,15 +304,13 @@ export const AIRecommend = () => {
                   <div
                     key={idx}
                     onClick={() => toggleAmenity(fac)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] border cursor-pointer transition-all ${
-                      isSelected
-                        ? 'bg-[var(--secondary-light)] border-[var(--secondary)]'
-                        : 'bg-transparent border-[var(--border-color)]'
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] border cursor-pointer transition-all ${isSelected
+                      ? 'bg-[var(--secondary-light)] border-[var(--secondary)]'
+                      : 'bg-transparent border-[var(--border-color)]'
+                      }`}
                   >
-                    <div className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center text-white transition-colors ${
-                      isSelected ? 'bg-[var(--secondary)] border-[var(--secondary)]' : 'bg-transparent border-[var(--border-color)]'
-                    }`}>
+                    <div className={`w-5 h-5 rounded-[4px] border-2 flex items-center justify-center text-white transition-colors ${isSelected ? 'bg-[var(--secondary)] border-[var(--secondary)]' : 'bg-transparent border-[var(--border-color)]'
+                      }`}>
                       {isSelected && <Check size={14} />}
                     </div>
                     <span className="text-[0.92rem] font-medium">{fac}</span>
@@ -292,7 +329,7 @@ export const AIRecommend = () => {
 
       {/* STEP 4 */}
       {step === 4 && (
-        <div className="card animate-fade-in flex flex-col gap-8">
+        <div className="card shadow-lg border border-[var(--border-color)] bg-[var(--bg-card)] animate-fade-in flex flex-col gap-10 p-8 sm:p-12 rounded-[var(--radius-lg)]">
           <div>
             <h2 className="text-[1.4rem] mb-2">Step 4: College / Campus Proximity</h2>
             <p className="text-[var(--text-muted)] text-[0.9rem]">Choose your central campus. Rooms with shorter walking times are scored highly.</p>
@@ -310,6 +347,46 @@ export const AIRecommend = () => {
                 <option key={idx} value={col}>🎓 {col}</option>
               ))}
             </select>
+            {/* Radius Input */}
+          <div className="form-group mt-4">
+            <div className="flex justify-between items-center mb-2">
+              <label className="form-label">Search Radius from Campus</label>
+              <strong className="text-[1.1rem] text-[var(--primary)]">
+                {radius >= 1000 ? `${(radius/1000).toFixed(1)} km` : `${radius} m`}
+              </strong>
+            </div>
+            <input
+              type="range" min="200" max="5000" step="100"
+              value={radius}
+              onChange={e => setRadius(Number(e.target.value))}
+              className="w-full cursor-pointer accent-[var(--primary)]"
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-[0.75rem] text-[var(--text-light)]">200m (walking)</span>
+              <span className="text-[0.75rem] text-[var(--text-light)]">5km (cycling)</span>
+            </div>
+            <div className="flex gap-2 mt-3 flex-wrap">
+              {[
+                { label: '🚶 Walking (500m)', val: 500 },
+                { label: '🏃 Near (1km)', val: 1000 },
+                { label: '🚲 Cycling (3km)', val: 3000 },
+              ].map(opt => (
+                <button
+                  key={opt.val}
+                  type="button"
+                  onClick={() => setRadius(opt.val)}
+                  className="text-[0.78rem] px-3 py-1.5 rounded-full border cursor-pointer font-semibold transition-all"
+                  style={radius === opt.val ? {
+                    background: 'var(--primary)', color: 'white', border: '1px solid var(--primary)'
+                  } : {
+                    background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border-color)'
+                  }}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
             <span className="text-[0.85rem] text-[var(--text-light)] mt-2 block">
               Our model computes walk distances directly to this landmark location using geometric bounds.
             </span>
@@ -326,7 +403,7 @@ export const AIRecommend = () => {
 
       {/* STEP 5: Loading */}
       {step === 5 && (
-        <div className="card text-center animate-fade-in flex flex-col items-center gap-8 py-16 px-8">
+        <div className="card shadow-lg border border-[var(--border-color)] bg-[var(--bg-card)] text-center animate-fade-in flex flex-col items-center gap-10 py-20 px-10 rounded-[var(--radius-lg)]">
           <div className="relative w-20 h-20">
             <div className="w-full h-full rounded-full border-4 border-[var(--primary-light)] border-t-[var(--primary)] animate-spin" />
             <Cpu size={30} className="absolute top-[25px] left-[25px] text-[var(--primary)]" />
@@ -355,101 +432,80 @@ export const AIRecommend = () => {
               <p className="text-[0.85rem] text-[var(--text-muted)]">
                 Preferences: Rs. {budget.toLocaleString()} • {roomType} • {sharing} sharing • {college ? poiNameShort(college) : 'No College'}
               </p>
+              {aiError && (
+                <p className="text-[0.78rem] text-[var(--accent)] mt-1">⚠ {aiError}</p>
+              )}
             </div>
             <button onClick={() => setStep(1)} className="btn btn-outline btn-sm">Modify Preferences</button>
           </div>
 
-          {/* Results Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-[1.4fr_0.8fr] gap-10">
+          
 
-            {/* Left: Matched Listings */}
-            <div className="flex flex-col gap-6">
-              <h3 className="text-[1.1rem] text-[var(--text-light)] font-semibold">Matched Listings ({recommendedResults.length})</h3>
+          {/* Results Grid - Full Width, No Sidebar */}
+          <div className="flex flex-col gap-8 w-full mt-4">
+            <h3 className="text-[1.4rem] text-[var(--text-main)] font-extrabold mb-2">Matched Listings ({aiResults.length})</h3>
 
-              {recommendedResults.length === 0 ? (
-                <p>No listings verified inside the database.</p>
-              ) : (
-                recommendedResults.map(item => {
-                  const reasons = generateMatchExplanations(item);
-                  return (
-                    <div key={item.id} className="card shadow-sm p-0">
-                      <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1.2fr]">
+            {aiResults.length === 0 ? (
+              <div className="p-10 text-center border-2 dashed border-[var(--border-color)] rounded-[var(--radius-lg)] text-[var(--text-muted)]">
+                <p className="text-[1.1rem]">No listings verified inside the database.</p>
+              </div>
+            ) : (
+              aiResults.map(item => {
+                const reasons = generateMatchExplanations(item);
+                return (
+                  <div key={item.id} className="card shadow-lg hover:shadow-xl hover:border-[var(--primary)] transition-all duration-300 p-0 overflow-hidden bg-[var(--bg-card)] rounded-[var(--radius-lg)]">
+                    <div className="grid grid-cols-1 md:grid-cols-[350px_1fr] h-full">
 
-                        <div className="relative min-h-[180px]">
-                          <img src={item.images[0]} className="w-full h-full object-cover" alt={item.title} />
-                          <div className="absolute top-2.5 left-2.5 bg-[rgba(99,102,241,0.95)] text-white font-extrabold text-[0.8rem] px-2.5 py-1 rounded-full">
-                            {item.matchScore}% Match
-                          </div>
+                      {/* Image side */}
+                      <div className="relative h-[250px] md:h-full overflow-hidden">
+                        <img src={item.images[0]} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" alt={item.title} />
+                        <div className="absolute top-4 left-4 bg-gradient-to-r from-[var(--primary)] to-[#7c3aed] text-white font-extrabold text-[1rem] px-4 py-2 rounded-full shadow-lg border-2 border-white/20 flex items-center gap-2">
+                          <Sparkles size={16} />
+                          {item.matchScore}% Match
                         </div>
+                      </div>
 
-                        <div className="p-5 flex flex-col gap-2 justify-between">
-                          <div className="text-left">
-                            <span className="text-[0.7rem] font-bold text-[var(--primary)] uppercase">
+                      {/* Details side */}
+                      <div className="p-8 flex flex-col justify-between">
+                        <div className="text-left">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-[0.8rem] font-bold text-[var(--primary)] uppercase tracking-wider bg-[var(--primary-light)] px-3 py-1 rounded-full">
                               {item.sharing} • {item.type}
                             </span>
-                            <h4 className="text-[1.05rem] my-0.5">
-                              <Link to={`/room/${item.id}`} className="text-[var(--text-main)] hover:text-[var(--primary)]">{item.title}</Link>
-                            </h4>
-                            <p className="text-[0.8rem] text-[var(--text-muted)]">📍 {item.location}</p>
-
-                            <div className="mt-2 flex flex-col gap-1">
-                              {reasons.slice(0, 3).map((r, i) => (
-                                <div key={i} className={`flex items-center gap-1 text-[0.78rem] ${r.positive ? 'text-[var(--secondary)]' : 'text-[var(--danger)]'}`}>
-                                  <span>{r.positive ? '✓' : '⚠'}</span>
-                                  <span>{r.text}</span>
-                                </div>
-                              ))}
-                            </div>
+                            <strong className="text-[1.4rem] text-[var(--text-main)] font-extrabold">Rs. {item.price.toLocaleString('en-IN')}/mo</strong>
                           </div>
+                          
+                          <h4 className="text-[1.5rem] font-extrabold my-2 leading-tight">
+                            <Link to={`/room/${item.id}`} className="text-[var(--text-main)] hover:text-[var(--primary)] transition-colors">{item.title}</Link>
+                          </h4>
+                          <p className="text-[0.95rem] text-[var(--text-muted)] mb-4 flex items-center gap-1">📍 {item.location}</p>
 
-                          <div className="flex justify-between items-center border-t border-[var(--border-color)] pt-2 mt-1">
-                            <strong className="text-[1.05rem] text-[var(--text-main)]">Rs. {item.price.toLocaleString('en-IN')}/mo</strong>
-                            <Link to={`/room/${item.id}`} className="btn btn-outline btn-sm px-3 py-1.5 text-[0.8rem]">View Room</Link>
+                          {/* Match Reasons - Highlighted prominently */}
+                          <div className="mt-4 flex flex-col gap-3 p-4 bg-[rgba(16,185,129,0.05)] rounded-[var(--radius-md)] border border-[rgba(16,185,129,0.15)]">
+                            <strong className="text-[0.85rem] uppercase text-[var(--text-muted)] tracking-wider">Why it matches:</strong>
+                            {reasons.map((r, i) => (
+                              <div key={i} className={`flex items-start gap-3 ${r.positive ? 'text-[var(--secondary)]' : 'text-[var(--danger)]'}`}>
+                                <span className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white ${r.positive ? 'bg-[var(--secondary)]' : 'bg-[var(--danger)]'}`}>
+                                  {r.positive ? <Check size={14} /> : '✕'}
+                                </span>
+                                <span className="text-[1.05rem] font-medium leading-snug">{r.text}</span>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
+                        <div className="flex justify-end pt-6 mt-4">
+                          <Link to={`/room/${item.id}`} className="btn btn-primary px-8 py-3 text-[1.05rem] font-bold rounded-full shadow-md hover:shadow-lg hover:-translate-y-1 transition-all">
+                            View Room Details →
+                          </Link>
+                        </div>
                       </div>
+
                     </div>
-                  );
-                })
-              )}
-            </div>
-
-            {/* Right: Algorithm Insights */}
-            <div className="flex flex-col gap-6">
-              <h3 className="text-[1.1rem] text-[var(--text-light)] font-semibold">Algorithm Insights</h3>
-
-              <div className="card flex flex-col gap-5 border border-[var(--border-color)]">
-                <div className="flex items-center gap-2 text-[var(--primary)]">
-                  <Cpu size={22} />
-                  <strong className="text-[0.95rem]">Sentence Embeddings</strong>
-                </div>
-
-                <p className="text-[0.85rem] text-[var(--text-muted)]">
-                  NestFinder calculates vector coefficients representing location, cost constraints, and wifi variables, running them against database entries.
-                </p>
-
-                <div className="flex flex-col gap-3 border-t border-[var(--border-color)] pt-4">
-                  <div className="text-[0.8rem] font-semibold text-[var(--text-muted)]">MATCH METRICS FACTOR:</div>
-                  {[
-                    ['Budget Constraint Weight:', '40%'],
-                    ['Proximity to Campus:', '25%'],
-                    ['Amenity Availability:', '20%'],
-                    ['Role / Space Layout:', '15%'],
-                  ].map(([label, val]) => (
-                    <div key={label} className="flex justify-between text-[0.8rem]">
-                      <span>{label}</span>
-                      <strong className="text-[var(--primary)]">{val}</strong>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-[var(--bg-app)] p-3 rounded-[var(--radius-sm)] border border-[var(--border-color)] text-[0.75rem] text-[var(--text-light)]">
-                  💡 Closer rooms with lower prices receive exponential multipliers to reflect maximum value for students.
-                </div>
-              </div>
-            </div>
-
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}

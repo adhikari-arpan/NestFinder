@@ -2,11 +2,13 @@ import React, { useEffect, useRef, useContext } from 'react';
 import { AppContext } from "../Context/AppContext";
 import L from 'leaflet';
 
-export const MapContainer = ({ listings = [], activeListingId = null, highlightListingId = null, onMarkerClick = null, showPOIRadius = false, currentCenter = null }) => {
+export const MapContainer = ({ listings = [], activeListingId = null, highlightListingId = null, onMarkerClick = null, showPOIRadius = false, currentCenter = null, previewRadius = null }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersGroupRef = useRef(null);
   const circlesGroupRef = useRef(null);
+  const clickCircleGroupRef = useRef(null);
+
   const { theme } = useContext(AppContext);
 
   // Initialize Map
@@ -36,6 +38,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
     // Create Layer Groups for markers and radii
     markersGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
     circlesGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
+    clickCircleGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
 
     // CHANGED: Invalidate size after layout completes (fixes grey area / misaligned tiles rendering bug)
     setTimeout(() => {
@@ -80,7 +83,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
 
   // Update Markers when Listings or Active / Highlighted ID changes
   useEffect(() => {
-    if (!mapInstanceRef.current || !markersGroupRef.current || !circlesGroupRef.current) return;
+    if (!mapInstanceRef.current || !markersGroupRef.current || !circlesGroupRef.current || !clickCircleGroupRef.current) return;
 
     // Clear existing markers & circles
     markersGroupRef.current.clearLayers();
@@ -110,9 +113,10 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
       const marker = L.marker([listing.latitude, listing.longitude], { icon: customIcon });
 
       // Create Sleek Popup Card
+      const imageUrl = (listing.images && listing.images.length > 0) ? listing.images[0] : '/placeholder-room.png';
       const popupContent = `
         <div class="w-[200px] flex flex-col gap-1.5 p-1">
-          <img src="${listing.images[0]}" class="w-full h-[90px] object-cover rounded-[var(--radius-sm)]" />
+          <img src="${imageUrl}" class="w-full h-[90px] object-cover rounded-[var(--radius-sm)]" />
           <div class="font-bold text-[0.85rem] overflow-hidden text-ellipsis whitespace-nowrap text-[var(--text-main)] mt-0.5">
             ${listing.title}
           </div>
@@ -128,10 +132,28 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
 
       marker.bindPopup(popupContent);
 
-      // Handle events
+      // Handle events (single merged click handler: selection callback + radius circle)
       marker.on('click', () => {
         if (onMarkerClick) {
           onMarkerClick(listing.id);
+        }
+
+        // Draw a radius circle centered on the clicked marker
+        if (clickCircleGroupRef.current) {
+          clickCircleGroupRef.current.clearLayers(); // remove previous click's circle
+
+          if (previewRadius) {
+            const primaryColor = getComputedStyle(document.documentElement)
+              .getPropertyValue('--primary').trim() || '#6366f1';
+
+            L.circle([listing.latitude, listing.longitude], {
+              radius: previewRadius, // meters
+              color: primaryColor,
+              fillColor: primaryColor,
+              fillOpacity: 0.12,
+              weight: 1.5
+            }).addTo(clickCircleGroupRef.current);
+          }
         }
       });
 
@@ -218,7 +240,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
         });
       }
     }
-  }, [listings, activeListingId, highlightListingId, showPOIRadius]);
+  }, [listings, activeListingId, highlightListingId, showPOIRadius, previewRadius]);
 
   // CSS injection for popups inside Leaflet Map
   return (

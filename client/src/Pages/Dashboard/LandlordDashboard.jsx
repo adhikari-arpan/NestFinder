@@ -6,6 +6,16 @@ import { MapContainer as LeafletMap, TileLayer, Marker, useMapEvents } from 'rea
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import ImageUploader from '../../components/ImageUploader';
+import { createPortal } from 'react-dom';
+import { User, Image as ImageIcon, Trash2, LogOut, X } from 'lucide-react';
+
+// Fix Leaflet's default marker icon (common Vite issue)
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 import {
   Building,
@@ -18,20 +28,9 @@ import {
   Send,
   MapPin,
   FileText,
-  Trash2,
-  X
 } from 'lucide-react';
 
-
-// Fix default marker icon (Leaflet + bundlers issue)
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
-
-// Click-to-pin handler component
+// Click-to-pin handler component. Lives inside the map and listens for clicks
 const LocationPicker = ({ onPick }) => {
   useMapEvents({
     click(e) {
@@ -47,19 +46,21 @@ export const LandlordDashboard = () => {
     inquiries,
     replyToInquiry,
     createListing,
+    updateListing,
     deleteListing,
-    currentUser
+    currentUser,
+    logoutUser
   } = useContext(AppContext);
 
   const location = useLocation();
   const navigate = useNavigate();
 
   // Redirect if not landlord or admin
-  // useEffect(() => {
-  //   if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) {
-  //     navigate('/auth');
-  //   }
-  // }, [currentUser]);
+  useEffect(() => {
+    if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) {
+      navigate('/auth');
+    }
+  }, [currentUser]);
 
   // Tab views: 'listings' or 'inquiries'
   const [activeTab, setActiveTab] = useState('listings');
@@ -72,30 +73,30 @@ export const LandlordDashboard = () => {
   // Submission States
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [confirmedListing, setConfirmedListing] = useState(null);
 
   // Delete states
   const [listingToDelete, setListingToDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  // Edit Related States
+  const [confirmedListing, setConfirmedListing] = useState(null);
+  const [confirmedAction, setConfirmedAction] = useState('created'); // 'created' | 'updated'
+  const [editingListing, setEditingListing] = useState(null);
+
   // Check URL query parameters to open modal by default
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('action') === 'post') {
       setIsPostModalOpen(true);
-      // Clean query parameter after opening
       navigate('/dashboard/landlord', { replace: true });
     }
   }, [location.search]);
+
   useEffect(() => {
     document.body.style.overflow = isPostModalOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [isPostModalOpen]);
-
-  //rendering blocking gaurd: if user is not logged in or not a landlord/admin, return null
-  // if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) return null;
-
 
   // Form states for new Listing
   const [formTitle, setFormTitle] = useState('');
@@ -112,8 +113,6 @@ export const LandlordDashboard = () => {
 
   // Find listings belonging to logged-in Landlord
   const landlordListings = listings.filter(l =>
-    // l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()   // blocks the dashboard changing from the url
-
     l.landlord?.email?.toLowerCase() === currentUser?.email?.toLowerCase()
   );
 
@@ -126,6 +125,44 @@ export const LandlordDashboard = () => {
     setFormAmenities(prev =>
       prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
     );
+  };
+
+  const resetForm = () => {
+    setFormTitle('');
+    setFormDesc('');
+    setFormPrice('');
+    setFormType('Room');
+    setFormSharing('Single');
+    setFormLocation('');
+    setFormCity('Kathmandu');
+    setFormLat('27.6850');
+    setFormLng('85.3200');
+    setFormImages([]);
+    setFormAmenities([]);
+  };
+
+  const openCreateModal = () => {
+    setEditingListing(null);
+    resetForm();
+    setSubmitError('');
+    setIsPostModalOpen(true);
+  };
+
+  const openEditModal = (item) => {
+    setEditingListing(item);
+    setFormTitle(item.title);
+    setFormDesc(item.description);
+    setFormPrice(String(item.price));
+    setFormType(item.type);
+    setFormSharing(item.sharing);
+    setFormLocation(item.location);
+    setFormCity(item.city);
+    setFormLat(String(item.latitude));
+    setFormLng(String(item.longitude));
+    setFormImages(item.images || []); // existing URLs — ImageUploader now handles these
+    setFormAmenities(item.amenities || []);
+    setSubmitError('');
+    setIsPostModalOpen(true);
   };
 
   const handlePostSubmit = async (e) => {
@@ -145,45 +182,58 @@ export const LandlordDashboard = () => {
       return;
     }
 
+    const payload = {
+      title: formTitle,
+      description: formDesc,
+      price: Number(formPrice),
+      type: formType,
+      sharing: formSharing,
+      location: formLocation,
+      city: formCity,
+      latitude: Number(formLat) || 27.6850,
+      longitude: Number(formLng) || 85.3200,
+      images: formImages,
+      amenities: formAmenities
+    };
+
+    const wasEditing = !!editingListing;
     setIsSubmitting(true);
     try {
-      const result = await createListing({
-        title: formTitle,
-        description: formDesc,
-        price: Number(formPrice),
-        type: formType,
-        sharing: formSharing,
-        location: formLocation,
-        city: formCity,
-        latitude: Number(formLat) || 27.6850,
-        longitude: Number(formLng) || 85.3200,
-        images: formImages,
-        amenities: formAmenities
-      });
+      const result = wasEditing
+        ? await updateListing(editingListing.id, payload)
+        : await createListing(payload);
 
       if (!result.success) {
         setSubmitError(result.message);
         return;
       }
 
-      // Reset form
-      setFormTitle('');
-      setFormDesc('');
-      setFormPrice('');
-      setFormLocation('');
-      setFormAmenities([]);
-      setFormImages([]);
-
-      // Swap the post modal for a confirmation modal
+      resetForm();
       setIsPostModalOpen(false);
+      setEditingListing(null);
       setConfirmedListing(result.listing);
+      setConfirmedAction(wasEditing ? 'updated' : 'created');
     } catch (err) {
-      console.error('Unexpected error posting listing:', err);
+      console.error('Unexpected error saving listing:', err);
       setSubmitError('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Profile menu / logout
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = () => setShowLogoutConfirm(true);
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    logoutUser();
+    navigate('/');
+  };
+
+  const cancelLogout = () => setShowLogoutConfirm(false);
 
   // Deletion Handling
   const handleConfirmDelete = async () => {
@@ -231,29 +281,116 @@ export const LandlordDashboard = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
           <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto' }} />
           <div>
-            <h1
-              style={{
-                fontSize: '1.6rem',
-                fontWeight: 800,
-                margin: 0
-              }}
-            >
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800, margin: 0 }}>
               Welcome, {currentUser?.name}
             </h1>
-
-            <p
-              style={{
-                color: 'var(--text-light)',
-                fontSize: '0.95rem',
-                marginTop: '0.3rem',
-                marginBottom: 0
-              }}
-            >
+            <p style={{ color: 'var(--text-light)', fontSize: '0.95rem', marginTop: '0.3rem', marginBottom: 0 }}>
               Manage your listings and connect with prospective tenants.
             </p>
           </div>
         </div>
+
+        {/* Right: Profile trigger */}
+        <div className="flex flex-col items-center gap-2 relative z-[5]">
+          <div
+            className="profile-circle"
+            onClick={() => setProfileMenuOpen(true)}
+            title="Click to view profile menu"
+          >
+            {currentUser?.profilePicture ? (
+              <img src={currentUser.profilePicture} alt="Profile" />
+            ) : (
+              <User size={40} className="text-primary" />
+            )}
+          </div>
+          <span className="text-[0.75rem] font-bold text-text-muted">Your Profile</span>
+        </div>
       </div>
+
+      {/* Profile Overlay Panel */}
+      <div
+        className={`profile-overlay-backdrop ${profileMenuOpen ? 'open' : ''}`}
+        onClick={() => setProfileMenuOpen(false)}
+      />
+      <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
+            <User size={20} className="text-primary" /> Profile Menu
+          </h3>
+          <button className="btn btn-ghost p-2" onClick={() => setProfileMenuOpen(false)} aria-label="Close menu">
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-3 mb-8">
+          <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
+            <User size={18} /> Edit Profile
+          </div>
+          <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
+            <ImageIcon size={18} /> Change Profile Picture
+          </div>
+          <div
+            className="profile-menu-item text-danger border-[rgba(239,68,68,0.2)] hover:bg-danger-light hover:border-danger hover:text-danger"
+            onClick={() => alert('Delete Profile Picture functionality coming soon!')}
+          >
+            <Trash2 size={18} /> Delete Profile Picture
+          </div>
+        </div>
+
+        <div className="mt-auto pt-4 border-t border-border-color">
+          <button className="btn btn-primary w-full flex justify-center items-center gap-2" onClick={handleLogout}>
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
+      </div>
+
+      {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}
+      {showLogoutConfirm && createPortal(
+        <>
+          <div
+            onClick={cancelLogout}
+            style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+          />
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            zIndex: 2001, width: '100%', maxWidth: '380px',
+            background: 'var(--bg-card)', border: '1px solid var(--border-color)',
+            borderRadius: 'var(--radius-lg)', padding: '2rem 2rem 1.75rem',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.25)', textAlign: 'center',
+          }}>
+            <div style={{
+              width: '52px', height: '52px', borderRadius: '50%', background: 'var(--primary-light)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem',
+            }}>
+              <LogOut size={22} style={{ color: 'var(--primary)' }} />
+            </div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+              Are you sure you want to Logout from NestFinder?
+            </h3>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
+              You can sign back in anytime.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button onClick={cancelLogout} className="btn btn-outline" style={{ flex: 1, fontWeight: 700 }}>
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                style={{
+                  flex: 1, border: 'none', borderRadius: 'var(--radius-md)', padding: '0.75rem',
+                  cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', color: 'white',
+                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
+                }}
+              >
+                <LogOut size={15} /> Yes, Logout
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
 
       {/* Tabs selectors: Rooms vs Inquiries */}
       <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
@@ -305,7 +442,7 @@ export const LandlordDashboard = () => {
               <Building size={48} style={{ color: 'var(--text-light)', marginBottom: '1rem' }} />
               <h3>No Listings Yet</h3>
               <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 1.5rem 0' }}>Submit your first room details and get matched with tenant search lists.</p>
-              <button onClick={() => setIsPostModalOpen(true)} className="btn btn-primary btn-sm">Add Room Listing</button>
+              <button onClick={openCreateModal} className="btn btn-primary btn-sm">Add Room Listing</button>
             </div>
           ) : (
             <div className="card" style={{ padding: 0, overflow: 'hidden', borderColor: 'var(--border-color)' }}>
@@ -354,14 +491,24 @@ export const LandlordDashboard = () => {
                           </span>
                         )}
                       </td>
+                      {/* Edit and Delete button */}
                       <td style={{ padding: '1rem' }}>
-                        <button
-                          onClick={() => setListingToDelete(item)}
-                          className="btn btn-outline btn-sm"
-                          style={{ color: 'var(--danger, #dc2626)', borderColor: 'var(--danger, #dc2626)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            onClick={() => openEditModal(item)}
+                            className="btn btn-outline btn-sm"
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <FileText size={14} /> Edit
+                          </button>
+                          <button
+                            onClick={() => setListingToDelete(item)}
+                            className="btn btn-outline btn-sm"
+                            style={{ color: 'var(--danger, #dc2626)', borderColor: 'var(--danger, #dc2626)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -481,14 +628,16 @@ export const LandlordDashboard = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Plus style={{ color: 'var(--primary)' }} size={24} /> Add Room / Flat Listing
+                  <Plus style={{ color: 'var(--primary)' }} size={24} /> {editingListing ? 'Edit Room / Flat Listing' : 'Add Room / Flat Listing'}
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
-                  Provide specifications. Newly listed rentals start as pending for admin checks.
+                  {editingListing
+                    ? 'Update the details below — changes save immediately.'
+                    : 'Provide specifications. Newly listed rentals start as pending for admin checks.'}
                 </p>
               </div>
               <button
-                onClick={() => setIsPostModalOpen(false)}
+                onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }}
                 className="btn btn-outline btn-sm"
                 style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
               >
@@ -616,8 +765,6 @@ export const LandlordDashboard = () => {
                 </div>
               </div>
 
-
-
               {/* Map Pin Card */}
               <div className="card" style={{ padding: '1.5rem' }}>
                 <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
@@ -669,11 +816,11 @@ export const LandlordDashboard = () => {
                 </p>
               )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
-                <button type="button" onClick={() => setIsPostModalOpen(false)} className="btn btn-outline btn-sm" disabled={isSubmitting}>
+                <button type="button" onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }} className="btn btn-outline btn-sm" disabled={isSubmitting}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
-                  {isSubmitting ? 'Publishing…' : 'Publish Listing'}
+                  {isSubmitting ? 'Saving…' : editingListing ? 'Save Changes' : 'Publish Listing'}
                 </button>
               </div>
 
@@ -681,7 +828,6 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       )}
-
 
       {/* =======================================
     CONFIRMATION MODAL — shown after a successful submit
@@ -702,10 +848,15 @@ export const LandlordDashboard = () => {
         }}>
           <div className="card" style={{ maxWidth: '440px', width: '100%', padding: '2.5rem 2rem', textAlign: 'center' }}>
             <CheckCircle size={52} style={{ color: 'var(--secondary, #16a34a)', marginBottom: '1rem' }} />
-            <h2 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>Listing Submitted!</h2>
+            <h2 style={{ fontSize: '1.3rem', marginBottom: '0.5rem' }}>
+              {confirmedAction === 'updated' ? 'Listing Updated!' : 'Listing Submitted!'}
+            </h2>
             <p style={{ color: 'var(--text-light)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              "{confirmedListing.title}" has been posted and is <strong>pending admin review</strong>.
-              You'll get a notification once it's verified and live for tenants to see.
+              {confirmedAction === 'updated' ? (
+                <>"{confirmedListing.title}" has been updated successfully.</>
+              ) : (
+                <>"{confirmedListing.title}" has been posted and is <strong>pending admin review</strong>. You'll get a notification once it's verified and live for tenants to see.</>
+              )}
             </p>
             <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
               <button
@@ -727,7 +878,6 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       )}
-
 
       {/* =======================================
           DELETE CONFIRMATION MODAL
@@ -777,7 +927,6 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       )}
-
 
       <style>{`
         .listing-table tr:hover, .poi-table tr:hover {
