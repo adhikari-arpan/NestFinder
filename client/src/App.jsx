@@ -7,10 +7,10 @@ import { AllRooms } from './Pages/AllRooms';
 
 // Pages
 import { Home } from './Pages/Home';
-import { SearchMap } from './Pages/SearchMap';
 import { RoomDetails } from './Pages/RoomDetails';
 import { AIRecommend } from './Pages/AIRecommend';
 import { Auth } from './Pages/Auth';
+import { NotFound } from './Pages/NotFound';
 
 
 // Dashboards
@@ -30,7 +30,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/search" element={<SearchMap />} />
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/ai-recommend" element={<AIRecommend />} />
             <Route path="/rooms" element={<AllRooms />} />
@@ -40,6 +39,9 @@ function App() {
             <Route path="/dashboard/landlord" element={<LandlordDashboard />} />
             <Route path="/dashboard/tenant" element={<TenantDashboard />} />
             <Route path="/dashboard/admin" element={<AdminDashboard />} />
+
+            {/* Not Found */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
 
