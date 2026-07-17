@@ -121,7 +121,7 @@ export const Auth = () => {
 
   const roles = [{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }, { val: 'admin', label: '🛡️ Admin' }];
   const features = [{ icon: '🏠', text: 'Verified room listings across Kathmandu valley' }, { icon: '🤖', text: 'AI-powered recommendations for your budget' }, { icon: '🗺️', text: 'Map-based search with nearby colleges & hospitals' }];
-  const stats = [{ num: '500+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
+  const stats = [{ num: '10+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
 
   // Switching between dark and white modes
   const pageBg = isDark ? 'linear-gradient(135deg,#090d16 0%,#0d1117 60%,#0a1a12 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#fafbff 60%,#f0fdf4 100%)';
