@@ -18,7 +18,7 @@ export const AppContextProvider = ({ children }) => {
     sharing: "Single",
     roomType: "Room",
     essentialAmenities: ["WiFi", "Hot Water"],
-    poiCollege: "Pulchowk Engineering Campus",
+    poiCollege: "NCIT College",
   });
 
   const [savedListings, setSavedListings] = useState([]);
@@ -417,18 +417,30 @@ export const AppContextProvider = ({ children }) => {
     setAiLoading(true);
     setAiError("");
     try {
-      const scores = await aiApi.fetchAIRecommendations(prefs);
-      const scoreMap = Object.fromEntries(scores.map((s) => [s.id, s]));
-      return (
-        listings
-          // .filter((l) => l.status === "verified") // Temporarily disabled for development
-          .map((l) => ({
-            ...l,
-            matchScore: scoreMap[l.id]?.matchScore ?? 0,
-            semanticScore: scoreMap[l.id]?.semanticScore ?? 0,
-          }))
-          .sort((a, b) => b.matchScore - a.matchScore)
-      );
+      const scores = await aiApi.fetchAIRecommendations({
+        ...prefs,
+        savedListingIds: savedListings,
+      });
+
+      // Look up full listing objects by id
+      const listingMap = Object.fromEntries(listings.map((l) => [l.id, l]));
+
+      // IMPORTANT: iterate over `scores` (Flask's response order), not
+      // `listings`, and do NOT sort — the backend order IS the ranking.
+      // Flask returns results already reranked by MMR (relevance +
+      // diversity), and a client-side .sort() would erase that.
+      return scores
+        .map((s) => {
+          const listing = listingMap[s.id];
+          if (!listing) return null; // score for a listing we don't have loaded
+          return {
+            ...listing,
+            matchScore: s.matchScore,
+            semanticScore: s.semanticScore ?? 0,
+            breakdown: s.breakdown ?? null,
+          };
+        })
+        .filter(Boolean);
     } catch (err) {
       console.error(
         "AI recommendation failed, falling back to rule-based:",

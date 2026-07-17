@@ -39,6 +39,8 @@ export const AIRecommend = () => {
   const [aiResults, setAiResults] = useState([]);
 
   const collegesList = [
+    "NCIT College",
+    "Kathford College",
     "Tribhuvan University",
     "Pulchowk Campus",
     "St. Xavier's College Maitighar",
@@ -633,7 +635,7 @@ export const AIRecommend = () => {
               </div>
             ) : (
               aiResults.map((item) => {
-                const reasons = generateMatchExplanations(item);
+                const reasons = item.breakdown ? [] : generateMatchExplanations(item);
                 return (
                   <div
                     key={item.id}
@@ -677,28 +679,86 @@ export const AIRecommend = () => {
                             📍 {item.location}
                           </p>
 
-                          {/* Match Reasons - Highlighted prominently */}
-                          <div className="mt-4 flex flex-col gap-3 p-4 bg-[rgba(16,185,129,0.05)] rounded-[var(--radius-md)] border border-[rgba(16,185,129,0.15)]">
-                            <strong className="text-[0.85rem] uppercase text-[var(--text-muted)] tracking-wider">
-                              Why it matches:
-                            </strong>
-                            {reasons.map((r, i) => (
-                              <div
-                                key={i}
-                                className={`flex items-start gap-3 ${r.positive ? "text-[var(--secondary)]" : "text-[var(--danger)]"}`}
-                              >
-                                <span
-                                  className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white ${r.positive ? "bg-[var(--secondary)]" : "bg-[var(--danger)]"}`}
+                          {/* Match Reasons - Rule Based Fallback Only */}
+                          {!item.breakdown && (
+                            <div className="mt-4 flex flex-col gap-3 p-4 bg-[rgba(16,185,129,0.05)] rounded-[var(--radius-md)] border border-[rgba(16,185,129,0.15)]">
+                              <strong className="text-[0.85rem] uppercase text-[var(--text-muted)] tracking-wider">
+                                Why it matches:
+                              </strong>
+                              {reasons.map((r, i) => (
+                                <div
+                                  key={i}
+                                  className={`flex items-start gap-3 ${r.positive ? "text-[var(--secondary)]" : "text-[var(--danger)]"}`}
                                 >
-                                  {r.positive ? <Check size={14} /> : "✕"}
-                                </span>
-                                <span className="text-[1.05rem] font-medium leading-snug">
-                                  {r.text}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                                  <span
+                                    className={`mt-0.5 flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-white ${r.positive ? "bg-[var(--secondary)]" : "bg-[var(--danger)]"}`}
+                                  >
+                                    {r.positive ? <Check size={14} /> : "✕"}
+                                  </span>
+                                  <span className="text-[1.05rem] font-medium leading-snug">
+                                    {r.text}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
+
+                        {/* AI factor breakdown — only present when results came from Flask */}
+                        {item.breakdown && (
+                          <div className="mt-4 p-4 bg-[rgba(99,102,241,0.05)] rounded-[var(--radius-md)] border border-[rgba(99,102,241,0.15)]">
+                            <strong className="text-[0.85rem] uppercase text-[var(--text-muted)] tracking-wider">
+                              AI Score Breakdown:
+                            </strong>
+                            <div className="flex flex-col gap-2 mt-3">
+                              {[
+                                {
+                                  label: "Semantic Fit",
+                                  value: item.breakdown.semantic,
+                                },
+                                {
+                                  label: "Budget",
+                                  value: item.breakdown.budget,
+                                },
+                                {
+                                  label: "Amenities",
+                                  value: item.breakdown.amenity,
+                                },
+                                {
+                                  label: "Proximity",
+                                  value: item.breakdown.proximity,
+                                },
+                                { label: "City", value: item.breakdown.city },
+                                {
+                                  label: "Room Type",
+                                  value: item.breakdown.roomType,
+                                },
+                                {
+                                  label: "Sharing",
+                                  value: item.breakdown.sharing,
+                                },
+                              ].map((f) => (
+                                <div
+                                  key={f.label}
+                                  className="flex items-center gap-3"
+                                >
+                                  <span className="text-[0.8rem] font-medium w-24 flex-shrink-0">
+                                    {f.label}
+                                  </span>
+                                  <div className="flex-1 h-2 bg-[var(--border-color)] rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] transition-all duration-500"
+                                      style={{ width: `${f.value}%` }}
+                                    />
+                                  </div>
+                                  <span className="text-[0.8rem] font-bold w-12 text-right">
+                                    {f.value}%
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         <div className="flex justify-end pt-6 mt-4">
                           <Link
