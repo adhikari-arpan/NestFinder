@@ -1,8 +1,8 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import logo from '../assets/NestFinder Logo.png';
-import { Home, User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 // --- Animated Canvas Background ---
 const AnimatedBackground = ({ theme }) => {
@@ -69,7 +69,7 @@ const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, 
         paddingRight: '2.75rem',
         textAlign: 'left',
       }}
-      className="w-full h-[54px] rounded-xl text-[0.9rem] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/25"
+      className="w-full h-13.5 rounded-xl text-[0.9rem] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/25"
     />
     {right && <div className="absolute right-4 flex items-center">{right}</div>}
   </div>
@@ -121,7 +121,7 @@ export const Auth = () => {
 
   const roles = [{ val: 'tenant', label: '🙋 Tenant' }, { val: 'landlord', label: '🏢 Landlord' }, { val: 'admin', label: '🛡️ Admin' }];
   const features = [{ icon: '🏠', text: 'Verified room listings across Kathmandu valley' }, { icon: '🤖', text: 'AI-powered recommendations for your budget' }, { icon: '🗺️', text: 'Map-based search with nearby colleges & hospitals' }];
-  const stats = [{ num: '500+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
+  const stats = [{ num: '10+', label: 'Active Listings' }, { num: '3', label: 'Cities Covered' }, { num: '98%', label: 'Verified Landlords' }];
 
   // Switching between dark and white modes
   const pageBg = isDark ? 'linear-gradient(135deg,#090d16 0%,#0d1117 60%,#0a1a12 100%)' : 'linear-gradient(135deg,#f0f4ff 0%,#fafbff 60%,#f0fdf4 100%)';
@@ -144,11 +144,11 @@ export const Auth = () => {
 
       <AnimatedBackground theme={theme} />
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none z-[1]"
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-175 h-175 rounded-full pointer-events-none z-1"
         style={{ background: isDark ? 'radial-gradient(circle,rgba(99,102,241,0.10) 0%,transparent 70%)' : 'radial-gradient(circle,rgba(99,102,241,0.07) 0%,transparent 70%)' }} />
 
       {/* Left panel */}
-      <div className="absolute left-[6%] top-1/2 -translate-y-1/2 z-[2] max-w-[260px] hidden xl:flex flex-col gap-8">
+      <div className="absolute left-[6%] top-1/2 -translate-y-1/2 z-2 max-w-65 hidden xl:flex flex-col gap-8">
         <div className="flex flex-col gap-3">
           <p className="text-[0.68rem] tracking-[0.18em] font-bold uppercase"
             style={{ color: isDark ? 'rgba(52,211,153,0.8)' : '#059669' }}>Nepal's Rental Network</p>
@@ -156,7 +156,7 @@ export const Auth = () => {
             Find your<br /><span style={{ color: isDark ? '#818cf8' : '#4f46e5' }}>perfect Nest</span>
           </h1>
         </div>
-        <div className="w-8 h-[2px] rounded-full" style={{ background: isDark ? '#818cf8' : '#4f46e5', opacity: 0.4 }} />
+        <div className="w-8 h-0.5 rounded-full" style={{ background: isDark ? '#818cf8' : '#4f46e5', opacity: 0.4 }} />
         <div className="flex flex-col gap-5">
           {features.map((f, i) => (
             <div key={i} className="flex gap-3 items-start">
@@ -168,7 +168,7 @@ export const Auth = () => {
       </div>
 
       {/* Right panel */}
-      <div className="absolute right-[6%] top-1/2 -translate-y-1/2 z-[2] max-w-[200px] hidden xl:flex flex-col gap-7">
+      <div className="absolute right-[6%] top-1/2 -translate-y-1/2 z-2 max-w-50 hidden xl:flex flex-col gap-7">
         {stats.map((s, i) => (
           <div key={i} className="text-right">
             <p className="text-[1.75rem] font-extrabold leading-none" style={{ color: isDark ? 'rgba(129,140,248,0.85)' : '#4f46e5' }}>{s.num}</p>
@@ -178,7 +178,7 @@ export const Auth = () => {
       </div>
 
       {/* ── Card ── */}
-      <div className="relative z-[3] w-full max-w-[420px] rounded-2xl border backdrop-blur-2xl animate-modal-enter"
+      <div className="relative z-3 w-full max-w-120 rounded-2xl border backdrop-blur-2xl animate-modal-enter"
         style={{ background: cardBg, borderColor: cardBorder, boxShadow: cardShadow, padding: '2.75rem 2.25rem 2.5rem' }}>
 
         {/* Logo */}
@@ -189,11 +189,11 @@ export const Auth = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex rounded-xl p-[5px]" style={{ background: tabBarBg, marginBottom: '1.75rem' }}>
+        <div className="flex rounded-xl p-1.25" style={{ background: tabBarBg, marginBottom: '1.75rem' }}>
           {['login', 'signup'].map(tab => (
             <button key={tab} type="button" onClick={() => { setActiveTab(tab); setFormMsg({ text: '', type: '' }); }}
               className={`flex-1 py-3 rounded-[9px] border-none cursor-pointer font-bold text-[0.85rem] transition-all duration-200 ${activeTab === tab
-                ? 'bg-gradient-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
+                ? 'bg-linear-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
                 : 'bg-transparent hover:opacity-70'
                 }`}
               style={activeTab !== tab ? { color: tabInactiveColor } : {}}>
@@ -275,7 +275,7 @@ export const Auth = () => {
           {/* Submit */}
           <button type="submit"
             style={{ marginTop: '0.5rem' }}
-            className="w-full h-[54px] border-none rounded-xl cursor-pointer bg-gradient-to-r from-indigo-500 to-emerald-500 text-white font-bold text-[0.93rem] flex items-center justify-center gap-2 shadow-[0_4px_22px_rgba(99,102,241,0.32)] hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)] transition-all duration-200">
+            className="w-full h-13.5 border-none rounded-xl cursor-pointer bg-linear-to-r from-indigo-500 to-emerald-500 text-white font-bold text-[0.93rem] flex items-center justify-center gap-2 shadow-[0_4px_22px_rgba(99,102,241,0.32)] hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)] transition-all duration-200">
             {activeTab === 'login' ? 'Sign In' : 'Create Account'}
             <ChevronRight size={17} />
           </button>

@@ -3,8 +3,9 @@
 const AI_SERVICE_URL = import.meta.env.VITE_AI_SERVICE_URL || 'http://localhost:5001';
 
 /**
- * @param {object} preferences - same shape as tenantPreferences in AppContext:
- *   { budget, preferredCity, sharing, roomType, essentialAmenities, poiCollege }
+ * @param {object} preferences - same shape as tenantPreferences in AppContext,
+ *   plus an optional savedListingIds array for personalized re-ranking:
+ *   { budget, preferredCity, sharing, roomType, essentialAmenities, poiCollege, savedListingIds }
  * @returns {Promise<Array<{id, matchScore, semanticScore}>>}
  */
 export async function fetchAIRecommendations(preferences) {

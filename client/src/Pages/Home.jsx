@@ -185,7 +185,7 @@ export const Home = () => {
         {/* Stats bar */}
         <div className="container relative z-[5] mt-14 w-full" style={{ marginBottom: '40px' }}>
           <div className="stats-row">
-            <div className="stat-item"><div className="stat-number">500+</div><div className="stat-label">Active Listings</div></div>
+            <div className="stat-item"><div className="stat-number">10+</div><div className="stat-label">Active Listings</div></div>
             <div className="stat-divider" />
             <div className="stat-item"><div className="stat-number">3</div><div className="stat-label">Cities Covered</div></div>
             <div className="stat-divider" />

@@ -1,7 +1,7 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import supabase from '../../db/supabaseClient';
-import * as api from '../api/listingsapi';
-import * as aiApi from '../api/aiApi';
+import { createContext, useState, useEffect, useCallback } from "react";
+import supabase from "../../db/supabaseClient";
+import * as api from "../api/listingsapi";
+import * as aiApi from "../api/aiApi";
 
 export const AppContext = createContext();
 
@@ -18,7 +18,7 @@ export const AppContextProvider = ({ children }) => {
     sharing: "Single",
     roomType: "Room",
     essentialAmenities: ["WiFi", "Hot Water"],
-    poiCollege: "Pulchowk Engineering Campus"
+    poiCollege: "NCIT College",
   });
 
   const [savedListings, setSavedListings] = useState([]);
@@ -26,10 +26,11 @@ export const AppContextProvider = ({ children }) => {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  const toggleTheme = () =>
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   const refreshListings = useCallback(async () => {
     setListingsLoading(true);
@@ -37,7 +38,7 @@ export const AppContextProvider = ({ children }) => {
       const data = await api.fetchListings();
       setListings(data);
     } catch (err) {
-      console.error('Failed to load listings:', err.message);
+      console.error("Failed to load listings:", err.message);
     } finally {
       setListingsLoading(false);
     }
@@ -51,18 +52,26 @@ export const AppContextProvider = ({ children }) => {
   // Auth
   // ------------------------------------------------------------
   const loginUser = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     if (error) return { success: false, message: error.message };
 
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('role, name, phone, email, is_verified')
-      .eq('id', data.user.id)
+      .from("profiles")
+      .select("role, name, phone, email, is_verified")
+      .eq("id", data.user.id)
       .single();
 
     setCurrentUser({ ...data.user, ...profile });
-    pushNotification(data.user.id, "Logged in successfully", `Welcome back, ${profile.name}!`, 'auth');
-    return { success: true, message: '' };
+    pushNotification(
+      data.user.id,
+      "Logged in successfully",
+      `Welcome back, ${profile.name}!`,
+      "auth",
+    );
+    return { success: true, message: "" };
   };
 
   const logoutUser = () => setCurrentUser(null);
@@ -74,20 +83,31 @@ export const AppContextProvider = ({ children }) => {
       options: { data: { name, phone, role } },
     });
     if (error) return { success: false, message: error.message };
-    return { success: true, message: 'Account created successfully! Please sign in.' };
+    return {
+      success: true,
+      message: "Account created successfully! Please sign in.",
+    };
   };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        supabase.from('profiles').select('*').eq('id', session.user.id).single()
-          .then(({ data: profile }) => setCurrentUser({ ...session.user, ...profile }));
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data: profile }) =>
+            setCurrentUser({ ...session.user, ...profile }),
+          );
       }
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) setCurrentUser(null);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        if (!session) setCurrentUser(null);
+      },
+    );
     return () => listener.subscription.unsubscribe();
   }, []);
 
@@ -98,8 +118,14 @@ export const AppContextProvider = ({ children }) => {
       setNotifications([]);
       return;
     }
-    api.fetchSavedListingIds(currentUser.id).then(setSavedListings).catch(console.error);
-    api.fetchNotifications(currentUser.id).then(setNotifications).catch(console.error);
+    api
+      .fetchSavedListingIds(currentUser.id)
+      .then(setSavedListings)
+      .catch(console.error);
+    api
+      .fetchNotifications(currentUser.id)
+      .then(setNotifications)
+      .catch(console.error);
   }, [currentUser]);
 
   // ------------------------------------------------------------
@@ -109,11 +135,18 @@ export const AppContextProvider = ({ children }) => {
     try {
       await api.addNotification(userId, title, message, type);
       setNotifications((prev) => [
-        { id: Date.now(), title, message, type, read: false, created_at: new Date().toISOString() },
+        {
+          id: Date.now(),
+          title,
+          message,
+          type,
+          read: false,
+          created_at: new Date().toISOString(),
+        },
         ...prev,
       ]);
     } catch (err) {
-      console.error('Failed to save notification:', err.message);
+      console.error("Failed to save notification:", err.message);
     }
   };
 
@@ -125,13 +158,20 @@ export const AppContextProvider = ({ children }) => {
     const isSaved = savedListings.includes(id);
     try {
       await api.toggleSavedListing(currentUser.id, id, isSaved);
-      setSavedListings((prev) => (isSaved ? prev.filter((x) => x !== id) : [...prev, id]));
+      setSavedListings((prev) =>
+        isSaved ? prev.filter((x) => x !== id) : [...prev, id],
+      );
       if (!isSaved) {
         const item = listings.find((l) => l.id === id);
-        pushNotification(currentUser.id, "Saved Room", `You saved "${item?.title}"`, "save");
+        pushNotification(
+          currentUser.id,
+          "Saved Room",
+          `You saved "${item?.title}"`,
+          "save",
+        );
       }
     } catch (err) {
-      console.error('Failed to toggle saved listing:', err.message);
+      console.error("Failed to toggle saved listing:", err.message);
     }
   };
 
@@ -139,7 +179,11 @@ export const AppContextProvider = ({ children }) => {
   // Listings CRUD
   // ------------------------------------------------------------
   const createListing = async (formData) => {
-    if (!currentUser) return { success: false, message: 'You must be logged in to post a listing.' };
+    if (!currentUser)
+      return {
+        success: false,
+        message: "You must be logged in to post a listing.",
+      };
     try {
       const newListing = await api.createListing(formData, currentUser.id);
       setListings((prev) => [newListing, ...prev]);
@@ -147,24 +191,34 @@ export const AppContextProvider = ({ children }) => {
         currentUser.id,
         "Room Listing Posted",
         `Your room "${newListing.title}" is pending admin moderation.`,
-        "listing"
+        "listing",
       );
       return { success: true, listing: newListing };
     } catch (err) {
-      console.error('Failed to create listing:', err.message);
-      return { success: false, message: err.message || 'Something went wrong. Please try again.' };
+      console.error("Failed to create listing:", err.message);
+      return {
+        success: false,
+        message: err.message || "Something went wrong. Please try again.",
+      };
     }
   };
 
   const updateListingStatus = async (id, newStatus) => {
     try {
       await api.updateListingStatus(id, newStatus);
-      setListings((prev) => prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)));
+      setListings((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)),
+      );
       if (currentUser) {
-        pushNotification(currentUser.id, "Listing Moderated", `Listing ${id} was set to ${newStatus}.`, "admin");
+        pushNotification(
+          currentUser.id,
+          "Listing Moderated",
+          `Listing ${id} was set to ${newStatus}.`,
+          "admin",
+        );
       }
     } catch (err) {
-      console.error('Failed to update listing status:', err.message);
+      console.error("Failed to update listing status:", err.message);
     }
   };
 
@@ -174,8 +228,12 @@ export const AppContextProvider = ({ children }) => {
       setListings((prev) => prev.filter((l) => l.id !== id));
       return { success: true };
     } catch (err) {
-      console.error('Failed to delete listing:', err.message);
-      return { success: false, message: err.message || 'Could not delete this listing. Please try again.' };
+      console.error("Failed to delete listing:", err.message);
+      return {
+        success: false,
+        message:
+          err.message || "Could not delete this listing. Please try again.",
+      };
     }
   };
 
@@ -185,8 +243,12 @@ export const AppContextProvider = ({ children }) => {
       setListings((prev) => prev.map((l) => (l.id === id ? updated : l)));
       return { success: true, listing: updated };
     } catch (err) {
-      console.error('Failed to update listing:', err.message);
-      return { success: false, message: err.message || 'Could not update this listing. Please try again.' };
+      console.error("Failed to update listing:", err.message);
+      return {
+        success: false,
+        message:
+          err.message || "Could not update this listing. Please try again.",
+      };
     }
   };
 
@@ -197,10 +259,15 @@ export const AppContextProvider = ({ children }) => {
     try {
       await api.sendInquiry(listingId, messageDetails, currentUser?.id || null);
       if (currentUser) {
-        pushNotification(currentUser.id, "Inquiry Sent", "Your message was delivered to the landlord.", "message");
+        pushNotification(
+          currentUser.id,
+          "Inquiry Sent",
+          "Your message was delivered to the landlord.",
+          "message",
+        );
       }
     } catch (err) {
-      console.error('Failed to send inquiry:', err.message);
+      console.error("Failed to send inquiry:", err.message);
     }
   };
 
@@ -208,10 +275,14 @@ export const AppContextProvider = ({ children }) => {
     try {
       await api.replyToInquiry(inquiryId, replyMsg);
       setInquiries((prev) =>
-        prev.map((inq) => (inq.id === inquiryId ? { ...inq, status: "replied", replyText: replyMsg } : inq))
+        prev.map((inq) =>
+          inq.id === inquiryId
+            ? { ...inq, status: "replied", replyText: replyMsg }
+            : inq,
+        ),
       );
     } catch (err) {
-      console.error('Failed to reply to inquiry:', err.message);
+      console.error("Failed to reply to inquiry:", err.message);
     }
   };
 
@@ -221,7 +292,7 @@ export const AppContextProvider = ({ children }) => {
       const data = await api.fetchInquiriesForLandlord(currentUser.id);
       setInquiries(data);
     } catch (err) {
-      console.error('Failed to load inquiries:', err.message);
+      console.error("Failed to load inquiries:", err.message);
     }
   };
 
@@ -230,61 +301,108 @@ export const AppContextProvider = ({ children }) => {
   // whatever listings are currently loaded: Rule-based score.
   // ------------------------------------------------------------
   const calculateRecommendationScore = (listing, prefs) => {
-    if (!prefs) return 0;
-    let score = 100;
+    if (!prefs) return { score: 0, proximityInfo: null };
 
-    if (listing.price > prefs.budget) {
-      const diff = listing.price - prefs.budget;
-      const pctOver = diff / prefs.budget;
-      score -= Math.min(40, pctOver * 50);
+    // Each factor is scored 0–1 first, then combined with weights.
+    // This keeps things transparent and avoids one factor accidentally dominating
+
+    // 1. Budget fit
+    let budgetScore;
+    if (listing.price <= prefs.budget) {
+      budgetScore = 1; // fully within budget
     } else {
-      const savings = prefs.budget - listing.price;
-      score += Math.min(5, (savings / prefs.budget) * 10);
+      const overPct = (listing.price - prefs.budget) / prefs.budget;
+      budgetScore = Math.max(0, 1 - overPct * 1.5); // scales down the further over
     }
 
-    if (prefs.preferredCity && listing.city.toLowerCase() !== prefs.preferredCity.toLowerCase()) {
-      score -= 15;
-    }
-    if (prefs.sharing && listing.sharing !== prefs.sharing) {
-      score -= 10;
-    }
-    if (prefs.roomType && listing.type !== prefs.roomType) {
-      score -= 15;
-    }
+    // 2. City match
+    const cityScore =
+      prefs.preferredCity &&
+      listing.city.toLowerCase() === prefs.preferredCity.toLowerCase()
+        ? 1
+        : 0;
+
+    // 3. Sharing type match
+    const sharingScore =
+      prefs.sharing && listing.sharing === prefs.sharing ? 1 : 0;
+
+    // 4. Room type match
+    const roomTypeScore =
+      prefs.roomType && listing.type === prefs.roomType ? 1 : 0;
+
+    // 5. Amenity coverage (proportion matched, not flat penalty)
+    let amenityScore = 1;
     if (prefs.essentialAmenities?.length) {
-      prefs.essentialAmenities.forEach((amenity) => {
-        if (!listing.amenities.includes(amenity)) score -= 8;
-      });
+      const matched = prefs.essentialAmenities.filter((a) =>
+        listing.amenities.includes(a),
+      ).length;
+      amenityScore = matched / prefs.essentialAmenities.length;
     }
+
+    // 6. College proximity
+    let proximityScore = 0.5;
+    let proximityInfo = null; // carries display info to the frontend
+
     if (prefs.poiCollege) {
       const matchPOI = listing.nearbyPOIs.find(
         (poi) =>
           poi.type === "College" &&
           (poi.name.toLowerCase().includes(prefs.poiCollege.toLowerCase()) ||
-            prefs.poiCollege.toLowerCase().includes(poi.name.toLowerCase()))
+            prefs.poiCollege.toLowerCase().includes(poi.name.toLowerCase())),
       );
+      const radius = prefs.radius || 1000;
+
       if (matchPOI) {
-        if (matchPOI.distance <= 500) score += 15;
-        else if (matchPOI.distance <= 1000) score += 10;
-        else if (matchPOI.distance <= 2000) score += 5;
-      } else {
-        const anyCollege = listing.nearbyPOIs.find((poi) => poi.type === "College");
-        if (anyCollege) {
-          if (anyCollege.distance > 2000) score -= 10;
+        const dist = matchPOI.distance;
+        if (dist <= radius) {
+          proximityScore = 1 - dist / radius; // within radius: 1 down to 0
+          proximityInfo = { withinRadius: true, distance: dist, over: 0 };
         } else {
-          score -= 10;
+          const overBy = dist - radius;
+          // still give partial credit, decaying further the more it exceeds radius
+          proximityScore = Math.max(0, 0.3 - (overBy / radius) * 0.3);
+          proximityInfo = { withinRadius: false, distance: dist, over: overBy };
         }
+      } else {
+        proximityScore = 0;
+        proximityInfo = { withinRadius: false, distance: null, over: null };
       }
     }
 
-    return Math.max(0, Math.min(100, Math.round(score)));
+    // Weights: how much each factor matters. These should add up to 1.
+    const weights = {
+      budget: 0.25,
+      city: 0.15,
+      sharing: 0.15,
+      roomType: 0.1,
+      amenity: 0.2,
+      proximity: 0.15,
+    };
+
+    const finalScore =
+      weights.budget * budgetScore +
+      weights.city * cityScore +
+      weights.sharing * sharingScore +
+      weights.roomType * roomTypeScore +
+      weights.amenity * amenityScore +
+      weights.proximity * proximityScore;
+
+    return { score: Math.round(finalScore * 100), proximityInfo }; // convert to 0–100 percentage
   };
 
   const getRecommendedListings = (prefs = tenantPreferences) => {
-    return listings
-      // .filter((l) => l.status === "verified") // Temporarily disabled for development
-      .map((listing) => ({ ...listing, matchScore: calculateRecommendationScore(listing, prefs) }))
-      .sort((a, b) => b.matchScore - a.matchScore);
+    return (
+      listings
+        // .filter((l) => l.status === "verified") // Temporarily disabled for development
+        .map((listing) => {
+          const { score, proximityInfo } = calculateRecommendationScore(
+            listing,
+            prefs,
+          );
+          return { ...listing, matchScore: score, proximityInfo };
+        })
+        .sort((a, b) => b.matchScore - a.matchScore)
+    );
   };
 
   // ------------------------------------------------------------
@@ -293,25 +411,44 @@ export const AppContextProvider = ({ children }) => {
   // is unreachable, so the tenant flow never fully breaks.
   // ------------------------------------------------------------
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState('');
+  const [aiError, setAiError] = useState("");
 
   const getAIRecommendedListings = async (prefs = tenantPreferences) => {
     setAiLoading(true);
-    setAiError('');
+    setAiError("");
     try {
-      const scores = await aiApi.fetchAIRecommendations(prefs);
-      const scoreMap = Object.fromEntries(scores.map((s) => [s.id, s]));
-      return listings
-        // .filter((l) => l.status === "verified") // Temporarily disabled for development
-        .map((l) => ({
-          ...l,
-          matchScore: scoreMap[l.id]?.matchScore ?? 0,
-          semanticScore: scoreMap[l.id]?.semanticScore ?? 0,
-        }))
-        .sort((a, b) => b.matchScore - a.matchScore);
+      const scores = await aiApi.fetchAIRecommendations({
+        ...prefs,
+        savedListingIds: savedListings,
+      });
+
+      // Look up full listing objects by id
+      const listingMap = Object.fromEntries(listings.map((l) => [l.id, l]));
+
+      // IMPORTANT: iterate over `scores` (Flask's response order), not
+      // `listings`, and do NOT sort — the backend order IS the ranking.
+      // Flask returns results already reranked by MMR (relevance +
+      // diversity), and a client-side .sort() would erase that.
+      return scores
+        .map((s) => {
+          const listing = listingMap[s.id];
+          if (!listing) return null; // score for a listing we don't have loaded
+          return {
+            ...listing,
+            matchScore: s.matchScore,
+            semanticScore: s.semanticScore ?? 0,
+            breakdown: s.breakdown ?? null,
+          };
+        })
+        .filter(Boolean);
     } catch (err) {
-      console.error('AI recommendation failed, falling back to rule-based:', err.message);
-      setAiError('AI service unavailable — showing rule-based matches instead.');
+      console.error(
+        "AI recommendation failed, falling back to rule-based:",
+        err.message,
+      );
+      setAiError(
+        "AI service unavailable — showing rule-based matches instead.",
+      );
       return getRecommendedListings(prefs);
     } finally {
       setAiLoading(false);
