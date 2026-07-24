@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import logo from '../../assets/NestFinder Logo.png';
@@ -6,10 +6,9 @@ import { MapContainer as LeafletMap, TileLayer, Marker, useMapEvents } from 'rea
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import ImageUploader from '../../components/ImageUploader';
-import { createPortal } from 'react-dom';
-import { User, Image as ImageIcon, Trash2, LogOut, X } from 'lucide-react';
+import { DashboardHeader } from '../../components/DashboardHeader';
+import { Trash2, X } from 'lucide-react';
 
-// Fix Leaflet's default marker icon (common Vite issue)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -48,8 +47,7 @@ export const LandlordDashboard = () => {
     createListing,
     updateListing,
     deleteListing,
-    currentUser,
-    logoutUser
+    currentUser
   } = useContext(AppContext);
 
   const location = useLocation();
@@ -159,7 +157,7 @@ export const LandlordDashboard = () => {
     setFormCity(item.city);
     setFormLat(String(item.latitude));
     setFormLng(String(item.longitude));
-    setFormImages(item.images || []); // existing URLs — ImageUploader now handles these
+    setFormImages(item.images || []);
     setFormAmenities(item.amenities || []);
     setSubmitError('');
     setIsPostModalOpen(true);
@@ -221,20 +219,6 @@ export const LandlordDashboard = () => {
     }
   };
 
-  // Profile menu / logout
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-
-  const handleLogout = () => setShowLogoutConfirm(true);
-
-  const confirmLogout = () => {
-    setShowLogoutConfirm(false);
-    logoutUser();
-    navigate('/');
-  };
-
-  const cancelLogout = () => setShowLogoutConfirm(false);
-
   // Deletion Handling
   const handleConfirmDelete = async () => {
     if (!listingToDelete) return;
@@ -267,7 +251,7 @@ export const LandlordDashboard = () => {
     <div className="container animate-fade-in" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
 
       {/* ── Welcome Banner: landlord greeting + Add Room CTA ── */}
-      <div style={{
+      <DashboardHeader style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
@@ -289,108 +273,7 @@ export const LandlordDashboard = () => {
             </p>
           </div>
         </div>
-
-        {/* Right: Profile trigger */}
-        <div className="flex flex-col items-center gap-2 relative z-[5]">
-          <div
-            className="profile-circle"
-            onClick={() => setProfileMenuOpen(true)}
-            title="Click to view profile menu"
-          >
-            {currentUser?.profilePicture ? (
-              <img src={currentUser.profilePicture} alt="Profile" />
-            ) : (
-              <User size={40} className="text-primary" />
-            )}
-          </div>
-          <span className="text-[0.75rem] font-bold text-text-muted">Your Profile</span>
-        </div>
-      </div>
-
-      {/* Profile Overlay Panel */}
-      <div
-        className={`profile-overlay-backdrop ${profileMenuOpen ? 'open' : ''}`}
-        onClick={() => setProfileMenuOpen(false)}
-      />
-      <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
-            <User size={20} className="text-primary" /> Profile Menu
-          </h3>
-          <button className="btn btn-ghost p-2" onClick={() => setProfileMenuOpen(false)} aria-label="Close menu">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-3 mb-8">
-          <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
-            <User size={18} /> Edit Profile
-          </div>
-          <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
-            <ImageIcon size={18} /> Change Profile Picture
-          </div>
-          <div
-            className="profile-menu-item text-danger border-[rgba(239,68,68,0.2)] hover:bg-danger-light hover:border-danger hover:text-danger"
-            onClick={() => alert('Delete Profile Picture functionality coming soon!')}
-          >
-            <Trash2 size={18} /> Delete Profile Picture
-          </div>
-        </div>
-
-        <div className="mt-auto pt-4 border-t border-border-color">
-          <button className="btn btn-primary w-full flex justify-center items-center gap-2" onClick={handleLogout}>
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
-      </div>
-
-      {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}
-      {showLogoutConfirm && createPortal(
-        <>
-          <div
-            onClick={cancelLogout}
-            style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
-          />
-          <div style={{
-            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-            zIndex: 2001, width: '100%', maxWidth: '380px',
-            background: 'var(--bg-card)', border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)', padding: '2rem 2rem 1.75rem',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.25)', textAlign: 'center',
-          }}>
-            <div style={{
-              width: '52px', height: '52px', borderRadius: '50%', background: 'var(--primary-light)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem',
-            }}>
-              <LogOut size={22} style={{ color: 'var(--primary)' }} />
-            </div>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>
-              Are you sure you want to Logout from NestFinder?
-            </h3>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-              You can sign back in anytime.
-            </p>
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button onClick={cancelLogout} className="btn btn-outline" style={{ flex: 1, fontWeight: 700 }}>
-                Cancel
-              </button>
-              <button
-                onClick={confirmLogout}
-                style={{
-                  flex: 1, border: 'none', borderRadius: 'var(--radius-md)', padding: '0.75rem',
-                  cursor: 'pointer', fontWeight: 700, fontSize: '0.9rem', color: 'white',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                }}
-              >
-                <LogOut size={15} /> Yes, Logout
-              </button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
+      </DashboardHeader>
 
       {/* Tabs selectors: Rooms vs Inquiries */}
       <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
