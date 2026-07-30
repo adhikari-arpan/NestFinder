@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import logo from '../../assets/NestFinder Logo.png';
 import {
-  Heart, Sparkles, MessageSquare, CheckCircle, Clock, ArrowRight
+  Heart, Sparkles, MessageSquare, Clock, ArrowRight
 } from 'lucide-react';
 
 const RoomCarousel = ({ listings }) => {
@@ -158,7 +158,7 @@ export const TenantDashboard = () => {
           </p>
         </div>
         <button
-          className="glow-btn btn-lg mt-2 rounded-[var(--radius-full)] px-8 font-bold text-[1.1rem]"
+          className="glow-btn btn-lg mt-2 rounded-(--radius-full) px-8 font-bold text-[1.1rem]"
           onClick={() => navigate('/ai-recommend')}
         >
           Find Your Match with AI
@@ -181,7 +181,7 @@ export const TenantDashboard = () => {
           <div className="empty-favorites">
             <Heart size={48} className="text-border-color mb-3" />
             <p className="font-medium text-[1.1rem]">No favourites yet</p>
-            <p className="text-[0.9rem] max-w-[250px] mt-2 text-center">
+            <p className="text-[0.9rem] max-w-62.5 mt-2 text-center">
               Your favourite rooms will be visible here once you save them.
             </p>
           </div>
@@ -221,7 +221,7 @@ export const TenantDashboard = () => {
           <div className="empty-favorites" style={{ padding: '3rem 2rem' }}>
             <MessageSquare size={48} className="text-border-color mb-3" />
             <p className="font-medium text-[1.1rem]">No inquiries yet</p>
-            <p className="text-[0.9rem] max-w-[250px] mt-2 text-center">
+            <p className="text-[0.9rem] max-w-62.5 mt-2 text-center">
               You haven't made any inquiries yet.
             </p>
           </div>
@@ -240,7 +240,7 @@ export const TenantDashboard = () => {
         </div>
 
         <div className="map-section-full relative">
-          <div className="map-badge-helper absolute top-[15px] right-[15px] z-[999]">
+          <div className="map-badge-helper absolute top-3.75 right-3.75 z-999">
             🗺️ Map Discovery Mode
           </div>
 

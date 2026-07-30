@@ -30,7 +30,7 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
         {children}
 
         {/* Right: Profile trigger */}
-        <div className="flex flex-col items-center gap-2 relative z-[5]">
+        <div className="flex flex-col items-center gap-2 relative z-5">
           <div
             className="profile-circle"
             onClick={() => setProfileMenuOpen(true)}
