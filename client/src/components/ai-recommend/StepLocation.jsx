@@ -57,7 +57,7 @@ export const StepLocation = ({
             }}
             className="form-input w-full cursor-pointer p-4 text-[1rem]"
             style={{
-              backgroundColor: "color-mix(in srgb, var(--bg-app) 55%, transparent)",
+              backgroundColor: "color-mix(in srgb, var(--bg-app) 85%, transparent)",
             }}
           >
             <option value="">Select a preset location...</option>
