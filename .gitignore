@@ -11,8 +11,16 @@ node_modules
 dist
 dist-ssr
 *.local
-.env
-venv
+.env/
+venv/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
 
 # Editor directories and files
 .vscode/*
