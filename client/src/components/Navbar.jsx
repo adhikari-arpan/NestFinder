@@ -158,14 +158,14 @@ export const Navbar = () => {
 
   return (
     <nav
-      className="glass sticky-nav sticky top-0 z-[1000] border-b border-[var(--border-color)] py-3 transition-[background] duration-[var(--transition-normal)]"
+      className="glass sticky-nav sticky top-0 z-1000 border-b border-(--border-color) py-3 transition-[background] duration-(--transition-normal)"
     >
       <div className="relative container flex flex-nowrap items-center justify-between">
 
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <img src={logo} alt="NestFinder" style={{ height: '40px', width: 'auto' }} />
-          <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
+          <span>Nest<span className="text-(--text-main)">Finder</span></span>
         </Link>
 
         {/* Desktop Nav Links */}
@@ -228,7 +228,7 @@ export const Navbar = () => {
               >
                 <Bell size={20} />
                 {unreadNotifs.length > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[var(--bg-card)] bg-[var(--danger)] text-[0.65rem] font-bold text-white">
+                  <span className="absolute top-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-(--bg-card) bg-(--danger) text-[0.65rem] font-bold text-white">
                     {unreadNotifs.length}
                   </span>
                 )}
@@ -250,7 +250,7 @@ export const Navbar = () => {
                   />
 
                   <div
-                    className={`card flex w-[320px] flex-col overflow-hidden border border-[var(--border-color)] p-0 shadow-xl transition-all duration-150 ease-out ${notifVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                    className={`card flex w-[320px] flex-col overflow-hidden border border-(--border-color) p-0 shadow-xl transition-all duration-150 ease-out ${notifVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
                       }`}
                     style={{
                       position: 'fixed',
@@ -261,20 +261,20 @@ export const Navbar = () => {
                       transformOrigin: 'top right',
                     }}
                   >
-                    <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-color)] p-4 pb-2">
+                    <div className="flex shrink-0 items-center justify-between border-b border-(--border-color) p-4 pb-2">
                       <h4 className="text-[0.95rem]">Notifications</h4>
                       <div className="flex items-center gap-3">
                         {unreadNotifs.length > 0 && (
                           <button
                             onClick={markAllNotificationsRead}
-                            className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-[var(--primary)] hover:underline"
+                            className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-(--primary) hover:underline"
                           >
                             Mark all read
                           </button>
                         )}
                         <button
                           onClick={() => setNotifOpen(false)}
-                          className="flex cursor-pointer items-center justify-center border-none bg-transparent text-[var(--text-light)] hover:text-[var(--primary)]"
+                          className="flex cursor-pointer items-center justify-center border-none bg-transparent text-(--text-light) hover:text-(--primary)"
                           aria-label="Close notifications"
                         >
                           <X size={16} />
@@ -283,7 +283,7 @@ export const Navbar = () => {
                     </div>
                     <div ref={notifListRef} className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto p-4 pt-2">
                       {notifications.length === 0 ? (
-                        <p className="p-4 text-center text-[0.85rem] text-[var(--text-muted)]">No notifications</p>
+                        <p className="p-4 text-center text-[0.85rem] text-(--text-muted)">No notifications</p>
                       ) : (
                         notifications.map(n => {
                           const { icon: TypeIcon, className: iconClass } =
@@ -292,9 +292,9 @@ export const Navbar = () => {
                             <div
                               key={n.id}
                               onClick={() => !n.read && markNotificationAsRead(n.id)}
-                              className={`flex items-start gap-2.5 rounded-[var(--radius-md)] border-l-[3px] p-3 transition-colors hover:bg-[var(--bg-app)] ${n.read
-                                ? 'cursor-default border-l-[var(--border-color)] bg-transparent'
-                                : 'cursor-pointer border-l-[var(--primary)] bg-[var(--primary-light)]'
+                              className={`flex items-start gap-2.5 rounded md) border-l-[3px] p-3 transition-colors hover:bg-(--bg-app) ${n.read
+                                ? 'cursor-default border-l-(--border-color) bg-transparent'
+                                : 'cursor-pointer border-l-(--primary) bg-(--primary-light)'
                                 }`}
                             >
                               <TypeIcon size={16} className={`mt-0.5 shrink-0 ${iconClass}`} />
@@ -302,13 +302,13 @@ export const Navbar = () => {
                                 <div className="flex items-start justify-between gap-2">
                                   <div className="truncate text-[0.85rem] font-semibold">{n.title}</div>
                                   {!n.read && (
-                                    <span className="mt-1 size-2 shrink-0 rounded-full bg-[var(--primary)]" />
+                                    <span className="mt-1 size-2 shrink-0 rounded-full bg-(--primary)" />
                                   )}
                                 </div>
-                                <div className="line-clamp-2 text-[0.75rem] leading-snug text-[var(--text-muted)]">
+                                <div className="line-clamp-2 text-[0.75rem] leading-snug text-(--text-muted)">
                                   {n.message}
                                 </div>
-                                <span className="text-[0.65rem] text-[var(--text-light)]">
+                                <span className="text-[0.65rem] text-(--text-light)">
                                   {formatNotifTime(n.created_at)}
                                 </span>
                               </div>
@@ -327,8 +327,8 @@ export const Navbar = () => {
           {/* User Area */}
           {currentUser ? (
             <div className="flex items-center gap-3">
-              <span className="hidden text-[0.85rem] font-semibold text-[var(--text-main)] md:inline">
-                Welcome, <span className="text-[var(--primary)]">{currentUser.name}</span>
+              <span className="hidden text-[0.85rem] font-semibold text-(--text-main) md:inline">
+                Welcome, <span className="text-(--primary)">{currentUser.name}</span>
               </span>
 
               {currentUser.role === 'tenant' && (
@@ -386,13 +386,13 @@ export const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="glass animate-fade-in absolute inset-x-0 top-full z-50 mt-2 flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-lg)]">
+          <div className="glass animate-fade-in absolute inset-x-0 top-full z-50 mt-2 flex flex-col gap-3 rounded-md) border border-(--border-color) bg-(--bg-card) p-4 shadow-(--shadow-lg)">
             {currentUser?.role === 'tenant' && (
-              <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">My Dashboard</Link>
+              <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="rounded-sm) px-2 py-1.5 font-medium hover:bg-(--primary-light) hover:text-(--primary)">My Dashboard</Link>
             )}
             {currentUser?.role === 'landlord' && (
               <>
-                <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Landlord Hub</Link>
+                <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="rounded-sm) px-2 py-1.5 font-medium hover:bg-(--primary-light) hover:text-(--primary)">Landlord Hub</Link>
                 <button
                   onClick={() => { setMobileMenuOpen(false); navigate('/dashboard/landlord?action=post'); }}
                   className="btn btn-primary btn-sm flex w-fit items-center gap-1"
@@ -402,10 +402,10 @@ export const Navbar = () => {
               </>
             )}
             {currentUser?.role === 'admin' && (
-              <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Admin Dashboard</Link>
+              <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)} className="rounded-sm)] px-2 py-1.5 font-medium hover:bg-(--primary-light) hover:text-(--primary)">Admin Dashboard</Link>
             )}
             {!currentUser && (
-              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Sign In</Link>
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="rounded-sm) px-2 py-1.5 font-medium hover:bg-(--primary-light) hover:text-(--primary)">Sign In</Link>
             )}
           </div>
         )}
