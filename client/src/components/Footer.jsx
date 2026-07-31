@@ -7,26 +7,26 @@ export const Footer = () => {
   const linkClass = "text-[var(--text-muted)] text-[0.85rem] transition-colors hover:text-[var(--primary)]";
 
   return (
-    <footer className="bg-[var(--bg-card)] border-t border-[var(--border-color)] mt-auto"
+    <footer className="mt-auto border-t border-[var(--border-color)] bg-[var(--bg-card)]"
       style={{ paddingTop: '2.5rem', paddingBottom: '2.5rem' }}>
       <div className="container">
 
         {/* Top row: Brand LEFT — Contact RIGHT */}
-        <div className="flex justify-between items-start flex-wrap gap-10 mb-8">
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-10">
 
           {/* Left: Logo + description + socials */}
-          <div className="flex flex-col gap-3 max-w-[400px]">
-            <Link to="/" className="flex items-center gap-2 font-extrabold text-[1.3rem] text-[var(--primary)]">
+          <div className="flex max-w-[400px] flex-col gap-3">
+            <Link to="/" className="flex items-center gap-2 text-[1.3rem] font-extrabold text-[var(--primary)]">
               <img src={logo} alt="NestFinder" style={{ height: '36px', width: 'auto' }} />
               <span>Nest<span className="text-[var(--text-main)]">Finder</span></span>
             </Link>
-            <p className="text-[0.85rem] text-[var(--text-muted)] leading-[1.8] m-0">
+            <p className="m-0 text-[0.85rem] leading-[1.8] text-[var(--text-muted)]">
               Nepal's leading map-based platform helping students and tenants discover verified room and flat rentals, powered by smart AI search algorithms.
             </p>
-            <div className="flex gap-2.5 mt-1">
+            <div className="mt-1 flex gap-2.5">
               {[Globe, Share2, MessageSquare].map((Icon, i) => (
                 <a key={i} href="#"
-                  className="w-8 h-8 rounded-[var(--radius-sm)] bg-[var(--border-color)] text-[var(--text-main)] flex items-center justify-center transition-all hover:bg-[var(--primary)] hover:text-white hover:-translate-y-0.5">
+                  className="flex size-8 items-center justify-center rounded-[var(--radius-sm)] bg-[var(--border-color)] text-[var(--text-main)] transition-all hover:-translate-y-0.5 hover:bg-[var(--primary)] hover:text-white">
                   <Icon size={15} />
                 </a>
               ))}
@@ -35,20 +35,20 @@ export const Footer = () => {
 
           {/* Right: Contact info */}
           <div className="flex flex-col gap-3">
-            <h4 className="text-[0.82rem] font-bold uppercase tracking-[0.1em] text-[var(--text-main)] m-0">
+            <h4 className="m-0 text-[0.82rem] font-bold tracking-[0.1em] text-[var(--text-main)] uppercase">
               Contact NestFinder
             </h4>
             <div className="flex flex-col gap-2.5 text-[0.84rem] text-[var(--text-muted)]">
               <div className="flex items-center gap-2.5">
-                <MapPin size={14} className="text-[var(--primary)] shrink-0" />
+                <MapPin size={14} className="shrink-0 text-[var(--primary)]" />
                 <span>Balkumari, Lalitpur, Nepal</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Phone size={14} className="text-[var(--primary)] shrink-0" />
+                <Phone size={14} className="shrink-0 text-[var(--primary)]" />
                 <span>+977-1xxxxxxxxx, +977-98xxxxxxxx</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Mail size={14} className="text-[var(--primary)] shrink-0" />
+                <Mail size={14} className="shrink-0 text-[var(--primary)]" />
                 <span>@nestfinder.com.np</span>
               </div>
             </div>
@@ -56,7 +56,7 @@ export const Footer = () => {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-[var(--border-color)] pt-5 flex justify-between items-center flex-wrap gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border-color)] pt-5">
           <span className="text-[0.8rem] text-[var(--text-light)]">
             &copy; {new Date().getFullYear()} NestFinder. Developed by Purnima Bhattrai and Arpan Adhikari.
           </span>

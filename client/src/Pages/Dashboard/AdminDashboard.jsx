@@ -129,28 +129,28 @@ export const AdminDashboard = () => {
     }`;
 
   return (
-    <div className="container animate-fade-in px-6 pt-12 pb-20 text-left">
+    <div className="animate-fade-in container px-6 pt-12 pb-20 text-left">
       {/* Header */}
 
-      <div className="flex justify-between items-start border-b border-(--border-color) pb-6 mb-8">
+      <div className="mb-8 flex items-start justify-between border-b border-(--border-color) pb-6">
         <div>
           <img
             src={logo}
             alt="NestFinder"
             style={{ height: "70px", width: "auto" }}
           />
-          <h1 className="text-[1.6rem] font-extrabold flex items-center gap-2">
+          <h1 className="flex items-center gap-2 text-[1.6rem] font-extrabold">
             <ShieldAlert size={28} className="text-(--primary)" />
             Administrative Moderation Board
           </h1>
-          <p className="text-(--text-light) text-[0.85rem] mt-1">
+          <p className="mt-1 text-[0.85rem] text-(--text-light)">
             Moderate housing listings, manage registered users, and audit
             platform activity.
           </p>
         </div>
 
         {/* Right: Profile trigger */}
-        <div className="flex flex-col items-center gap-2 relative z-5">
+        <div className="relative z-5 flex flex-col items-center gap-2">
           <div
             className="profile-circle"
             onClick={() => setProfileMenuOpen(true)}
@@ -162,7 +162,7 @@ export const AdminDashboard = () => {
               <User size={40} className="text-primary" />
             )}
           </div>
-          <span className="text-[0.75rem] font-bold text-text-muted">
+          <span className="text-text-muted text-[0.75rem] font-bold">
             Your Profile
           </span>
         </div>
@@ -174,8 +174,8 @@ export const AdminDashboard = () => {
         onClick={() => setProfileMenuOpen(false)}
       />
       <div className={`profile-overlay ${profileMenuOpen ? "open" : ""}`}>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
             <User size={20} className="text-primary" /> Profile Menu
           </h3>
           <button
@@ -187,7 +187,7 @@ export const AdminDashboard = () => {
           </button>
         </div>
 
-        <div className="flex flex-col gap-3 mb-8">
+        <div className="mb-8 flex flex-col gap-3">
           <div
             className="profile-menu-item"
             onClick={() => alert("Edit Profile functionality coming soon!")}
@@ -203,7 +203,7 @@ export const AdminDashboard = () => {
             <ImageIcon size={18} /> Change Profile Picture
           </div>
           <div
-            className="profile-menu-item text-danger border-[rgba(239,68,68,0.2)] hover:bg-danger-light hover:border-danger hover:text-danger"
+            className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
             onClick={() =>
               alert("Delete Profile Picture functionality coming soon!")
             }
@@ -212,9 +212,9 @@ export const AdminDashboard = () => {
           </div>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-border-color">
+        <div className="border-border-color mt-auto border-t pt-4">
           <button
-            className="btn btn-primary w-full flex justify-center items-center gap-2"
+            className="btn btn-primary flex w-full items-center justify-center gap-2"
             onClick={handleLogout}
           >
             <LogOut size={18} /> Logout
@@ -323,43 +323,43 @@ export const AdminDashboard = () => {
         )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-        <div className="card text-center p-5 border border-(--border-color)">
-          <span className="text-[0.75rem] font-bold text-(--text-light) uppercase tracking-wide">
+      <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="card border border-(--border-color) p-5 text-center">
+          <span className="text-[0.75rem] font-bold tracking-wide text-(--text-light) uppercase">
             Total Properties
           </span>
-          <strong className="block text-[1.8rem] text-(--text-main) mt-1">
+          <strong className="mt-1 block text-[1.8rem] text-(--text-main)">
             {totalListings}
           </strong>
         </div>
-        <div className="card text-center p-5 border border-(--border-color)">
-          <span className="text-[0.75rem] font-bold text-(--secondary) uppercase tracking-wide">
+        <div className="card border border-(--border-color) p-5 text-center">
+          <span className="text-[0.75rem] font-bold tracking-wide text-(--secondary) uppercase">
             Verified Rooms
           </span>
-          <strong className="block text-[1.8rem] text-(--secondary) mt-1">
+          <strong className="mt-1 block text-[1.8rem] text-(--secondary)">
             {verifiedCount}
           </strong>
         </div>
-        <div className="card text-center p-5 border border-(--border-color)">
-          <span className="text-[0.75rem] font-bold text-(--accent) uppercase tracking-wide">
+        <div className="card border border-(--border-color) p-5 text-center">
+          <span className="text-[0.75rem] font-bold tracking-wide text-(--accent) uppercase">
             Pending Review
           </span>
-          <strong className="block text-[1.8rem] text-(--accent) mt-1">
+          <strong className="mt-1 block text-[1.8rem] text-(--accent)">
             {pendingCount}
           </strong>
         </div>
-        <div className="card text-center p-5 border border-(--border-color)">
-          <span className="text-[0.75rem] font-bold text-(--danger) uppercase tracking-wide">
+        <div className="card border border-(--border-color) p-5 text-center">
+          <span className="text-[0.75rem] font-bold tracking-wide text-(--danger) uppercase">
             Flagged / Spam
           </span>
-          <strong className="block text-[1.8rem] text-(--danger) mt-1">
+          <strong className="mt-1 block text-[1.8rem] text-(--danger)">
             {flaggedCount}
           </strong>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b border-(--border-color) mb-8 flex-wrap">
+      <div className="mb-8 flex flex-wrap gap-6 border-b border-(--border-color)">
         <button
           onClick={() => setActiveTab("pending")}
           className={tabClass("pending")}
@@ -384,10 +384,10 @@ export const AdminDashboard = () => {
       {activeTab === "pending" && (
         <div className="flex flex-col gap-4">
           {pendingListings.length === 0 ? (
-            <div className="card text-center p-12 text-(--text-light) border border-(--border-color)">
+            <div className="card border border-(--border-color) p-12 text-center text-(--text-light)">
               <CheckCircle
                 size={40}
-                className="text-(--secondary) mb-2 mx-auto"
+                className="mx-auto mb-2 text-(--secondary)"
               />
               <p>All room submissions have been reviewed. Clean queue!</p>
             </div>
@@ -395,20 +395,20 @@ export const AdminDashboard = () => {
             pendingListings.map((item) => (
               <div
                 key={item.id}
-                className="card shadow-sm border border-(--border-color) p-5 grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8"
+                className="card grid grid-cols-1 gap-8 border border-(--border-color) p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
               >
                 {/* Details */}
-                <div className="flex gap-4 items-start text-left">
+                <div className="flex items-start gap-4 text-left">
                   <img
                     src={item.images[0]}
-                    className="w-20 h-15 object-cover rounded-sm"
+                    className="h-15 w-20 rounded-sm object-cover"
                     alt="preview"
                   />
                   <div>
                     <span className="badge badge-accent text-[0.65rem]">
                       PENDING REVIEW
                     </span>
-                    <h3 className="text-[1.05rem] mt-1 mb-0.5">
+                    <h3 className="mt-1 mb-0.5 text-[1.05rem]">
                       <Link
                         to={`/room/${item.id}`}
                         className="text-(--text-main)"
@@ -419,7 +419,7 @@ export const AdminDashboard = () => {
                     <div className="text-[0.8rem] text-(--text-muted)">
                       📍 {item.location} • Rs. {item.price.toLocaleString()} /mo
                     </div>
-                    <div className="text-[0.78rem] text-(--text-light) mt-2">
+                    <div className="mt-2 text-[0.78rem] text-(--text-light)">
                       Landlord: <strong>{item.landlord.name}</strong> (
                       {item.landlord.email})
                     </div>
@@ -427,7 +427,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 items-center justify-end">
+                <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => updateListingStatus(item.id, "verified")}
                     className="btn btn-secondary btn-sm flex gap-1"
@@ -436,7 +436,7 @@ export const AdminDashboard = () => {
                   </button>
                   <button
                     onClick={() => updateListingStatus(item.id, "flagged")}
-                    className="btn btn-outline btn-sm flex gap-1 text-(--danger) border-(--border-color)"
+                    className="btn btn-outline btn-sm flex gap-1 border-(--border-color) text-(--danger)"
                   >
                     <AlertTriangle size={14} /> Reject / Flag
                   </button>
@@ -451,26 +451,26 @@ export const AdminDashboard = () => {
       {activeTab === "flagged" && (
         <div className="flex flex-col gap-4">
           {flaggedListings.length === 0 ? (
-            <div className="card text-center p-12 text-(--text-light) border border-(--border-color)">
-              <Flag size={40} className="text-(--secondary) mb-2 mx-auto" />
+            <div className="card border border-(--border-color) p-12 text-center text-(--text-light)">
+              <Flag size={40} className="mx-auto mb-2 text-(--secondary)" />
               <p>No listings are currently flagged as spam or fraudulent.</p>
             </div>
           ) : (
             flaggedListings.map((item) => (
               <div
                 key={item.id}
-                className="card shadow-sm border border-(--border-color) p-5 grid grid-cols-1 md:grid-cols-[1.2fr_0.8fr] gap-8"
+                className="card grid grid-cols-1 gap-8 border border-(--border-color) p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
               >
                 {/* Details */}
-                <div className="flex gap-4 items-start text-left">
-                  <div className="w-10 h-10 rounded-full bg-(--danger-light) text-(--danger) flex items-center justify-center shrink-0">
+                <div className="flex items-start gap-4 text-left">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-(--danger-light) text-(--danger)">
                     <Flag size={20} />
                   </div>
                   <div>
                     <span className="badge badge-danger text-[0.65rem]">
                       FLAGGED AS SPAM
                     </span>
-                    <h3 className="text-[1.05rem] mt-1 mb-0.5">
+                    <h3 className="mt-1 mb-0.5 text-[1.05rem]">
                       <Link
                         to={`/room/${item.id}`}
                         className="text-(--text-main)"
@@ -485,7 +485,7 @@ export const AdminDashboard = () => {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 items-center justify-end">
+                <div className="flex items-center justify-end gap-2">
                   <button
                     onClick={() => updateListingStatus(item.id, "verified")}
                     className="btn btn-outline btn-sm flex gap-1 border-(--border-color)"
@@ -508,9 +508,9 @@ export const AdminDashboard = () => {
       {/* 3. Users Table */}
       {activeTab === "users" && (
         <div className="card overflow-hidden border border-(--border-color) p-0">
-          <table className="w-full border-collapse text-[0.9rem] poi-table">
+          <table className="poi-table w-full border-collapse text-[0.9rem]">
             <thead>
-              <tr className="bg-(--bg-app) border-b border-(--border-color) text-left">
+              <tr className="border-b border-(--border-color) bg-(--bg-app) text-left">
                 <th className="px-4 py-3">User details</th>
                 <th className="px-4 py-3">Email ID</th>
                 <th className="px-4 py-3">Account Type</th>
@@ -547,7 +547,7 @@ export const AdminDashboard = () => {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex gap-1 justify-end">
+                    <div className="flex justify-end gap-1">
                       {user.role === "Landlord" &&
                         user.status === "pending" && (
                           <button
@@ -560,7 +560,7 @@ export const AdminDashboard = () => {
                       {user.status !== "banned" && (
                         <button
                           onClick={() => handleUserBan(user.id)}
-                          className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem] text-(--danger) border-(--border-color)"
+                          className="btn btn-outline btn-sm border-(--border-color) px-2 py-1 text-[0.75rem] text-(--danger)"
                         >
                           <UserMinus size={12} /> Suspend
                         </button>

@@ -75,7 +75,7 @@ const NetworkBackground = ({ theme }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-none z-0"
+      className="pointer-events-none absolute inset-0 z-0 size-full"
     />
   );
 };
@@ -134,13 +134,13 @@ export const Home = () => {
         <NetworkBackground theme={theme} />
 
         {/* Ambient orbs */}
-        <div className="absolute top-[15%] left-[8%] w-[400px] h-[400px] rounded-full pointer-events-none z-[1]"
+        <div className="pointer-events-none absolute top-[15%] left-[8%] z-[1] size-[400px] rounded-full"
           style={{ background: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)', filter: 'blur(100px)' }} />
-        <div className="absolute bottom-[20%] right-[8%] w-[320px] h-[320px] rounded-full pointer-events-none z-[1]"
+        <div className="pointer-events-none absolute right-[8%] bottom-[20%] z-[1] size-[320px] rounded-full"
           style={{ background: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)', filter: 'blur(90px)' }} />
 
         {/* Hero content */}
-        <div className="animate-fade-in relative z-[5] max-w-[740px] flex flex-col items-center gap-7">
+        <div className="animate-fade-in relative z-[5] flex max-w-[740px] flex-col items-center gap-7">
 
           <span className="hero-badge">🏠 Nepal's Rental Network</span>
 
@@ -158,7 +158,7 @@ export const Home = () => {
             {['✅ Verified listings', '🤖 AI match scoring', '🗺️ Map-based search', '🚫 Zero broker fees'].map((f, i) => (
               <span
                 key={i}
-                className="px-4 py-[0.4rem] rounded-full text-[0.8rem] font-semibold"
+                className="rounded-full px-4 py-[0.4rem] text-[0.8rem] font-semibold"
                 style={{
                   background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.07)',
                   border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(99,102,241,0.15)'}`,
@@ -183,7 +183,7 @@ export const Home = () => {
         </div>
 
         {/* Stats bar */}
-        <div className="container relative z-[5] mt-14 w-full" style={{ marginBottom: '40px' }}>
+        <div className="relative z-[5] container mt-14 w-full" style={{ marginBottom: '40px' }}>
           <div className="stats-row">
             <div className="stat-item"><div className="stat-number">10+</div><div className="stat-label">Active Listings</div></div>
             <div className="stat-divider" />
@@ -199,7 +199,7 @@ export const Home = () => {
 
       {/* ── FEATURES SECTION ── */}
       <section
-        className="relative pt-36 pb-36"
+        className="relative py-36"
         style={{
           background: isDark
             ? 'linear-gradient(180deg,#0d1222 0%,#090d16 100%)'
@@ -208,23 +208,23 @@ export const Home = () => {
         }}
       >
         {/* Orbs */}
-        <div className="absolute -top-20 left-[10%] w-[380px] h-[380px] rounded-full pointer-events-none"
+        <div className="pointer-events-none absolute -top-20 left-[10%] size-[380px] rounded-full"
           style={{ background: 'rgba(99,102,241,0.06)', filter: 'blur(90px)' }} />
-        <div className="absolute -bottom-16 right-[10%] w-[320px] h-[320px] rounded-full pointer-events-none"
+        <div className="pointer-events-none absolute right-[10%] -bottom-16 size-[320px] rounded-full"
           style={{ background: 'rgba(16,185,129,0.05)', filter: 'blur(80px)' }} />
 
-        <div className="container relative z-[1]" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className="relative z-[1] container" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
 
           {/* Section header */}
           <div
             className="text-center"
             style={{ marginBottom: '60px', marginLeft: 'auto', marginRight: 'auto', maxWidth: '640px', width: '100%', textAlign: 'center' }}
           >
-            <p className="text-[0.78rem] font-bold tracking-[0.14em] text-[var(--primary)] uppercase mb-4">
+            <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-[var(--primary)] uppercase">
               WHY NESTFINDER?
             </p>
             <h2
-              className="text-[clamp(1.9rem,4vw,2.8rem)] font-extrabold leading-tight"
+              className="text-[clamp(1.9rem,4vw,2.8rem)] leading-tight font-extrabold"
               style={{
                 color: isDark ? '#f1f5f9' : '#0f172a',
                 fontFamily: 'var(--font-display)',
@@ -234,7 +234,7 @@ export const Home = () => {
               Everything you need to find<br />your ideal room
             </h2>
             <p
-              className="text-[1.05rem] max-w-[520px] mx-auto text-center"
+              className="mx-auto max-w-[520px] text-center text-[1.05rem]"
               style={{ color: isDark ? '#94a3b8' : '#475569', lineHeight: '1.9', marginTop: '0px' }}
             >
               NestFinder combines interactive maps, AI recommendations and verified listings so you can find your perfect place — efficiently and safely.
@@ -275,13 +275,13 @@ export const Home = () => {
                   {icon}
                 </div>
                 <h3
-                  className="text-[1.15rem] font-bold m-0"
+                  className="m-0 text-[1.15rem] font-bold"
                   style={{ color: isDark ? '#f1f5f9' : '#0f172a' }}
                 >
                   {title}
                 </h3>
                 <p
-                  className="text-[0.93rem] leading-[1.7] m-0"
+                  className="m-0 text-[0.93rem] leading-[1.7]"
                   style={{ color: isDark ? '#94a3b8' : '#475569' }}
                 >
                   {desc}
@@ -291,7 +291,7 @@ export const Home = () => {
           </div>
 
           {/* Bottom CTA */}
-          <div className="text-center mt-20">
+          <div className="mt-20 text-center">
             <Link to="/auth" className="hero-cta-btn" style={{ textDecoration: 'none', position: 'relative',bottom:'20px' }}>
               Start Finding Rooms <ArrowRight size={18} />
             </Link>

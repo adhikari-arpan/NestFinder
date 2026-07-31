@@ -64,7 +64,7 @@ export const RoomDetails = () => {
 
   if (!room) {
     return (
-      <div className="container py-20 px-4 text-center">
+      <div className="container px-4 py-20 text-center">
         <h2>Listing Not Found</h2>
         <p className="my-4 mb-8">The room listing you are trying to view does not exist or has been removed.</p>
         <Link to="/search" className="btn btn-primary">Back to Search</Link>
@@ -104,9 +104,9 @@ export const RoomDetails = () => {
   const sectionHeadingClass = "text-[1.2rem] border-b border-[var(--border-color)] pb-2";
 
   return (
-    <div className="container animate-fade-in px-6 pt-8 pb-20 text-left">
+    <div className="animate-fade-in container px-6 pt-8 pb-20 text-left">
       {/* Nav Row */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="btn btn-outline btn-sm flex items-center gap-1">
           <ArrowLeft size={16} /> Back
         </button>
@@ -119,7 +119,7 @@ export const RoomDetails = () => {
           </button>
           <button
             onClick={() => toggleSaveListing(room.id)}
-            className={`btn btn-outline btn-sm flex items-center gap-1 ${isSaved ? 'text-[var(--danger)] border-[var(--danger)]' : 'border-[var(--border-color)]'}`}
+            className={`btn btn-outline btn-sm flex items-center gap-1 ${isSaved ? 'border-[var(--danger)] text-[var(--danger)]' : 'border-[var(--border-color)]'}`}
           >
             <Heart size={16} style={{ fill: isSaved ? 'var(--danger)' : 'none' }} />
             {isSaved ? 'Saved' : 'Save'}
@@ -128,15 +128,15 @@ export const RoomDetails = () => {
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-[1.4fr_0.8fr] gap-10">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-[1.4fr_0.8fr]">
 
         {/* Left Column */}
         <div className="flex flex-col gap-8">
 
           {/* Gallery */}
           <div className="flex flex-col gap-3">
-            <div className="w-full h-[400px] rounded-[var(--radius-lg)] overflow-hidden border border-[var(--border-color)] relative">
-              <img src={activeImage} alt="Active listing" className="w-full h-full object-cover" />
+            <div className="relative h-[400px] w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-color)]">
+              <img src={activeImage} alt="Active listing" className="size-full object-cover" />
               {room.featured && (
                 <span className="badge badge-accent absolute top-[15px] left-[15px] z-[5] px-3 py-1.5 text-[0.8rem]">
                   Popular Choice
@@ -149,10 +149,10 @@ export const RoomDetails = () => {
                   <button
                     key={index}
                     onClick={() => setActiveImage(img)}
-                    className={`w-20 h-[60px] rounded-[var(--radius-sm)] overflow-hidden p-0 cursor-pointer border ${activeImage === img ? 'border-2 border-[var(--primary)]' : 'border border-[var(--border-color)]'
+                    className={`h-[60px] w-20 cursor-pointer overflow-hidden rounded-[var(--radius-sm)] border p-0 ${activeImage === img ? 'border-2 border-[var(--primary)]' : 'border border-[var(--border-color)]'
                       }`}
                   >
-                    <img src={img} alt={`thumbnail ${index}`} className="w-full h-full object-cover" />
+                    <img src={img} alt={`thumbnail ${index}`} className="size-full object-cover" />
                   </button>
                 ))}
               </div>
@@ -161,20 +161,20 @@ export const RoomDetails = () => {
 
           {/* Heading Info */}
           <div>
-            <div className="flex justify-between items-start flex-wrap gap-4 mb-2">
+            <div className="mb-2 flex flex-wrap items-start justify-between gap-4">
               <div>
                 <span className="badge badge-primary mb-2">{room.sharing} Sharing • {room.type}</span>
-                <h1 className="text-[1.8rem] font-extrabold m-0">{room.title}</h1>
+                <h1 className="m-0 text-[1.8rem] font-extrabold">{room.title}</h1>
               </div>
               <div className="text-right">
-                <span className="text-[1.8rem] font-extrabold text-[var(--primary)] block">
+                <span className="block text-[1.8rem] font-extrabold text-[var(--primary)]">
                   Rs. {room.price.toLocaleString('en-IN')}
                 </span>
                 <span className="text-[0.85rem] text-[var(--text-muted)]">per month (utilities negotiable)</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-6 flex-wrap text-[0.9rem] text-[var(--text-light)] border-t border-b border-[var(--border-color)] py-3">
+            <div className="flex flex-wrap items-center gap-6 border-y border-[var(--border-color)] py-3 text-[0.9rem] text-[var(--text-light)]">
               <div className="flex items-center gap-1">
                 <MapPin size={16} className="text-[var(--primary)]" />
                 <span>{room.location}</span>
@@ -197,13 +197,13 @@ export const RoomDetails = () => {
           {/* Description */}
           <div className="flex flex-col gap-3">
             <h3 className={sectionHeadingClass}>Description</h3>
-            <p className="text-[var(--text-muted)] text-[0.98rem] leading-[1.7]">{room.description}</p>
+            <p className="text-[0.98rem] leading-[1.7] text-[var(--text-muted)]">{room.description}</p>
           </div>
 
           {/* Amenities */}
           <div className="flex flex-col gap-3">
             <h3 className={sectionHeadingClass}>Facilities Available</h3>
-            <div className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 mt-2">
+            <div className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
               {room.amenities.map((amenity, i) => (
                 <div key={i} className="flex items-center gap-2 text-[0.95rem]">
                   <CheckCircle2 size={18} className="text-[var(--secondary)]" />
@@ -216,10 +216,10 @@ export const RoomDetails = () => {
           {/* Nearby POIs Table */}
           <div className="flex flex-col gap-3">
             <h3 className={sectionHeadingClass}>Nearby Points of Interest (Walk Distance)</h3>
-            <div className="card p-0 overflow-hidden border border-[var(--border-color)]">
-              <table className="w-full border-collapse text-[0.9rem] poi-table">
+            <div className="card overflow-hidden border border-[var(--border-color)] p-0">
+              <table className="poi-table w-full border-collapse text-[0.9rem]">
                 <thead>
-                  <tr className="bg-[var(--bg-app)] border-b border-[var(--border-color)] text-left">
+                  <tr className="border-b border-[var(--border-color)] bg-[var(--bg-app)] text-left">
                     <th className="px-4 py-3">POI Name</th>
                     <th className="px-4 py-3">Category</th>
                     <th className="px-4 py-3 text-right">Distance</th>
@@ -246,13 +246,13 @@ export const RoomDetails = () => {
         <div className="flex flex-col gap-8">
 
           {/* Landlord Card */}
-          <div className="card shadow-lg flex flex-col gap-5 border border-[var(--border-color)] p-6">
+          <div className="card flex flex-col gap-5 border border-[var(--border-color)] p-6 shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="w-[50px] h-[50px] rounded-full bg-[var(--primary-light)] text-[var(--primary)] flex items-center justify-center font-bold text-[1.2rem]">
+              <div className="flex size-[50px] items-center justify-center rounded-full bg-[var(--primary-light)] text-[1.2rem] font-bold text-[var(--primary)]">
                 {room.landlord?.name?.charAt(0) || '?'}
               </div>
               <div className="text-left">
-                <h3 className="text-[1.05rem] flex items-center gap-1">
+                <h3 className="flex items-center gap-1 text-[1.05rem]">
                   {room.landlord?.name || 'Unknown Landlord'}
                   {room.landlord?.verified && (
                     <CheckCircle2 size={16} style={{ color: 'var(--secondary)', fill: 'var(--secondary-light)' }} title="Verified Landlord" />
@@ -262,7 +262,7 @@ export const RoomDetails = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-b border-[var(--border-color)] py-3 text-[0.88rem]">
+            <div className="flex flex-col gap-2 border-y border-[var(--border-color)] py-3 text-[0.88rem]">
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-[var(--primary)]" />
                 <span><strong>Phone:</strong> {room.landlord?.phone || 'Not available'}</span>
@@ -274,7 +274,7 @@ export const RoomDetails = () => {
             </div>
 
             {inquirySent ? (
-              <div className="badge badge-secondary p-3 rounded-[var(--radius-md)] text-[0.85rem] flex flex-col gap-1 normal-case">
+              <div className="badge badge-secondary flex flex-col gap-1 rounded-[var(--radius-md)] p-3 text-[0.85rem] normal-case">
                 <strong className="block">✓ Inquiry Delivered!</strong>
                 The landlord has been notified and will contact you back.
               </div>
@@ -296,9 +296,9 @@ export const RoomDetails = () => {
                 </div>
                 <div className="form-group mb-0">
                   <label className="form-label text-[0.65rem]">Message</label>
-                  <textarea name="message" value={contactForm.message} onChange={handleInputChange} rows={3} className="form-input px-2.5 py-1.5 text-[0.85rem] resize-y" />
+                  <textarea name="message" value={contactForm.message} onChange={handleInputChange} rows={3} className="form-input resize-y px-2.5 py-1.5 text-[0.85rem]" />
                 </div>
-                <button type="submit" className="btn btn-primary btn-sm w-full mt-1 flex gap-1 justify-center">
+                <button type="submit" className="btn btn-primary btn-sm mt-1 flex w-full justify-center gap-1">
                   <Send size={14} /> Send Message
                 </button>
               </form>
@@ -306,8 +306,8 @@ export const RoomDetails = () => {
           </div>
 
           {/* Mini Map */}
-          <div className="card p-0 overflow-hidden h-[280px] border border-[var(--border-color)]">
-            <div className="h-[35px] px-4 flex items-center justify-between bg-[var(--bg-app)] border-b border-[var(--border-color)] text-[0.8rem] font-bold">
+          <div className="card h-[280px] overflow-hidden border border-[var(--border-color)] p-0">
+            <div className="flex h-[35px] items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-app)] px-4 text-[0.8rem] font-bold">
               <span>📍 Location POI Radius Map</span>
               <span className="badge badge-primary text-[0.65rem]">OSM Leaflet</span>
             </div>
@@ -327,7 +327,7 @@ export const RoomDetails = () => {
       {/* Similar Rooms */}
       {similarRooms.length > 0 && (
         <section className="mt-16 border-t border-[var(--border-color)] pt-12">
-          <div className="text-left mb-8 flex items-center gap-2">
+          <div className="mb-8 flex items-center gap-2 text-left">
             <Sparkles size={20} style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
             <h2 className="text-[1.6rem]">Similar Rooms & Flats in {room.city}</h2>
           </div>

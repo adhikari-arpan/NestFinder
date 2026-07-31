@@ -22,7 +22,7 @@ export default defineConfig([
     },
     settings: {
       tailwindcss: {
-        config: 'tailwind.config.js',
+        cssConfigPath: './src/index.css',
       },
     },
     rules: {

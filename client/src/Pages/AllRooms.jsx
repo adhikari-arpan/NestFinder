@@ -42,7 +42,7 @@ export const AllRooms = () => {
     : [27.6850, 85.3200];
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '2.5rem 1.5rem 5rem' }}>
+    <div className="animate-fade-in container" style={{ padding: '2.5rem 1.5rem 5rem' }}>
 
       {/* Header */}
       <div style={{ marginBottom: '2.5rem' }}>

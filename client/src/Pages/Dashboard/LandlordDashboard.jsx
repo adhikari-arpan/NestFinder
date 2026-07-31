@@ -248,7 +248,7 @@ export const LandlordDashboard = () => {
   };
 
   return (
-    <div className="container animate-fade-in" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
+    <div className="animate-fade-in container" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
 
       {/* ── Welcome Banner: landlord greeting + Add Room CTA ── */}
       <DashboardHeader style={{

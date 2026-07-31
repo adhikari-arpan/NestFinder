@@ -8,7 +8,7 @@ export const NotFound = () => {
 
     return (
         <div
-            className="container animate-fade-in flex flex-col items-center justify-center text-center"
+            className="animate-fade-in container flex flex-col items-center justify-center text-center"
             style={{ minHeight: '70vh', padding: '3rem 1.5rem', position: 'relative', overflow: 'hidden' }}
         >
             <style>{`

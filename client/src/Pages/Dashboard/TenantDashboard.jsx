@@ -131,16 +131,16 @@ export const TenantDashboard = () => {
   if (!currentUser) return null;
 
   return (
-    <div className="container animate-fade-in py-8 px-6 pb-20 tenant-dashboard">
+    <div className="animate-fade-in tenant-dashboard container px-6 py-8 pb-20">
 
       {/* 1. Welcome Banner with Profile */}
       <DashboardHeader className="welcome-banner-redesign animate-fade-in">
         <div>
           <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto', marginBottom: '1rem' }} />
-          <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
+          <h2 className="text-primary mb-2 text-[1.8rem] font-extrabold">
             Welcome, {currentUser?.name}!
           </h2>
-          <p className="text-[1.1rem] font-bold text-text-main m-0">
+          <p className="text-text-main m-0 text-[1.1rem] font-bold">
             Let your search begin
           </p>
         </div>
@@ -150,15 +150,15 @@ export const TenantDashboard = () => {
       <div className="ai-cta-horizontal">
         <Sparkles size={48} className="text-primary" />
         <div>
-          <h3 className="text-[1.8rem] font-extrabold text-text-main m-0 leading-tight">
+          <h3 className="text-text-main m-0 text-[1.8rem] leading-tight font-extrabold">
             Let's refine your room search with the help of our AI
           </h3>
-          <p className="text-[1rem] text-text-muted mt-2 mb-0">
+          <p className="text-text-muted mt-2 mb-0 text-[1rem]">
             Find the perfect room tailored exactly to your preferences.
           </p>
         </div>
         <button
-          className="glow-btn btn-lg mt-2 rounded-(--radius-full) px-8 font-bold text-[1.1rem]"
+          className="glow-btn btn-lg mt-2 rounded-(--radius-full) px-8 text-[1.1rem] font-bold"
           onClick={() => navigate('/ai-recommend')}
         >
           Find Your Match with AI
@@ -167,7 +167,7 @@ export const TenantDashboard = () => {
 
       {/* 3. Favorites Section (Full Width) */}
       <div className="favorites-panel w-full">
-        <h3 className="text-[1.4rem] font-bold flex items-center gap-2 mb-2">
+        <h3 className="mb-2 flex items-center gap-2 text-[1.4rem] font-bold">
           <Heart size={24} className="text-danger fill-danger" /> Your Favourites
         </h3>
 
@@ -180,8 +180,8 @@ export const TenantDashboard = () => {
         ) : (
           <div className="empty-favorites">
             <Heart size={48} className="text-border-color mb-3" />
-            <p className="font-medium text-[1.1rem]">No favourites yet</p>
-            <p className="text-[0.9rem] max-w-62.5 mt-2 text-center">
+            <p className="text-[1.1rem] font-medium">No favourites yet</p>
+            <p className="mt-2 max-w-62.5 text-center text-[0.9rem]">
               Your favourite rooms will be visible here once you save them.
             </p>
           </div>
@@ -190,27 +190,27 @@ export const TenantDashboard = () => {
 
       {/* 4. Your Inquiries Section */}
       <div className="favorites-panel w-full">
-        <h3 className="text-[1.4rem] font-bold flex items-center gap-2 mb-2">
+        <h3 className="mb-2 flex items-center gap-2 text-[1.4rem] font-bold">
           <MessageSquare size={24} className="text-primary" /> Your Inquiries
         </h3>
 
         {tenantInquiries.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+          <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {tenantInquiries.map(inq => (
               <div key={inq.id} className="inquiry-card">
-                <div className="flex justify-between items-start">
-                  <strong className="text-[1rem] text-primary">{inq.listings?.title || 'Unknown Room'}</strong>
-                  <span className="text-[0.8rem] text-text-light">{new Date(inq.created_at).toLocaleDateString()}</span>
+                <div className="flex items-start justify-between">
+                  <strong className="text-primary text-[1rem]">{inq.listings?.title || 'Unknown Room'}</strong>
+                  <span className="text-text-light text-[0.8rem]">{new Date(inq.created_at).toLocaleDateString()}</span>
                 </div>
-                <p className="text-[0.9rem] text-text-main m-0 mt-2">"{inq.message}"</p>
+                <p className="text-text-main m-0 mt-2 text-[0.9rem]">"{inq.message}"</p>
 
                 {inq.status === 'replied' ? (
                   <div className="inquiry-reply mt-3">
-                    <strong className="block text-[0.8rem] text-primary mb-1">Landlord Reply:</strong>
+                    <strong className="text-primary mb-1 block text-[0.8rem]">Landlord Reply:</strong>
                     {inq.reply_text}
                   </div>
                 ) : (
-                  <div className="text-[0.8rem] text-accent mt-3 flex items-center gap-1">
+                  <div className="text-accent mt-3 flex items-center gap-1 text-[0.8rem]">
                     <Clock size={14} /> Pending landlord response
                   </div>
                 )}
@@ -220,8 +220,8 @@ export const TenantDashboard = () => {
         ) : (
           <div className="empty-favorites" style={{ padding: '3rem 2rem' }}>
             <MessageSquare size={48} className="text-border-color mb-3" />
-            <p className="font-medium text-[1.1rem]">No inquiries yet</p>
-            <p className="text-[0.9rem] max-w-62.5 mt-2 text-center">
+            <p className="text-[1.1rem] font-medium">No inquiries yet</p>
+            <p className="mt-2 max-w-62.5 text-center text-[0.9rem]">
               You haven't made any inquiries yet.
             </p>
           </div>
@@ -230,8 +230,8 @@ export const TenantDashboard = () => {
 
       {/* 5. Full-width Map Section */}
       <div>
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-[1.4rem] font-bold flex items-center gap-2">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="flex items-center gap-2 text-[1.4rem] font-bold">
             🗺️ All Available Rooms in Map View
           </h3>
           <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
