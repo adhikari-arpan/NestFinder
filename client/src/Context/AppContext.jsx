@@ -23,10 +23,13 @@ export const AppContextProvider = ({ children }) => {
 
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const toggleTheme = () =>
