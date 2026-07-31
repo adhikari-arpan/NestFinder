@@ -13,8 +13,31 @@ import {
   Menu,
   X,
   ShieldAlert,
-  Plus
+  Plus,
+  Info,
+  CheckCircle2,
+  AlertTriangle,
+  AlertCircle
 } from 'lucide-react';
+
+const NOTIF_ICONS = {
+  success: { icon: CheckCircle2, className: 'text-emerald-500' },
+  warning: { icon: AlertTriangle, className: 'text-amber-500' },
+  error: { icon: AlertCircle, className: 'text-[var(--danger)]' },
+  info: { icon: Info, className: 'text-[var(--primary)]' },
+};
+
+const formatNotifTime = (dateStr) => {
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return new Date(dateStr).toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
 
 export const Navbar = () => {
   const {
@@ -24,22 +47,22 @@ export const Navbar = () => {
     theme,
     toggleTheme,
     notifications,
-    setNotifications
+    markNotificationAsRead,
+    markAllNotificationsRead
   } = useContext(AppContext);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifMounted, setNotifMounted] = useState(false);
+  const [notifVisible, setNotifVisible] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [notifPos, setNotifPos] = useState({ top: 0, right: 0 });
+  const [notifPos, setNotifPos] = useState({ top: 0, right: 0, maxHeight: 400 });
   const bellBtnRef = useRef(null);
+  const notifListRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
 
   const unreadNotifs = notifications.filter(n => !n.read);
-
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
 
   const isActive = (path) => location.pathname === path;
 
@@ -59,15 +82,26 @@ export const Navbar = () => {
 
   // Compute the bell button's position each time the dropdown opens,
   // so the portal can be placed with fixed coordinates instead of
-  // being laid out as a flex sibling inside the navbar.
+  // being laid out as a flex sibling inside the navbar. The height is
+  // clamped to the space actually left below the bell so the dropdown's
+  // own scroll area stays fully on-screen instead of running off the
+  // bottom of the viewport.
+  const NOTIF_MAX_HEIGHT = 400;
+  const NOTIF_VIEWPORT_MARGIN = 16;
+
+  const computeNotifPos = () => {
+    if (!bellBtnRef.current) return;
+    const rect = bellBtnRef.current.getBoundingClientRect();
+    const top = rect.bottom + 8; // 8px gap below the bell, like top-[130%] did
+    setNotifPos({
+      top,
+      right: window.innerWidth - rect.right,
+      maxHeight: Math.min(NOTIF_MAX_HEIGHT, window.innerHeight - top - NOTIF_VIEWPORT_MARGIN),
+    });
+  };
+
   const openNotifs = () => {
-    if (bellBtnRef.current) {
-      const rect = bellBtnRef.current.getBoundingClientRect();
-      setNotifPos({
-        top: rect.bottom + 8, // 8px gap below the bell, like top-[130%] did
-        right: window.innerWidth - rect.right,
-      });
-    }
+    computeNotifPos();
     setNotifOpen(prev => !prev);
   };
 
@@ -93,21 +127,33 @@ export const Navbar = () => {
 
   useEffect(() => {
     if (!notifOpen) return;
-    const updatePos = () => {
-      if (bellBtnRef.current) {
-        const rect = bellBtnRef.current.getBoundingClientRect();
-        setNotifPos({
-          top: rect.bottom + 8,
-          right: window.innerWidth - rect.right,
-        });
-      }
-    };
-    window.addEventListener('resize', updatePos);
-    window.addEventListener('scroll', updatePos, true);
+    window.addEventListener('resize', computeNotifPos);
+    return () => window.removeEventListener('resize', computeNotifPos);
+  }, [notifOpen]);
+
+  // Lock page scroll while the dropdown is open so scrolling always acts on
+  // the notification list (via the backdrop's wheel handler below) instead
+  // of the page underneath. Restored the moment the dropdown is closed.
+  useEffect(() => {
+    if (!notifOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
     return () => {
-      window.removeEventListener('resize', updatePos);
-      window.removeEventListener('scroll', updatePos, true);
+      document.body.style.overflow = prevOverflow;
     };
+  }, [notifOpen]);
+
+  // Keep the dropdown mounted for a moment after close so it can play a
+  // fade/scale-out transition instead of vanishing instantly.
+  useEffect(() => {
+    if (notifOpen) {
+      setNotifMounted(true);
+      const raf = requestAnimationFrame(() => setNotifVisible(true));
+      return () => cancelAnimationFrame(raf);
+    }
+    setNotifVisible(false);
+    const timeout = setTimeout(() => setNotifMounted(false), 150);
+    return () => clearTimeout(timeout);
   }, [notifOpen]);
 
   return (
@@ -188,30 +234,40 @@ export const Navbar = () => {
                 )}
               </button>
 
-              {notifOpen && createPortal(
+              {notifMounted && createPortal(
                 <>
-                  {/* Invisible backdrop to close on outside click */}
+                  {/* Invisible backdrop: closes on outside click, and
+                      redirects scrolling anywhere on screen to the
+                      notification list while the dropdown is open */}
                   <div
                     onClick={() => setNotifOpen(false)}
+                    onWheel={(e) => {
+                      if (notifListRef.current) {
+                        notifListRef.current.scrollTop += e.deltaY;
+                      }
+                    }}
                     style={{ position: 'fixed', inset: 0, zIndex: 1005 }}
                   />
 
                   <div
-                    className="card max-h-[400px] w-[320px] overflow-y-auto border border-[var(--border-color)] p-4 shadow-xl"
+                    className={`card flex w-[320px] flex-col overflow-hidden border border-[var(--border-color)] p-0 shadow-xl transition-all duration-150 ease-out ${notifVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+                      }`}
                     style={{
                       position: 'fixed',
                       top: notifPos.top,
                       right: notifPos.right,
+                      maxHeight: notifPos.maxHeight,
                       zIndex: 1010,
+                      transformOrigin: 'top right',
                     }}
                   >
-                    <div className="mb-3 flex items-center justify-between border-b border-[var(--border-color)] pb-2">
+                    <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-color)] p-4 pb-2">
                       <h4 className="text-[0.95rem]">Notifications</h4>
                       <div className="flex items-center gap-3">
                         {unreadNotifs.length > 0 && (
                           <button
-                            onClick={markAllRead}
-                            className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-[var(--primary)]"
+                            onClick={markAllNotificationsRead}
+                            className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-[var(--primary)] hover:underline"
                           >
                             Mark all read
                           </button>
@@ -225,25 +281,40 @@ export const Navbar = () => {
                         </button>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div ref={notifListRef} className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto p-4 pt-2">
                       {notifications.length === 0 ? (
-                        <p className="p-4 text-center text-[0.85rem]">No notifications</p>
+                        <p className="p-4 text-center text-[0.85rem] text-[var(--text-muted)]">No notifications</p>
                       ) : (
-                        notifications.map(n => (
-                          <div
-                            key={n.id}
-                            className={`rounded-[var(--radius-md)] border-l-[3px] p-2.5 transition-colors hover:bg-[var(--bg-app)] ${n.read
-                              ? 'border-l-[var(--border-color)] bg-transparent'
-                              : 'border-l-[var(--primary)] bg-[var(--primary-light)]'
-                              }`}
-                          >
-                            <div className="text-[0.85rem] font-semibold">{n.title}</div>
-                            <div className="text-[0.75rem] text-[var(--text-muted)]">{n.message}</div>
-                            <span className="text-[0.65rem] text-[var(--text-light)]">
-                              {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                        ))
+                        notifications.map(n => {
+                          const { icon: TypeIcon, className: iconClass } =
+                            NOTIF_ICONS[n.type] || NOTIF_ICONS.info;
+                          return (
+                            <div
+                              key={n.id}
+                              onClick={() => !n.read && markNotificationAsRead(n.id)}
+                              className={`flex items-start gap-2.5 rounded-[var(--radius-md)] border-l-[3px] p-3 transition-colors hover:bg-[var(--bg-app)] ${n.read
+                                ? 'cursor-default border-l-[var(--border-color)] bg-transparent'
+                                : 'cursor-pointer border-l-[var(--primary)] bg-[var(--primary-light)]'
+                                }`}
+                            >
+                              <TypeIcon size={16} className={`mt-0.5 shrink-0 ${iconClass}`} />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="truncate text-[0.85rem] font-semibold">{n.title}</div>
+                                  {!n.read && (
+                                    <span className="mt-1 size-2 shrink-0 rounded-full bg-[var(--primary)]" />
+                                  )}
+                                </div>
+                                <div className="line-clamp-2 text-[0.75rem] leading-snug text-[var(--text-muted)]">
+                                  {n.message}
+                                </div>
+                                <span className="text-[0.65rem] text-[var(--text-light)]">
+                                  {formatNotifTime(n.created_at)}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </div>

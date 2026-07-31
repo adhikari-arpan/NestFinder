@@ -153,6 +153,28 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  const markNotificationAsRead = async (notificationId) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
+    );
+    try {
+      await api.markNotificationRead(notificationId);
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err.message);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await Promise.all(unreadIds.map((id) => api.markNotificationRead(id)));
+    } catch (err) {
+      console.error("Failed to mark notifications as read:", err.message);
+    }
+  };
+
   // ------------------------------------------------------------
   // Saved listings
   // ------------------------------------------------------------
@@ -469,6 +491,8 @@ export const AppContextProvider = ({ children }) => {
         sendInquiry,
         replyToInquiry,
         notifications,
+        markNotificationAsRead,
+        markAllNotificationsRead,
         tenantPreferences,
         setTenantPreferences,
         savedListings,
