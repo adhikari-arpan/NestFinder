@@ -251,7 +251,7 @@ export const TenantDashboard = () => {
             onMarkerClick={handleMarkerClick}
             currentCenter={mapCenter}
             radius={tenantPreferences.radius || 1000}
-            college={tenantPreferences.poiCollege}
+            college={tenantPreferences.poiLocation?.name}
           />
         </div>
       </div>

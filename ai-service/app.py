@@ -4,6 +4,7 @@
 # existing three-service architecture: React 3000 / Express 5000 / Flask 5001)
 
 import os
+import math
 import numpy as np
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -85,6 +86,18 @@ def listing_to_document(listing):
     )
 
 
+def haversine_distance(lat1, lng1, lat2, lng2):
+    """Great-circle distance between two lat/lng points, in meters."""
+    R = 6371000  # Earth's radius in meters
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    d_phi = math.radians(lat2 - lat1)
+    d_lambda = math.radians(lng2 - lng1)
+
+    a = (math.sin(d_phi / 2) ** 2 +
+         math.cos(phi1) * math.cos(phi2) * math.sin(d_lambda / 2) ** 2)
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
 def preferences_to_query(prefs):
     """Turn the tenant's structured preference object (same shape as
     tenantPreferences in AppContext) into a matching natural-language
@@ -97,8 +110,9 @@ def preferences_to_query(prefs):
     ]
     if amenities:
         parts.append(f"Needs amenities: {amenities}.")
-    if prefs.get("poiCollege"):
-        parts.append(f"Close to {prefs['poiCollege']}.")
+    poi_location = prefs.get("poiLocation")
+    if poi_location and poi_location.get("name"):
+        parts.append(f"Close to {poi_location['name']}.")
     return " ".join(parts)
 
 
@@ -134,17 +148,15 @@ def compute_hybrid_score(listing, prefs, semantic_score):
     have = listing.get("amenities", [])
     amenity_score = (len(set(wanted) & set(have)) / len(wanted)) if wanted else 1.0
 
-    # Proximity — same logic as your JS proximityInfo version
+    # Proximity — real distance from the tenant's chosen point, same
+    # logic as the JS rule-based scorer's proximityInfo version
     proximity_score = 0.5
     radius = prefs.get("radius", 1000)
-    poi_college = prefs.get("poiCollege")
-    if poi_college:
-        match = next((p for p in listing.get("listing_pois", [])
-                       if p["type"] == "College" and
-                       (poi_college.lower() in p["name"].lower() or
-                        p["name"].lower() in poi_college.lower())), None)
-        if match:
-            dist = match["distance_meters"]
+    poi_location = prefs.get("poiLocation")
+    if poi_location:
+        lat, lng = listing.get("latitude"), listing.get("longitude")
+        if lat is not None and lng is not None:
+            dist = haversine_distance(poi_location["lat"], poi_location["lng"], lat, lng)
             if dist <= radius:
                 proximity_score = 1 - dist / radius
             else:
@@ -295,12 +307,12 @@ def recommend():
         results.append({
             "id": listing["id"],
             "matchScore": round(final_score * 100, 1),
-            "semanticScore": breakdown["semantic"],  # FIX 2: exposed at top level for the frontend
+            "semanticScore": breakdown["semantic"],  
             "breakdown": breakdown,
         })
 
     scores_array = np.array([r["matchScore"] / 100 for r in results])
-    # FIX 1: listing_embeddings is already a numpy array — no .cpu() needed
+    
     embeddings_array = listing_embeddings
 
     reranked_idx = mmr_rerank(listings, scores_array, embeddings_array, top_k=10, diversity_weight=0.3)

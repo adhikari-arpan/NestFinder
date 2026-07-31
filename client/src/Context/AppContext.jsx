@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
+import { haversineDistance } from "../utils/geo";
 
 export const AppContext = createContext();
 
@@ -18,15 +19,19 @@ export const AppContextProvider = ({ children }) => {
     sharing: "Single",
     roomType: "Room",
     essentialAmenities: ["WiFi", "Hot Water"],
-    poiCollege: "NCIT College",
+    poiLocation: { name: "NCIT College", lat: 27.6644, lng: 85.3188 },
+    radius: 1000,
   });
 
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
   }, [theme]);
 
   const toggleTheme = () =>
@@ -147,6 +152,28 @@ export const AppContextProvider = ({ children }) => {
       ]);
     } catch (err) {
       console.error("Failed to save notification:", err.message);
+    }
+  };
+
+  const markNotificationAsRead = async (notificationId) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n)),
+    );
+    try {
+      await api.markNotificationRead(notificationId);
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err.message);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    try {
+      await Promise.all(unreadIds.map((id) => api.markNotificationRead(id)));
+    } catch (err) {
+      console.error("Failed to mark notifications as read:", err.message);
     }
   };
 
@@ -339,21 +366,20 @@ export const AppContextProvider = ({ children }) => {
       amenityScore = matched / prefs.essentialAmenities.length;
     }
 
-    // 6. College proximity
+    // 6. Location proximity — real distance from the chosen point
     let proximityScore = 0.5;
     let proximityInfo = null; // carries display info to the frontend
 
-    if (prefs.poiCollege) {
-      const matchPOI = listing.nearbyPOIs.find(
-        (poi) =>
-          poi.type === "College" &&
-          (poi.name.toLowerCase().includes(prefs.poiCollege.toLowerCase()) ||
-            prefs.poiCollege.toLowerCase().includes(poi.name.toLowerCase())),
-      );
+    if (prefs.poiLocation) {
       const radius = prefs.radius || 1000;
 
-      if (matchPOI) {
-        const dist = matchPOI.distance;
+      if (listing.latitude != null && listing.longitude != null) {
+        const dist = haversineDistance(
+          prefs.poiLocation.lat,
+          prefs.poiLocation.lng,
+          listing.latitude,
+          listing.longitude,
+        );
         if (dist <= radius) {
           proximityScore = 1 - dist / radius; // within radius: 1 down to 0
           proximityInfo = { withinRadius: true, distance: dist, over: 0 };
@@ -466,6 +492,8 @@ export const AppContextProvider = ({ children }) => {
         sendInquiry,
         replyToInquiry,
         notifications,
+        markNotificationAsRead,
+        markAllNotificationsRead,
         tenantPreferences,
         setTenantPreferences,
         savedListings,

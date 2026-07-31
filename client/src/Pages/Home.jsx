@@ -113,7 +113,7 @@ export const Home = () => {
       l.price <= maxBudget &&
       selectedAmenities.every(a => l.amenities.includes(a))
     )
-    .map(l => ({ ...l, matchScore: calculateRecommendationScore(l, { budget: maxBudget, preferredCity: l.city, sharing: 'Single', roomType: selectedType === 'all' ? l.type : selectedType, essentialAmenities: selectedAmenities, poiCollege: '' }) }))
+    .map(l => ({ ...l, matchScore: calculateRecommendationScore(l, { budget: maxBudget, preferredCity: l.city, sharing: 'Single', roomType: selectedType === 'all' ? l.type : selectedType, essentialAmenities: selectedAmenities, poiLocation: null }) }))
     .sort((a, b) => b.matchScore - a.matchScore);
 
   const isDark = theme === 'dark';

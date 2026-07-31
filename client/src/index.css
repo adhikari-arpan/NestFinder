@@ -451,6 +451,11 @@ p {
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5);
 }
 
+.map-marker-pin.selected {
+  background: var(--danger);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.5);
+}
+
 /* Split screen layout for SearchMap page */
 .search-map-layout {
   display: flex;
