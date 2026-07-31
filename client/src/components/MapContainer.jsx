@@ -2,12 +2,25 @@ import React, { useEffect, useRef, useContext } from 'react';
 import { AppContext } from "../Context/AppContext";
 import L from 'leaflet';
 
-export const MapContainer = ({ listings = [], activeListingId = null, highlightListingId = null, onMarkerClick = null, showPOIRadius = false, currentCenter = null, previewRadius = null }) => {
+export const MapContainer = ({
+  listings = [],
+  activeListingId = null,
+  highlightListingId = null,
+  onMarkerClick = null,
+  showPOIRadius = false,
+  currentCenter = null,
+  previewRadius = null,
+  selectable = false,
+  onLocationSelect = null,
+  selectedLocation = null,
+  selectionRadius = null,
+}) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersGroupRef = useRef(null);
   const circlesGroupRef = useRef(null);
   const clickCircleGroupRef = useRef(null);
+  const selectionGroupRef = useRef(null);
 
   const { theme } = useContext(AppContext);
 
@@ -39,6 +52,7 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
     markersGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
     circlesGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
     clickCircleGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
+    selectionGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
 
     // CHANGED: Invalidate size after layout completes (fixes grey area / misaligned tiles rendering bug)
     setTimeout(() => {
@@ -80,6 +94,59 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
       mapInstanceRef.current.setView(currentCenter, 15, { animate: true });
     }
   }, [currentCenter]);
+
+  // Let the user click anywhere on the map to pick a custom center point
+  useEffect(() => {
+    if (!mapInstanceRef.current || !selectable) return;
+
+    const map = mapInstanceRef.current;
+    const handleMapClick = (e) => {
+      if (onLocationSelect) {
+        onLocationSelect(e.latlng.lat, e.latlng.lng);
+      }
+    };
+
+    map.on('click', handleMapClick);
+    map.getContainer().style.cursor = 'crosshair';
+
+    return () => {
+      map.off('click', handleMapClick);
+      map.getContainer().style.cursor = '';
+    };
+  }, [selectable, onLocationSelect]);
+
+  // Render the pin + radius circle for the currently selected location
+  useEffect(() => {
+    if (!mapInstanceRef.current || !selectionGroupRef.current) return;
+
+    selectionGroupRef.current.clearLayers();
+    if (!selectedLocation) return;
+
+    const { lat, lng } = selectedLocation;
+
+    const pinIcon = L.divIcon({
+      className: 'custom-div-icon',
+      html: '<div class="map-marker-pin selected"></div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40]
+    });
+    L.marker([lat, lng], { icon: pinIcon }).addTo(selectionGroupRef.current);
+
+    if (selectionRadius) {
+      const dangerColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--danger').trim() || '#ef4444';
+
+      L.circle([lat, lng], {
+        radius: selectionRadius,
+        color: dangerColor,
+        fillColor: dangerColor,
+        fillOpacity: 0.1,
+        weight: 1.5,
+        dashArray: '6, 6'
+      }).addTo(selectionGroupRef.current);
+    }
+  }, [selectedLocation, selectionRadius]);
 
   // Update Markers when Listings or Active / Highlighted ID changes
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
+import { MapContainer } from "../components/MapContainer";
 import {
   Sparkles,
   ChevronRight,
@@ -29,24 +30,25 @@ export const AIRecommend = () => {
   const [amenities, setAmenities] = useState(
     tenantPreferences.essentialAmenities,
   );
-  const [college, setCollege] = useState(tenantPreferences.poiCollege);
+  const [location, setLocation] = useState(tenantPreferences.poiLocation);
   const [aiLoadingText, setAiLoadingText] = useState(
     "Vectorizing preferences...",
   );
-  const [radius, setRadius] = useState(1000); // default 1km in meters
+  const [radius, setRadius] = useState(tenantPreferences.radius || 1000); // meters
 
   const [activePreferences, setActivePreferences] = useState(null);
   const [aiResults, setAiResults] = useState([]);
 
-  const collegesList = [
-    "NCIT College",
-    "Kathford College",
-    "Tribhuvan University",
-    "Pulchowk Campus",
-    "St. Xavier's College Maitighar",
-    "Apex College Baneshwor",
-    "United Academy Kumaripati",
-    "Kathmandu University",
+  // Approximate coordinates — fine-tune by clicking the exact spot on the map.
+  const presetLocations = [
+    { name: "NCIT College", lat: 27.6644, lng: 85.3188 },
+    { name: "Kathford College", lat: 27.6636, lng: 85.3195 },
+    { name: "Tribhuvan University", lat: 27.68, lng: 85.2895 },
+    { name: "Pulchowk Campus", lat: 27.6798, lng: 85.3163 },
+    { name: "St. Xavier's College Maitighar", lat: 27.6939, lng: 85.3206 },
+    { name: "Apex College Baneshwor", lat: 27.6893, lng: 85.3355 },
+    { name: "United Academy Kumaripati", lat: 27.6789, lng: 85.3212 },
+    { name: "Kathmandu University", lat: 27.6206, lng: 85.556 },
   ];
 
   const allFacilities = [
@@ -75,7 +77,7 @@ export const AIRecommend = () => {
       sharing,
       roomType,
       essentialAmenities: amenities,
-      poiCollege: college,
+      poiLocation: location,
       radius,
     };
     setTenantPreferences(prefs);
@@ -150,26 +152,27 @@ export const AIRecommend = () => {
     }
     if (room.proximityInfo) {
       const { withinRadius, distance, over } = room.proximityInfo;
+      const locationLabel = location?.name || "your selected location";
 
       if (distance === null) {
         reasons.push({
-          text: `No listed distance to ${college}`,
+          text: `No coordinates available to measure distance from ${locationLabel}`,
           positive: false,
         });
       } else if (withinRadius) {
         const distLabel =
           distance >= 1000
             ? `${(distance / 1000).toFixed(1)}km`
-            : `${distance}m`;
+            : `${Math.round(distance)}m`;
         reasons.push({
-          text: `${distLabel} from ${college} — within your search radius`,
+          text: `${distLabel} from ${locationLabel} — within your search radius`,
           positive: true,
         });
       } else {
         const overLabel =
-          over >= 1000 ? `${(over / 1000).toFixed(1)}km` : `${over}m`;
+          over >= 1000 ? `${(over / 1000).toFixed(1)}km` : `${Math.round(over)}m`;
         reasons.push({
-          text: `${overLabel} beyond your search radius from ${college}`,
+          text: `${overLabel} beyond your search radius from ${locationLabel}`,
           positive: false,
         });
       }
@@ -244,7 +247,7 @@ export const AIRecommend = () => {
             { num: 1, label: "Budget & Location" },
             { num: 2, label: "Room Spec" },
             { num: 3, label: "Facilities" },
-            { num: 4, label: "College Proximity" },
+            { num: 4, label: "Location" },
           ].map((s) => (
             <div
               key={s.num}
@@ -451,33 +454,81 @@ export const AIRecommend = () => {
       {step === 4 && (
         <div className="card animate-fade-in flex flex-col gap-10 rounded-[var(--radius-lg)] border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-lg sm:p-12">
           <div>
-            <h2 className="mb-2 text-[1.4rem]">
-              Step 4: College / Campus Proximity
-            </h2>
+            <h2 className="mb-2 text-[1.4rem]">Step 4: Location</h2>
             <p className="text-[0.9rem] text-[var(--text-muted)]">
-              Choose your central campus. Rooms with shorter walking times are
-              scored highly.
+              Add a location that you want to search rooms around. Choose
+              from the following presets, or select your central location
+              from the map.
             </p>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Central Campus location</label>
-            <select
-              value={college}
-              onChange={(e) => setCollege(e.target.value)}
-              className="form-input w-full cursor-pointer p-4 text-[1rem]"
-            >
-              <option value="">None / Not a student</option>
-              {collegesList.map((col, idx) => (
-                <option key={idx} value={col}>
-                  🎓 {col}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-col gap-6">
+            <div className="form-group">
+              <label className="form-label">Preset Locations</label>
+              <select
+                value={
+                  location?.name &&
+                  presetLocations.some((p) => p.name === location.name)
+                    ? location.name
+                    : ""
+                }
+                onChange={(e) => {
+                  const preset = presetLocations.find(
+                    (p) => p.name === e.target.value,
+                  );
+                  setLocation(preset || null);
+                }}
+                className="form-input w-full cursor-pointer p-4 text-[1rem]"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--bg-app) 55%, transparent)",
+                }}
+              >
+                <option value="">Select a preset location...</option>
+                {presetLocations.map((preset) => (
+                  <option key={preset.name} value={preset.name}>
+                    🎓 {preset.name}
+                  </option>
+                ))}
+              </select>
+              {location && (
+                <button
+                  type="button"
+                  onClick={() => setLocation(null)}
+                  className="mt-3 cursor-pointer border-none bg-transparent text-[0.8rem] font-semibold text-[var(--text-muted)] hover:text-[var(--danger)]"
+                >
+                  Clear selected location
+                </button>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label mb-2 block">
+                Or pick a point on the map
+              </label>
+              <div className="h-[350px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-color)]">
+                <MapContainer
+                  selectable
+                  onLocationSelect={(lat, lng) =>
+                    setLocation({ name: null, lat, lng })
+                  }
+                  selectedLocation={
+                    location ? { lat: location.lat, lng: location.lng } : null
+                  }
+                  selectionRadius={radius}
+                  currentCenter={location ? [location.lat, location.lng] : null}
+                />
+              </div>
+              <span className="mt-2 block text-[0.8rem] text-[var(--text-light)]">
+                {location
+                  ? `Selected: ${location.name || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}`
+                  : "Click anywhere on the map to drop a pin."}
+              </span>
+            </div>
+
             {/* Radius Input */}
-            <div className="form-group mt-4">
+            <div className="form-group">
               <div className="mb-2 flex items-center justify-between">
-                <label className="form-label">Search Radius from Campus</label>
+                <label className="form-label">Search Radius</label>
                 <strong className="text-[1.1rem] text-(--primary)">
                   {radius >= 1000
                     ? `${(radius / 1000).toFixed(1)} km`
@@ -531,10 +582,6 @@ export const AIRecommend = () => {
                 ))}
               </div>
             </div>
-            <span className="mt-2 block text-[0.85rem] text-[var(--text-light)]">
-              Our model computes walk distances directly to this landmark
-              location using geometric bounds.
-            </span>
           </div>
 
           <div className={stepNavClass}>
@@ -591,7 +638,11 @@ export const AIRecommend = () => {
               <p className="text-[0.85rem] text-[var(--text-muted)]">
                 Preferences: Rs. {budget.toLocaleString()} • {roomType} •{" "}
                 {sharing} sharing •{" "}
-                {college ? poiNameShort(college) : "No College"}
+                {location
+                  ? location.name
+                    ? poiNameShort(location.name)
+                    : "Custom location"
+                  : "No location"}
               </p>
 
               {/* ADD THE BADGE HERE */}
