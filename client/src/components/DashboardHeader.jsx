@@ -30,7 +30,7 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
         {children}
 
         {/* Right: Profile trigger */}
-        <div className="flex flex-col items-center gap-2 relative z-[5]">
+        <div className="relative z-5 flex flex-col items-center gap-2">
           <div
             className="profile-circle"
             onClick={() => setProfileMenuOpen(true)}
@@ -42,7 +42,7 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
               <User size={40} className="text-primary" />
             )}
           </div>
-          <span className="text-[0.75rem] font-bold text-text-muted">Your Profile</span>
+          <span className="text-text-muted text-[0.75rem] font-bold">Your Profile</span>
         </div>
       </div>
 
@@ -52,8 +52,8 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
         onClick={() => setProfileMenuOpen(false)}
       />
       <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
             <User size={20} className="text-primary" /> Profile Menu
           </h3>
           <button
@@ -65,7 +65,7 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
           </button>
         </div>
 
-        <div className="flex flex-col gap-3 mb-8">
+        <div className="mb-8 flex flex-col gap-3">
           <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
             <User size={18} /> Edit Profile
           </div>
@@ -73,16 +73,16 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
             <ImageIcon size={18} /> Change Profile Picture
           </div>
           <div
-            className="profile-menu-item text-danger border-[rgba(239,68,68,0.2)] hover:bg-danger-light hover:border-danger hover:text-danger"
+            className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
             onClick={() => alert('Delete Profile Picture functionality coming soon!')}
           >
             <Trash2 size={18} /> Delete Profile Picture
           </div>
         </div>
 
-        <div className="mt-auto pt-4 border-t border-border-color">
+        <div className="border-border-color mt-auto border-t pt-4">
           <button
-            className="btn btn-primary w-full flex justify-center items-center gap-2"
+            className="btn btn-primary flex w-full items-center justify-center gap-2"
             onClick={handleLogout}
           >
             <LogOut size={18} /> Logout

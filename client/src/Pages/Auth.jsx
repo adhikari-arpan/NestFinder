@@ -49,13 +49,13 @@ const AnimatedBackground = ({ theme }) => {
     animate();
     return () => { cancelAnimationFrame(animFrame); window.removeEventListener('resize', resize); };
   }, [theme]);
-  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full z-0 pointer-events-none" />;
+  return <canvas ref={canvasRef} className="pointer-events-none fixed inset-0 z-0 size-full" />;
 };
 
 // --- Input Field ---
 const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, right, isDark }) => (
-  <div className="relative flex items-center w-full">
-    <span className="absolute left-0 top-0 h-full w-11 flex items-center justify-center pointer-events-none">
+  <div className="relative flex w-full items-center">
+    <span className="pointer-events-none absolute top-0 left-0 flex h-full w-11 items-center justify-center">
       <Icon size={16} style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)' }} />
     </span>
     <input
@@ -69,7 +69,7 @@ const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, 
         paddingRight: '2.75rem',
         textAlign: 'left',
       }}
-      className="w-full h-13.5 rounded-xl text-[0.9rem] outline-none transition-all duration-200 focus:ring-2 focus:ring-indigo-500/25"
+      className="h-13.5 w-full rounded-xl text-[0.9rem] transition-all duration-200 outline-none focus:ring-2 focus:ring-indigo-500/25"
     />
     {right && <div className="absolute right-4 flex items-center">{right}</div>}
   </div>
@@ -139,28 +139,28 @@ export const Auth = () => {
   const roleInactiveText = isDark ? 'rgba(255,255,255,0.45)' : 'rgba(67,56,202,0.6)';
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden py-10 px-4"
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10"
       style={{ background: pageBg }}>
 
       <AnimatedBackground theme={theme} />
 
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-175 h-175 rounded-full pointer-events-none z-1"
+      <div className="pointer-events-none absolute top-1/2 left-1/2 z-1 size-175 -translate-1/2 rounded-full"
         style={{ background: isDark ? 'radial-gradient(circle,rgba(99,102,241,0.10) 0%,transparent 70%)' : 'radial-gradient(circle,rgba(99,102,241,0.07) 0%,transparent 70%)' }} />
 
       {/* Left panel */}
-      <div className="absolute left-[6%] top-1/2 -translate-y-1/2 z-2 max-w-65 hidden xl:flex flex-col gap-8">
+      <div className="absolute top-1/2 left-[6%] z-2 hidden max-w-65 -translate-y-1/2 flex-col gap-8 xl:flex">
         <div className="flex flex-col gap-3">
-          <p className="text-[0.68rem] tracking-[0.18em] font-bold uppercase"
+          <p className="text-[0.68rem] font-bold tracking-[0.18em] uppercase"
             style={{ color: isDark ? 'rgba(52,211,153,0.8)' : '#059669' }}>Nepal's Rental Network</p>
-          <h1 className="text-[2rem] font-extrabold leading-[1.2]" style={{ color: isDark ? 'rgba(255,255,255,0.9)' : '#1e1b4b' }}>
+          <h1 className="text-[2rem] leading-[1.2] font-extrabold" style={{ color: isDark ? 'rgba(255,255,255,0.9)' : '#1e1b4b' }}>
             Find your<br /><span style={{ color: isDark ? '#818cf8' : '#4f46e5' }}>perfect Nest</span>
           </h1>
         </div>
-        <div className="w-8 h-0.5 rounded-full" style={{ background: isDark ? '#818cf8' : '#4f46e5', opacity: 0.4 }} />
+        <div className="h-0.5 w-8 rounded-full" style={{ background: isDark ? '#818cf8' : '#4f46e5', opacity: 0.4 }} />
         <div className="flex flex-col gap-5">
           {features.map((f, i) => (
-            <div key={i} className="flex gap-3 items-start">
-              <span className="text-base mt-0.5 shrink-0">{f.icon}</span>
+            <div key={i} className="flex items-start gap-3">
+              <span className="mt-0.5 shrink-0 text-base">{f.icon}</span>
               <span className="text-[0.81rem] leading-relaxed" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : '#475569' }}>{f.text}</span>
             </div>
           ))}
@@ -168,31 +168,31 @@ export const Auth = () => {
       </div>
 
       {/* Right panel */}
-      <div className="absolute right-[6%] top-1/2 -translate-y-1/2 z-2 max-w-50 hidden xl:flex flex-col gap-7">
+      <div className="absolute top-1/2 right-[6%] z-2 hidden max-w-50 -translate-y-1/2 flex-col gap-7 xl:flex">
         {stats.map((s, i) => (
           <div key={i} className="text-right">
-            <p className="text-[1.75rem] font-extrabold leading-none" style={{ color: isDark ? 'rgba(129,140,248,0.85)' : '#4f46e5' }}>{s.num}</p>
-            <p className="text-[0.72rem] font-medium tracking-wide mt-0.5" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : '#64748b' }}>{s.label}</p>
+            <p className="text-[1.75rem] leading-none font-extrabold" style={{ color: isDark ? 'rgba(129,140,248,0.85)' : '#4f46e5' }}>{s.num}</p>
+            <p className="mt-0.5 text-[0.72rem] font-medium tracking-wide" style={{ color: isDark ? 'rgba(255,255,255,0.35)' : '#64748b' }}>{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* ── Card ── */}
-      <div className="relative z-3 w-full max-w-120 rounded-2xl border backdrop-blur-2xl animate-modal-enter"
+      <div className="animate-modal-enter relative z-3 w-full max-w-120 rounded-2xl border backdrop-blur-2xl"
         style={{ background: cardBg, borderColor: cardBorder, boxShadow: cardShadow, padding: '2.75rem 2.25rem 2.5rem' }}>
 
         {/* Logo */}
         <div className="flex flex-col items-center gap-3" style={{ marginBottom: '2.75rem' }}>
           <img src={logo} alt="NestFinder" style={{ height: '100px', width: 'auto' }} />
-          <h2 className="text-[1.35rem] font-extrabold m-0 tracking-tight" style={{ color: headingColor }}>NestFinder</h2>
-          <p className="text-[0.75rem] m-0 font-medium" style={{ color: subColor }}>Nepals's trusted rental platform</p>
+          <h2 className="m-0 text-[1.35rem] font-extrabold tracking-tight" style={{ color: headingColor }}>NestFinder</h2>
+          <p className="m-0 text-[0.75rem] font-medium" style={{ color: subColor }}>Nepals's trusted rental platform</p>
         </div>
 
         {/* Tabs */}
         <div className="flex rounded-xl p-1.25" style={{ background: tabBarBg, marginBottom: '1.75rem' }}>
           {['login', 'signup'].map(tab => (
             <button key={tab} type="button" onClick={() => { setActiveTab(tab); setFormMsg({ text: '', type: '' }); }}
-              className={`flex-1 py-3 rounded-[9px] border-none cursor-pointer font-bold text-[0.85rem] transition-all duration-200 ${activeTab === tab
+              className={`flex-1 cursor-pointer rounded-[9px] border-none py-3 text-[0.85rem] font-bold transition-all duration-200 ${activeTab === tab
                 ? 'bg-linear-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
                 : 'bg-transparent hover:opacity-70'
                 }`}
@@ -206,7 +206,7 @@ export const Auth = () => {
         <div className="flex gap-2.5" style={{ marginBottom: '2.25rem' }}>
           {roles.map(r => (
             <button key={r.val} type="button" onClick={() => setSelectedRole(r.val)}
-              className="flex-1 py-3 px-1 rounded-xl border cursor-pointer font-semibold text-[0.82rem] transition-all duration-200"
+              className="flex-1 cursor-pointer rounded-xl border px-1 py-3 text-[0.82rem] font-semibold transition-all duration-200"
               style={selectedRole === r.val ? {
                 borderColor: 'rgba(151, 153, 237, 0.55)',
                 background: isDark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.1)',
@@ -246,7 +246,7 @@ export const Auth = () => {
             placeholder="Password" required
             right={
               <button type="button" onClick={() => setShowPassword(p => !p)}
-                className="bg-transparent border-none cursor-pointer p-0 transition-opacity hover:opacity-60"
+                className="cursor-pointer border-none bg-transparent p-0 transition-opacity hover:opacity-60"
                 style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)' }}>
                 {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
@@ -275,24 +275,24 @@ export const Auth = () => {
           {/* Submit */}
           <button type="submit"
             style={{ marginTop: '0.5rem' }}
-            className="w-full h-13.5 border-none rounded-xl cursor-pointer bg-linear-to-r from-indigo-500 to-emerald-500 text-white font-bold text-[0.93rem] flex items-center justify-center gap-2 shadow-[0_4px_22px_rgba(99,102,241,0.32)] hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)] transition-all duration-200">
+            className="flex h-13.5 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-linear-to-r from-indigo-500 to-emerald-500 text-[0.93rem] font-bold text-white shadow-[0_4px_22px_rgba(99,102,241,0.32)] transition-all duration-200 hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)]">
             {activeTab === 'login' ? 'Sign In' : 'Create Account'}
             <ChevronRight size={17} />
           </button>
         </form>
 
         {/* Switch */}
-        <p className="text-[0.79rem] text-center font-medium" style={{ color: switchColor, marginTop: '2rem' }}>
+        <p className="text-center text-[0.79rem] font-medium" style={{ color: switchColor, marginTop: '2rem' }}>
           {activeTab === 'login' ? (
             <>No account?{' '}
               <button type="button" onClick={() => setActiveTab('signup')}
-                className="bg-transparent border-none font-bold cursor-pointer hover:underline p-0"
+                className="cursor-pointer border-none bg-transparent p-0 font-bold hover:underline"
                 style={{ color: linkColor }}>Register here</button>
             </>
           ) : (
             <>Already registered?{' '}
               <button type="button" onClick={() => setActiveTab('login')}
-                className="bg-transparent border-none font-bold cursor-pointer hover:underline p-0"
+                className="cursor-pointer border-none bg-transparent p-0 font-bold hover:underline"
                 style={{ color: linkColor }}>Sign in</button>
             </>
           )}

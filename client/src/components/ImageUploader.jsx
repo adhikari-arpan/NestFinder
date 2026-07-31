@@ -136,11 +136,11 @@ export default function ImageUploader({ files, onChange, maxFiles = MAX_FILES })
                 <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-4">
                     {previews.map((url, i) => (
                         <div key={url} className="group relative aspect-square overflow-hidden rounded-md">
-                            <img src={url} alt={`Room photo ${i + 1}`} className="h-full w-full object-cover" />
+                            <img src={url} alt={`Room photo ${i + 1}`} className="size-full object-cover" />
                             <button
                                 type="button"
                                 onClick={() => removeAt(i)}
-                                className="absolute right-1 top-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
+                                className="absolute top-1 right-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
                                 aria-label={`Remove photo ${i + 1}`}
                             >
                                 ✕

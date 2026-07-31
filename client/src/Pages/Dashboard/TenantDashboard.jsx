@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { createPortal } from 'react-dom';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
+import { DashboardHeader } from '../../components/DashboardHeader';
 import logo from '../../assets/NestFinder Logo.png';
 import {
-  Heart, Sparkles, MessageSquare, CheckCircle, Clock,
-  ArrowRight, User, Image as ImageIcon, Trash2, LogOut, X
+  Heart, Sparkles, MessageSquare, Clock, ArrowRight
 } from 'lucide-react';
 
 const RoomCarousel = ({ listings }) => {
@@ -98,7 +97,6 @@ const RoomCarousel = ({ listings }) => {
 export const TenantDashboard = () => {
   const {
     currentUser,
-    logoutUser,
     savedListings,
     inquiries,
     listings,
@@ -108,11 +106,9 @@ export const TenantDashboard = () => {
 
   const navigate = useNavigate();
 
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [activeListingId, setActiveListingId] = useState(null);
   const [highlightListingId, setHighlightListingId] = useState(null);
   const [mapCenter, setMapCenter] = useState(null);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // was missing
 
   useEffect(() => {
     if (!currentUser) {
@@ -132,174 +128,37 @@ export const TenantDashboard = () => {
     setActiveListingId(listingId);
   };
 
-  const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutConfirm(false);
-    logoutUser();
-    navigate('/'); // redirect to home page after logout
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
-
   if (!currentUser) return null;
 
   return (
-    <div className="container animate-fade-in py-8 px-6 pb-20 tenant-dashboard">
+    <div className="animate-fade-in tenant-dashboard container px-6 py-8 pb-20">
 
       {/* 1. Welcome Banner with Profile */}
-      <div className="welcome-banner-redesign animate-fade-in">
+      <DashboardHeader className="welcome-banner-redesign animate-fade-in">
         <div>
           <img src={logo} alt="NestFinder" style={{ height: '70px', width: 'auto', marginBottom: '1rem' }} />
-          <h2 className="text-[1.8rem] font-extrabold text-primary mb-2">
+          <h2 className="text-primary mb-2 text-[1.8rem] font-extrabold">
             Welcome, {currentUser?.name}!
           </h2>
-          <p className="text-[1.1rem] font-bold text-text-main m-0">
+          <p className="text-text-main m-0 text-[1.1rem] font-bold">
             Let your search begin
           </p>
         </div>
-
-        <div className="flex flex-col items-center gap-2 relative z-[5]">
-          <div
-            className="profile-circle"
-            onClick={() => setProfileMenuOpen(true)}
-            title="Click to view profile menu"
-          >
-            {currentUser?.profilePicture ? (
-              <img src={currentUser.profilePicture} alt="Profile" />
-            ) : (
-              <User size={40} className="text-primary" />
-            )}
-          </div>
-          <span className="text-[0.75rem] font-bold text-text-muted">Your Profile</span>
-        </div>
-      </div>
-
-      {/* Profile Overlay Panel */}
-      <div
-        className={`profile-overlay-backdrop ${profileMenuOpen ? 'open' : ''}`}
-        onClick={() => setProfileMenuOpen(false)}
-      />
-      <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-[1.2rem] font-extrabold flex items-center gap-2">
-            <User size={20} className="text-primary" /> Profile Menu
-          </h3>
-          <button
-            className="btn btn-ghost p-2"
-            onClick={() => setProfileMenuOpen(false)}
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-3 mb-8">
-          <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
-            <User size={18} /> Edit Profile
-          </div>
-          <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
-            <ImageIcon size={18} /> Change Profile Picture
-          </div>
-          <div className="profile-menu-item text-danger border-[rgba(239,68,68,0.2)] hover:bg-danger-light hover:border-danger hover:text-danger" onClick={() => alert('Delete Profile Picture functionality coming soon!')}>
-            <Trash2 size={18} /> Delete Profile Picture
-          </div>
-        </div>
-
-        <div className="mt-auto pt-4 border-t border-border-color">
-          <button
-            className="btn btn-primary w-full flex justify-center items-center gap-2"
-            onClick={handleLogout}
-          >
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
-      </div>
-
-      {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}
-      {showLogoutConfirm && createPortal(
-        <>
-          <div
-            onClick={cancelLogout}
-            style={{
-              position: 'fixed', inset: 0, zIndex: 2000,
-              background: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(4px)',
-            }}
-          />
-          <div style={{
-            position: 'fixed',
-            top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 2001,
-            width: '100%', maxWidth: '380px',
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-color)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '2rem 2rem 1.75rem',
-            boxShadow: '0 25px 60px rgba(0,0,0,0.25)',
-            textAlign: 'center',
-          }}>
-            <div style={{
-              width: '52px', height: '52px', borderRadius: '50%',
-              background: 'var(--primary-light)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 1.25rem',
-            }}>
-              <LogOut size={22} style={{ color: 'var(--primary)' }} />
-            </div>
-
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem', color: 'var(--text-main)' }}>
-              Are you sure you want to Logout from NestFinder?
-            </h3>
-            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-              You can sign back in anytime.
-            </p>
-
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <button
-                onClick={cancelLogout}
-                className="btn btn-outline"
-                style={{ flex: 1, fontWeight: 700 }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmLogout}
-                style={{
-                  flex: 1, border: 'none', borderRadius: 'var(--radius-md)',
-                  padding: '0.75rem', cursor: 'pointer', fontWeight: 700,
-                  fontSize: '0.9rem', color: 'white',
-                  background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
-                  boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
-                }}
-              >
-                <LogOut size={15} /> Yes, Logout
-              </button>
-            </div>
-          </div>
-        </>,
-        document.body
-      )}
+      </DashboardHeader>
 
       {/* 2. AI Match Horizontal CTA */}
       <div className="ai-cta-horizontal">
         <Sparkles size={48} className="text-primary" />
         <div>
-          <h3 className="text-[1.8rem] font-extrabold text-text-main m-0 leading-tight">
+          <h3 className="text-text-main m-0 text-[1.8rem] leading-tight font-extrabold">
             Let's refine your room search with the help of our AI
           </h3>
-          <p className="text-[1rem] text-text-muted mt-2 mb-0">
+          <p className="text-text-muted mt-2 mb-0 text-[1rem]">
             Find the perfect room tailored exactly to your preferences.
           </p>
         </div>
         <button
-          className="glow-btn btn-lg mt-2 rounded-[var(--radius-full)] px-8 font-bold text-[1.1rem]"
+          className="glow-btn btn-lg mt-2 rounded-(--radius-full) px-8 text-[1.1rem] font-bold"
           onClick={() => navigate('/ai-recommend')}
         >
           Find Your Match with AI
@@ -308,7 +167,7 @@ export const TenantDashboard = () => {
 
       {/* 3. Favorites Section (Full Width) */}
       <div className="favorites-panel w-full">
-        <h3 className="text-[1.4rem] font-bold flex items-center gap-2 mb-2">
+        <h3 className="mb-2 flex items-center gap-2 text-[1.4rem] font-bold">
           <Heart size={24} className="text-danger fill-danger" /> Your Favourites
         </h3>
 
@@ -321,8 +180,8 @@ export const TenantDashboard = () => {
         ) : (
           <div className="empty-favorites">
             <Heart size={48} className="text-border-color mb-3" />
-            <p className="font-medium text-[1.1rem]">No favourites yet</p>
-            <p className="text-[0.9rem] max-w-[250px] mt-2 text-center">
+            <p className="text-[1.1rem] font-medium">No favourites yet</p>
+            <p className="mt-2 max-w-62.5 text-center text-[0.9rem]">
               Your favourite rooms will be visible here once you save them.
             </p>
           </div>
@@ -331,27 +190,27 @@ export const TenantDashboard = () => {
 
       {/* 4. Your Inquiries Section */}
       <div className="favorites-panel w-full">
-        <h3 className="text-[1.4rem] font-bold flex items-center gap-2 mb-2">
+        <h3 className="mb-2 flex items-center gap-2 text-[1.4rem] font-bold">
           <MessageSquare size={24} className="text-primary" /> Your Inquiries
         </h3>
 
         {tenantInquiries.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-2">
+          <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {tenantInquiries.map(inq => (
               <div key={inq.id} className="inquiry-card">
-                <div className="flex justify-between items-start">
-                  <strong className="text-[1rem] text-primary">{inq.listings?.title || 'Unknown Room'}</strong>
-                  <span className="text-[0.8rem] text-text-light">{new Date(inq.created_at).toLocaleDateString()}</span>
+                <div className="flex items-start justify-between">
+                  <strong className="text-primary text-[1rem]">{inq.listings?.title || 'Unknown Room'}</strong>
+                  <span className="text-text-light text-[0.8rem]">{new Date(inq.created_at).toLocaleDateString()}</span>
                 </div>
-                <p className="text-[0.9rem] text-text-main m-0 mt-2">"{inq.message}"</p>
+                <p className="text-text-main m-0 mt-2 text-[0.9rem]">"{inq.message}"</p>
 
                 {inq.status === 'replied' ? (
                   <div className="inquiry-reply mt-3">
-                    <strong className="block text-[0.8rem] text-primary mb-1">Landlord Reply:</strong>
+                    <strong className="text-primary mb-1 block text-[0.8rem]">Landlord Reply:</strong>
                     {inq.reply_text}
                   </div>
                 ) : (
-                  <div className="text-[0.8rem] text-accent mt-3 flex items-center gap-1">
+                  <div className="text-accent mt-3 flex items-center gap-1 text-[0.8rem]">
                     <Clock size={14} /> Pending landlord response
                   </div>
                 )}
@@ -361,8 +220,8 @@ export const TenantDashboard = () => {
         ) : (
           <div className="empty-favorites" style={{ padding: '3rem 2rem' }}>
             <MessageSquare size={48} className="text-border-color mb-3" />
-            <p className="font-medium text-[1.1rem]">No inquiries yet</p>
-            <p className="text-[0.9rem] max-w-[250px] mt-2 text-center">
+            <p className="text-[1.1rem] font-medium">No inquiries yet</p>
+            <p className="mt-2 max-w-62.5 text-center text-[0.9rem]">
               You haven't made any inquiries yet.
             </p>
           </div>
@@ -371,8 +230,8 @@ export const TenantDashboard = () => {
 
       {/* 5. Full-width Map Section */}
       <div>
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-[1.4rem] font-bold flex items-center gap-2">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="flex items-center gap-2 text-[1.4rem] font-bold">
             🗺️ All Available Rooms in Map View
           </h3>
           <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
@@ -381,7 +240,7 @@ export const TenantDashboard = () => {
         </div>
 
         <div className="map-section-full relative">
-          <div className="map-badge-helper absolute top-[15px] right-[15px] z-[999]">
+          <div className="map-badge-helper absolute top-3.75 right-3.75 z-999">
             🗺️ Map Discovery Mode
           </div>
 

@@ -244,8 +244,8 @@ export const MapContainer = ({ listings = [], activeListingId = null, highlightL
 
   // CSS injection for popups inside Leaflet Map
   return (
-    <div className="w-full h-full relative">
-      <div ref={mapRef} className="w-full h-full z-[1]" />
+    <div className="relative size-full">
+      <div ref={mapRef} className="z-[1] size-full" />
       <style>{`
         .popup-link:hover {
           text-decoration: underline !important;

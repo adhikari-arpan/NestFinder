@@ -114,7 +114,7 @@ export const Navbar = () => {
     <nav
       className="glass sticky-nav sticky top-0 z-[1000] border-b border-[var(--border-color)] py-3 transition-[background] duration-[var(--transition-normal)]"
     >
-      <div className="container flex justify-between items-center relative flex-nowrap">
+      <div className="relative container flex flex-nowrap items-center justify-between">
 
         {/* Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -124,7 +124,7 @@ export const Navbar = () => {
 
         {/* Desktop Nav Links */}
         {currentUser && (
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden items-center gap-6 md:flex">
             {currentUser.role === 'tenant' && (
               <Link to="/dashboard/tenant" className={navLinkClass('/dashboard/tenant')}>Tenant Hub</Link>
             )}
@@ -133,7 +133,7 @@ export const Navbar = () => {
             )}
             {currentUser.role === 'admin' && (
               <Link to="/dashboard/admin" className={navLinkClass('/dashboard/admin')}>
-                <ShieldAlert size={16} className="inline mr-1" />
+                <ShieldAlert size={16} className="mr-1 inline" />
                 Admin
               </Link>
             )}
@@ -147,7 +147,7 @@ export const Navbar = () => {
           {isLandlord && (
             <button
               onClick={() => navigate('/dashboard/landlord?action=post')}
-              className="btn btn-primary btn-sm hidden md:flex items-center gap-1"
+              className="btn btn-primary btn-sm hidden items-center gap-1 md:flex"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -182,7 +182,7 @@ export const Navbar = () => {
               >
                 <Bell size={20} />
                 {unreadNotifs.length > 0 && (
-                  <span className="absolute top-1 right-1 bg-[var(--danger)] text-white text-[0.65rem] font-bold min-w-[16px] h-4 rounded-full flex items-center justify-center border-2 border-[var(--bg-card)]">
+                  <span className="absolute top-1 right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full border-2 border-[var(--bg-card)] bg-[var(--danger)] text-[0.65rem] font-bold text-white">
                     {unreadNotifs.length}
                   </span>
                 )}
@@ -197,7 +197,7 @@ export const Navbar = () => {
                   />
 
                   <div
-                    className="card shadow-xl w-[320px] max-h-[400px] overflow-y-auto p-4 border border-[var(--border-color)]"
+                    className="card max-h-[400px] w-[320px] overflow-y-auto border border-[var(--border-color)] p-4 shadow-xl"
                     style={{
                       position: 'fixed',
                       top: notifPos.top,
@@ -205,20 +205,20 @@ export const Navbar = () => {
                       zIndex: 1010,
                     }}
                   >
-                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-[var(--border-color)]">
+                    <div className="mb-3 flex items-center justify-between border-b border-[var(--border-color)] pb-2">
                       <h4 className="text-[0.95rem]">Notifications</h4>
                       <div className="flex items-center gap-3">
                         {unreadNotifs.length > 0 && (
                           <button
                             onClick={markAllRead}
-                            className="bg-transparent border-none text-[var(--primary)] text-[0.75rem] cursor-pointer font-semibold"
+                            className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-[var(--primary)]"
                           >
                             Mark all read
                           </button>
                         )}
                         <button
                           onClick={() => setNotifOpen(false)}
-                          className="bg-transparent border-none text-[var(--text-light)] cursor-pointer flex items-center justify-center hover:text-[var(--primary)]"
+                          className="flex cursor-pointer items-center justify-center border-none bg-transparent text-[var(--text-light)] hover:text-[var(--primary)]"
                           aria-label="Close notifications"
                         >
                           <X size={16} />
@@ -227,17 +227,17 @@ export const Navbar = () => {
                     </div>
                     <div className="flex flex-col gap-2">
                       {notifications.length === 0 ? (
-                        <p className="text-center text-[0.85rem] p-4">No notifications</p>
+                        <p className="p-4 text-center text-[0.85rem]">No notifications</p>
                       ) : (
                         notifications.map(n => (
                           <div
                             key={n.id}
-                            className={`p-2.5 rounded-[var(--radius-md)] border-l-[3px] transition-colors hover:bg-[var(--bg-app)] ${n.read
-                              ? 'bg-transparent border-l-[var(--border-color)]'
-                              : 'bg-[var(--primary-light)] border-l-[var(--primary)]'
+                            className={`rounded-[var(--radius-md)] border-l-[3px] p-2.5 transition-colors hover:bg-[var(--bg-app)] ${n.read
+                              ? 'border-l-[var(--border-color)] bg-transparent'
+                              : 'border-l-[var(--primary)] bg-[var(--primary-light)]'
                               }`}
                           >
-                            <div className="font-semibold text-[0.85rem]">{n.title}</div>
+                            <div className="text-[0.85rem] font-semibold">{n.title}</div>
                             <div className="text-[0.75rem] text-[var(--text-muted)]">{n.message}</div>
                             <span className="text-[0.65rem] text-[var(--text-light)]">
                               {new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -256,14 +256,14 @@ export const Navbar = () => {
           {/* User Area */}
           {currentUser ? (
             <div className="flex items-center gap-3">
-              <span className="hidden md:inline text-[0.85rem] font-semibold text-[var(--text-main)]">
+              <span className="hidden text-[0.85rem] font-semibold text-[var(--text-main)] md:inline">
                 Welcome, <span className="text-[var(--primary)]">{currentUser.name}</span>
               </span>
 
               {currentUser.role === 'tenant' && (
                 <Link
                   to="/ai-recommend"
-                  className="btn btn-secondary btn-sm hidden md:flex items-center gap-1"
+                  className="btn btn-secondary btn-sm hidden items-center gap-1 md:flex"
                 >
                   <Sparkles size={16} />
                   <span>Find Your Match With AI</span>
@@ -315,26 +315,26 @@ export const Navbar = () => {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="glass animate-fade-in absolute top-full left-0 right-0 bg-[var(--bg-card)] p-4 flex flex-col gap-3 rounded-[var(--radius-md)] shadow-[var(--shadow-lg)] mt-2 border border-[var(--border-color)] z-50">
+          <div className="glass animate-fade-in absolute inset-x-0 top-full z-50 mt-2 flex flex-col gap-3 rounded-[var(--radius-md)] border border-[var(--border-color)] bg-[var(--bg-card)] p-4 shadow-[var(--shadow-lg)]">
             {currentUser?.role === 'tenant' && (
-              <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">My Dashboard</Link>
+              <Link to="/dashboard/tenant" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">My Dashboard</Link>
             )}
             {currentUser?.role === 'landlord' && (
               <>
-                <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Landlord Hub</Link>
+                <Link to="/dashboard/landlord" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Landlord Hub</Link>
                 <button
                   onClick={() => { setMobileMenuOpen(false); navigate('/dashboard/landlord?action=post'); }}
-                  className="btn btn-primary btn-sm flex items-center gap-1 w-fit"
+                  className="btn btn-primary btn-sm flex w-fit items-center gap-1"
                 >
                   <Plus size={16} /> Add Room Listing
                 </button>
               </>
             )}
             {currentUser?.role === 'admin' && (
-              <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Admin Dashboard</Link>
+              <Link to="/dashboard/admin" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Admin Dashboard</Link>
             )}
             {!currentUser && (
-              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="px-2 py-1.5 rounded-[var(--radius-sm)] font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Sign In</Link>
+              <Link to="/auth" onClick={() => setMobileMenuOpen(false)} className="rounded-[var(--radius-sm)] px-2 py-1.5 font-medium hover:bg-[var(--primary-light)] hover:text-[var(--primary)]">Sign In</Link>
             )}
           </div>
         )}

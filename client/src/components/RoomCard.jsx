@@ -20,7 +20,7 @@ export const RoomCard = ({ room, score }) => {
   const displayScore = score !== undefined ? score : room.matchScore;
 
   return (
-    <div className="card card-hover room-card animate-fade-in rounded-[var(--radius-lg)] transition-all duration-[var(--transition-normal)] p-0">
+    <div className="card card-hover room-card animate-fade-in rounded-[var(--radius-lg)] p-0 transition-all duration-[var(--transition-normal)]">
 
       {/* Media Section */}
       <div className="card-media relative h-[200px] overflow-hidden">
@@ -32,11 +32,11 @@ export const RoomCard = ({ room, score }) => {
         "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80"
 }
           alt={room.title}
-          className="room-img w-full h-full object-cover transition-transform duration-[var(--transition-normal)] select-none group-hover:scale-105"
+          className="room-img size-full object-cover transition-transform duration-[var(--transition-normal)] select-none group-hover:scale-105"
         />
 
         {/* Floating Badges — top left */}
-        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-[5]">
+        <div className="absolute top-2.5 left-2.5 z-[5] flex flex-col gap-1">
           {room.status === 'verified' && (
             <span className="badge badge-secondary flex items-center gap-1 backdrop-blur-sm" style={{ background: 'rgba(16,185,129,0.9)', color: 'white' }}>
               <CheckCircle size={10} /> Verified
@@ -52,7 +52,7 @@ export const RoomCard = ({ room, score }) => {
         {/* AI Score — top right */}
         {displayScore !== undefined && displayScore > 60 && (
           <div
-            className="absolute top-2.5 right-2.5 z-[5] text-white font-extrabold text-[0.75rem] px-2.5 py-1 rounded-full flex items-center gap-1 shadow-[0_4px_10px_rgba(99,102,241,0.4)]"
+            className="absolute top-2.5 right-2.5 z-[5] flex items-center gap-1 rounded-full px-2.5 py-1 text-[0.75rem] font-extrabold text-white shadow-[0_4px_10px_rgba(99,102,241,0.4)]"
             style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #a855f7 100%)' }}
           >
             <Sparkles size={12} style={{ fill: 'white' }} />
@@ -63,7 +63,7 @@ export const RoomCard = ({ room, score }) => {
         {/* Save Button — bottom right */}
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleSaveListing(room.id); }}
-          className="absolute bottom-2.5 right-2.5 z-[5] w-9 h-9 rounded-full bg-white/90 border-none flex items-center justify-center cursor-pointer shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-[var(--transition-fast)] hover:scale-110"
+          className="absolute right-2.5 bottom-2.5 z-[5] flex size-9 cursor-pointer items-center justify-center rounded-full border-none bg-white/90 shadow-[0_2px_8px_rgba(0,0,0,0.15)] transition-all duration-[var(--transition-fast)] hover:scale-110"
           aria-label="Save Room"
         >
           <Heart
@@ -78,11 +78,11 @@ export const RoomCard = ({ room, score }) => {
       </div>
 
       {/* Details */}
-      <div className="p-5 text-left flex flex-col gap-3">
+      <div className="flex flex-col gap-3 p-5 text-left">
 
         {/* Type & Price */}
-        <div className="flex justify-between items-center">
-          <span className="text-[0.75rem] font-bold text-[var(--primary)] uppercase tracking-[0.05em]">
+        <div className="flex items-center justify-between">
+          <span className="text-[0.75rem] font-bold tracking-[0.05em] text-[var(--primary)] uppercase">
             {room.sharing} • {room.type}
           </span>
           <span className="text-[0.85rem] font-bold text-[var(--text-main)]">
@@ -92,8 +92,8 @@ export const RoomCard = ({ room, score }) => {
         </div>
 
         {/* Title */}
-        <h3 className="text-[1.05rem] font-bold m-0 truncate text-[var(--text-main)]">
-          <Link to={`/room/${room.id}`} className="hover:text-[var(--primary)] transition-colors">
+        <h3 className="m-0 truncate text-[1.05rem] font-bold text-[var(--text-main)]">
+          <Link to={`/room/${room.id}`} className="transition-colors hover:text-[var(--primary)]">
             {room.title}
           </Link>
         </h3>
@@ -106,8 +106,8 @@ export const RoomCard = ({ room, score }) => {
 
         {/* Nearby POI */}
         {room.nearbyPOIs && room.nearbyPOIs[0] && (
-          <div className="text-[0.8rem] bg-[var(--bg-app)] px-2.5 py-1.5 rounded-[var(--radius-sm)] text-[var(--text-muted)] flex items-center justify-between">
-            <span className="truncate max-w-[80%]">🎓 {room.nearbyPOIs[0].name}</span>
+          <div className="flex items-center justify-between rounded-[var(--radius-sm)] bg-[var(--bg-app)] px-2.5 py-1.5 text-[0.8rem] text-[var(--text-muted)]">
+            <span className="max-w-[80%] truncate">🎓 {room.nearbyPOIs[0].name}</span>
             <strong className="text-[0.75rem] text-[var(--primary)]">
               {room.nearbyPOIs[0].distance >= 1000
                 ? `${(room.nearbyPOIs[0].distance / 1000).toFixed(1)}km`
@@ -117,12 +117,12 @@ export const RoomCard = ({ room, score }) => {
         )}
 
         {/* Amenities & CTA */}
-        <div className="flex items-center justify-between border-t border-[var(--border-color)] pt-3 mt-1">
+        <div className="mt-1 flex items-center justify-between border-t border-[var(--border-color)] pt-3">
           <div className="flex gap-2 text-[var(--text-light)]">
             {room.amenities.slice(0, 4).map((amenity, i) => (
               <span
                 key={i}
-                className="w-7 h-7 rounded-full bg-[var(--bg-app)] flex items-center justify-center"
+                className="flex size-7 items-center justify-center rounded-full bg-[var(--bg-app)]"
               >
                 {renderAmenityBadge(amenity)}
               </span>
@@ -130,7 +130,7 @@ export const RoomCard = ({ room, score }) => {
           </div>
           <Link
             to={`/room/${room.id}`}
-            className="btn btn-outline btn-sm px-3 py-1.5 rounded-[var(--radius-sm)]"
+            className="btn btn-outline btn-sm rounded-[var(--radius-sm)] px-3 py-1.5"
           >
             View Details
           </Link>
