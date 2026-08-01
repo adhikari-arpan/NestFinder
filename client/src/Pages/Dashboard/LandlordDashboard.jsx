@@ -122,8 +122,14 @@ export const LandlordDashboard = () => {
 
   // Find inquiries sent to this Landlord's listings
   const landlordInquiries = inquiries.filter(inq =>
-    landlordListings.some(l => l.id === inq.listingId)
+    landlordListings.some(l => l.id === inq.listing_id)
   );
+
+  console.log("RAW listings:", listings);
+  console.log("RAW inquiries:", inquiries);
+  console.log("currentUser email:", currentUser?.email);
+  console.log("landlordListings result:", landlordListings);
+  console.log("landlordInquiries result:", landlordInquiries);
 
   const toggleFormAmenity = (item) => {
     setFormAmenities(prev =>
@@ -455,17 +461,17 @@ export const LandlordDashboard = () => {
                   {/* Inquiry Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ textAlign: 'left' }}>
-                      <strong style={{ fontSize: '1rem' }}>{inq.tenantName}</strong>
+                      <strong style={{ fontSize: '1rem' }}>{inq.tenant_name}</strong>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'block' }}>
-                        📞 {inq.tenantPhone} • ✉ {inq.tenantEmail}
+                        📞 {inq.tenant_phone} • ✉ {inq.tenant_email}
                       </span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <span className="badge badge-primary" style={{ fontSize: '0.7rem' }}>
-                        Property ID: {inq.listingId}
+                        Property ID: {inq.listing_id}
                       </span>
                       <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
-                        {new Date(inq.createdAt).toLocaleString()}
+                        {new Date(inq.created_at).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -484,7 +490,7 @@ export const LandlordDashboard = () => {
                   {inq.status === 'replied' ? (
                     <div style={{ padding: '0.75rem', backgroundColor: 'var(--secondary-light)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem' }}>
                       <strong style={{ color: 'var(--secondary)', display: 'block' }}>✓ You Replied:</strong>
-                      <span style={{ fontStyle: 'italic' }}>"{inq.replyText}"</span>
+                      <span style={{ fontStyle: 'italic' }}>"{inq.reply_text}"</span>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
