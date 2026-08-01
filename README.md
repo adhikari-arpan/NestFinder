@@ -101,17 +101,6 @@ nestfinder/
 
 ---
 
-## 📊 Development Phases
-
-| Phase | Focus | Status |
-|---|---|---|
-| 1 | Core System — Auth, Listings, Profiles | ⚒️ |
-| 2 | Search & Map — Filters, Leaflet, PostGIS |  |
-| 3 | Intelligence Layer — AI Recommendations |  |
-| 4 | Administration — Dashboard, Moderation |  |
-
----
-
 ## 👥 Team
 
 The project is developed by
