@@ -1,17 +1,17 @@
-export const SectionHeading = ({ children, subtitle, icon: Icon }) => (
-  <div className="mb-8 flex items-start gap-3">
-    {/* Accent bar */}
-    <div className="mt-1 h-8 w-1.5 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--secondary)]" />
-    <div>
-      <h2 className="flex items-center gap-2 text-[1.35rem] font-extrabold tracking-tight text-[var(--text-main)] m-0">
-        {Icon && <Icon size={20} className="text-[var(--primary)]" />}
-        {children}
-      </h2>
-      {subtitle && (
-        <p className="mt-1 text-[0.82rem] text-[var(--text-light)] m-0">
-          {subtitle}
-        </p>
-      )}
-    </div>
+export const SectionHeading = ({ children, icon: Icon }) => (
+  <div className="mb-10 flex items-center gap-4">
+    {/* Icon chip */}
+    {Icon && (
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-gradient-to-br from-[var(--primary)] to-[#7c3aed] text-white shadow-md">
+        <Icon size={18} />
+      </span>
+    )}
+
+    <h2 className="m-0 shrink-0 text-[1.35rem] font-extrabold tracking-tight text-[var(--text-main)]">
+      {children}
+    </h2>
+
+    {/* Gradient rule filling the remaining width */}
+    <div className="h-px flex-1 bg-gradient-to-r from-[var(--primary)]/40 via-white/10 to-transparent" />
   </div>
 );
