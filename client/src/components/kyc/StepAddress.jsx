@@ -1,6 +1,6 @@
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { stepNavClass } from "./kycStepStyles";
-import { NEPAL_PROVINCES } from "./nepalProvinces";
+import { NEPAL_PROVINCES, DISTRICTS_BY_PROVINCE, MUNICIPALITIES_BY_DISTRICT } from "./nepalLocations";
 
 export const StepAddress = ({
   province,
@@ -14,6 +14,20 @@ export const StepAddress = ({
   onNext,
   onBack,
 }) => {
+  const districtOptions = province ? DISTRICTS_BY_PROVINCE[province] || [] : [];
+  const municipalityOptions = district ? MUNICIPALITIES_BY_DISTRICT[district] || [] : [];
+
+  const handleProvinceChange = (value) => {
+    setProvince(value);
+    setDistrict("");
+    setMunicipality("");
+  };
+
+  const handleDistrictChange = (value) => {
+    setDistrict(value);
+    setMunicipality("");
+  };
+
   const canProceed =
     province.trim() && district.trim() && municipality.trim() && tole.trim();
 
@@ -32,7 +46,7 @@ export const StepAddress = ({
             <label className="form-label">Province *</label>
             <select
               value={province}
-              onChange={(e) => setProvince(e.target.value)}
+              onChange={(e) => handleProvinceChange(e.target.value)}
               className="form-input"
             >
               <option value="">Select province</option>
@@ -45,26 +59,38 @@ export const StepAddress = ({
           </div>
           <div className="form-group">
             <label className="form-label">District *</label>
-            <input
-              type="text"
+            <select
               value={district}
-              onChange={(e) => setDistrict(e.target.value)}
-              placeholder="Kathmandu"
+              onChange={(e) => handleDistrictChange(e.target.value)}
+              disabled={!province}
               className="form-input"
-            />
+            >
+              <option value="">{province ? "Select district" : "Select province first"}</option>
+              {districtOptions.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="form-group">
-            <label className="form-label">Municipality *</label>
-            <input
-              type="text"
+            <label className="form-label">Local Level *</label>
+            <select
               value={municipality}
               onChange={(e) => setMunicipality(e.target.value)}
-              placeholder="Kathmandu Metropolitan City"
+              disabled={!district}
               className="form-input"
-            />
+            >
+              <option value="">{district ? "Select local level" : "Select district first"}</option>
+              {municipalityOptions.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="form-group">
             <label className="form-label">Tole / Street *</label>
@@ -72,7 +98,6 @@ export const StepAddress = ({
               type="text"
               value={tole}
               onChange={(e) => setTole(e.target.value)}
-              placeholder="Baneshwor"
               className="form-input"
             />
           </div>
