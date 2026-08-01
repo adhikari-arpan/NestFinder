@@ -47,48 +47,53 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
       </div>
 
       {/* Profile Overlay Panel */}
-      <div
-        className={`profile-overlay-backdrop ${profileMenuOpen ? 'open' : ''}`}
-        onClick={() => setProfileMenuOpen(false)}
-      />
-      <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
-            <User size={20} className="text-primary" /> Profile Menu
-          </h3>
-          <button
-            className="btn btn-ghost p-2"
-            onClick={() => setProfileMenuOpen(false)}
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="mb-8 flex flex-col gap-3">
-          <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
-            <User size={18} /> Edit Profile
-          </div>
-          <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
-            <ImageIcon size={18} /> Change Profile Picture
-          </div>
+      {createPortal(
+        <>
           <div
-            className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
-            onClick={() => alert('Delete Profile Picture functionality coming soon!')}
-          >
-            <Trash2 size={18} /> Delete Profile Picture
-          </div>
-        </div>
+            className={`profile-overlay-backdrop ${profileMenuOpen ? 'open' : ''}`}
+            onClick={() => setProfileMenuOpen(false)}
+          />
+          <div className={`profile-overlay ${profileMenuOpen ? 'open' : ''}`}>
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
+                <User size={20} className="text-primary" /> Profile Menu
+              </h3>
+              <button
+                className="btn btn-ghost p-2"
+                onClick={() => setProfileMenuOpen(false)}
+                aria-label="Close menu"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-        <div className="border-border-color mt-auto border-t pt-4">
-          <button
-            className="btn btn-primary flex w-full items-center justify-center gap-2"
-            onClick={handleLogout}
-          >
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
-      </div>
+            <div className="mb-8 flex flex-col gap-3">
+              <div className="profile-menu-item" onClick={() => alert('Edit Profile functionality coming soon!')}>
+                <User size={18} /> Edit Profile
+              </div>
+              <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
+                <ImageIcon size={18} /> Change Profile Picture
+              </div>
+              <div
+                className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
+                onClick={() => alert('Delete Profile Picture functionality coming soon!')}
+              >
+                <Trash2 size={18} /> Delete Profile Picture
+              </div>
+            </div>
+
+            <div className="border-border-color mt-auto border-t pt-4">
+              <button
+                className="btn btn-primary flex w-full items-center justify-center gap-2"
+                onClick={handleLogout}
+              >
+                <LogOut size={18} /> Logout
+              </button>
+            </div>
+          </div>
+        </>,
+        document.body
+      )}
 
       {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}
       {showLogoutConfirm && createPortal(
