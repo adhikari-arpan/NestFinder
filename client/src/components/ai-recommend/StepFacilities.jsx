@@ -13,10 +13,10 @@ const ALL_FACILITIES = [
 
 export const StepFacilities = ({ amenities, toggleAmenity, onNext, onBack }) => {
   return (
-    <div className="card animate-fade-in flex flex-col gap-10 rounded-[var(--radius-lg)] border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-lg sm:p-12">
+    <div className="card animate-fade-in flex flex-col gap-10 rounded-lg) border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
       <div>
         <h2 className="mb-2 text-[1.4rem]">Step 3: Essential Facilities</h2>
-        <p className="text-[0.9rem] text-[var(--text-muted)]">
+        <p className="text-[0.9rem] text-(--text-muted)">
           Check any facilities that are non-negotiable for you. Our model
           penalizes listings missing these items.
         </p>
@@ -31,17 +31,17 @@ export const StepFacilities = ({ amenities, toggleAmenity, onNext, onBack }) => 
               <div
                 key={idx}
                 onClick={() => toggleAmenity(fac)}
-                className={`flex cursor-pointer items-center gap-3 rounded-[var(--radius-md)] border px-4 py-3 transition-all ${
+                className={`flex cursor-pointer items-center gap-3 rounded-md)] border px-4 py-3 transition-all ${
                   isSelected
-                    ? "border-[var(--secondary)] bg-[var(--secondary-light)]"
-                    : "border-[var(--border-color)] bg-transparent"
+                    ? "border-(--secondary) bg-(--secondary-light)"
+                    : "border-(--border-color) bg-transparent"
                 }`}
               >
                 <div
-                  className={`flex size-5 items-center justify-center rounded-[4px] border-2 text-white transition-colors ${
+                  className={`flex size-5 items-center justify-center rounded-sm border-2 text-white transition-colors ${
                     isSelected
-                      ? "border-[var(--secondary)] bg-[var(--secondary)]"
-                      : "border-[var(--border-color)] bg-transparent"
+                      ? "border-(--secondary) bg-(--secondary)"
+                      : "border-(--border-color) bg-transparent"
                   }`}
                 >
                   {isSelected && <Check size={14} />}
