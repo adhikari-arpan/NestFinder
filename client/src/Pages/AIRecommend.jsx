@@ -7,13 +7,23 @@ import { StepFacilities } from "../components/ai-recommend/StepFacilities";
 import { StepLocation } from "../components/ai-recommend/StepLocation";
 import { LoadingStep } from "../components/ai-recommend/LoadingStep";
 import { ResultsStep } from "../components/ai-recommend/ResultsStep";
+import { PaymentModal } from "../components/PaymentModal";
 import { Brain } from "lucide-react";
+import { haversineDistance } from "../utils/geo";
 
 export const AIRecommend = () => {
-  const { tenantPreferences, setTenantPreferences, getAIRecommendedListings, aiError } =
-    useContext(AppContext);
+  const {
+    tenantPreferences,
+    setTenantPreferences,
+    getAIRecommendedListings,
+    aiError,
+    checkDistanceAccess,
+    grantRadiusAccess,
+    getDistancePrice,
+  } = useContext(AppContext);
 
   const [step, setStep] = useState(1);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const [budget, setBudget] = useState(tenantPreferences.budget);
   const [city, setCity] = useState(tenantPreferences.preferredCity);
@@ -40,6 +50,12 @@ export const AIRecommend = () => {
     );
   };
 
+  const executeRecommendationFlow = (prefs) => {
+    setTenantPreferences(prefs);
+    setActivePreferences(prefs);
+    nextStep();
+  };
+
   const handleRunAssessment = () => {
     const prefs = {
       budget,
@@ -50,9 +66,31 @@ export const AIRecommend = () => {
       poiLocation: location,
       radius,
     };
-    setTenantPreferences(prefs);
-    setActivePreferences(prefs);
-    nextStep();
+
+    // Verify distance tier payment
+    const isPaid = checkDistanceAccess(location, radius);
+    if (!isPaid) {
+      setShowPaymentModal(true);
+    } else {
+      executeRecommendationFlow(prefs);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    const price = getDistancePrice(radius);
+    grantRadiusAccess(location, radius, price);
+    setShowPaymentModal(false);
+
+    const prefs = {
+      budget,
+      preferredCity: city,
+      sharing,
+      roomType,
+      essentialAmenities: amenities,
+      poiLocation: location,
+      radius,
+    };
+    executeRecommendationFlow(prefs);
   };
 
   useEffect(() => {
@@ -182,6 +220,16 @@ export const AIRecommend = () => {
           onModify={() => setStep(1)}
         />
       )}
+
+      {/* Payment Gateway Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        location={location}
+        radius={radius}
+        price={getDistancePrice(radius)}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
     </div>
   );
 };
