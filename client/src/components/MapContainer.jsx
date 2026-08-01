@@ -182,17 +182,17 @@ export const MapContainer = ({
       // Create Sleek Popup Card
       const imageUrl = (listing.images && listing.images.length > 0) ? listing.images[0] : '/placeholder-room.png';
       const popupContent = `
-        <div class="w-[200px] flex flex-col gap-1.5 p-1">
-          <img src="${imageUrl}" class="w-full h-[90px] object-cover rounded-[var(--radius-sm)]" />
-          <div class="font-bold text-[0.85rem] overflow-hidden text-ellipsis whitespace-nowrap text-[var(--text-main)] mt-0.5">
+        <div class="w-50 flex flex-col gap-1.5 p-1">
+          <img src="${imageUrl}" class="w-full h-22.5 object-cover rounded-sm)" />
+          <div class="font-bold text-[0.85rem] overflow-hidden text-ellipsis whitespace-nowrap text-(--text-main) mt-0.5">
             ${listing.title}
           </div>
-          <div class="text-[0.75rem] text-[var(--text-muted)] flex items-center gap-0.5">
+          <div class="text-[0.75rem] text-(--text-muted) flex items-center gap-0.5">
             📍 ${listing.location}
           </div>
-          <div class="flex justify-between items-center text-[0.8rem] mt-1 border-t border-[var(--border-color)] pt-1">
-            <strong class="text-[var(--primary)]">Rs. ${listing.price.toLocaleString('en-IN')}/mo</strong>
-            <a href="/room/${listing.id}" class="popup-link text-[var(--secondary)] font-bold no-underline">Details &rarr;</a>
+          <div class="flex justify-between items-center text-[0.8rem] mt-1 border-t border-(--border-color) pt-1">
+            <strong class="text-(--primary)">Rs. ${listing.price.toLocaleString('en-IN')}/mo</strong>
+            <a href="/room/${listing.id}" class="popup-link text-(--secondary) font-bold no-underline">Details &rarr;</a>
           </div>
         </div>
       `;
@@ -288,7 +288,7 @@ export const MapContainer = ({
           const poiLng = activeListing.longitude + lngOffset;
 
           const poiHtml = `
-            <div class="bg-white border-2 rounded-full w-7 h-7 flex items-center justify-center shadow-[var(--shadow-md)] text-[0.8rem]" style="border-color: ${poiColor};">
+            <div class="bg-white border-2 rounded-full w-7 h-7 flex items-center justify-center shadow-(--shadow-md) text-[0.8rem]" style="border-color: ${poiColor};">
               ${poiEmoji}
             </div>
           `;
@@ -312,7 +312,7 @@ export const MapContainer = ({
   // CSS injection for popups inside Leaflet Map
   return (
     <div className="relative size-full">
-      <div ref={mapRef} className="z-[1] size-full" />
+      <div ref={mapRef} className="z-1 size-full" />
       <style>{`
         .popup-link:hover {
           text-decoration: underline !important;

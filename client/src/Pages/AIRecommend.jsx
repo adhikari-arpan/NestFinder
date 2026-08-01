@@ -103,20 +103,20 @@ export const AIRecommend = () => {
 
   return (
     <div
-      className={`container ${step === 4 ? "min-h-[140vh]" : "min-h-screen"} max-w-[1200px] bg-gradient-to-b from-[rgba(99,102,241,0.03)] to-transparent px-4 pb-32 text-left sm:px-10`}
+      className={`container ${step === 4 ? "min-h-[140vh]" : "min-h-screen"} max-w-300 bg-linear-to-b from-[rgba(99,102,241,0.03)] to-transparent px-4 pb-32 text-left sm:px-10`}
       style={{ paddingTop: "40px" }}
     >
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 style={{ marginBottom: '60px' }}>">
-        <div className="flex size-16 -rotate-6 transform items-center justify-center rounded-[var(--radius-lg)] bg-gradient-to-br from-[var(--primary)] to-[#7c3aed] text-white shadow-lg">
+        <div className="flex size-16 -rotate-6 transform items-center justify-center rounded-lg) bg-linear-to-br from-(--primary)] to-[#7c3aed] text-white shadow-lg">
           <Brain size={42} />
         </div>
         <div>
-          <h1 className="m-0 bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] bg-clip-text text-[2rem] leading-tight font-extrabold text-transparent sm:text-[2.5rem]">
+          <h1 className="m-0 bg-linear-to-r from-(--primary) to-(--secondary) bg-clip-text text-[2rem] leading-tight font-extrabold text-transparent sm:text-[2.5rem]">
             AI Room Finder Assistant
           </h1>
           <p
-            className="mt-2 text-[1rem] font-medium text-[var(--text-muted)]"
+            className="mt-2 text-[1rem] font-medium text-(--text-muted)"
             style={{ marginBottom: "20px" }}
           >
             Smart preference matching powered by Next-Gen AI.

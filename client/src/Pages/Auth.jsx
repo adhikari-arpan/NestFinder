@@ -185,7 +185,7 @@ export const Auth = () => {
         <div className="flex flex-col items-center gap-3" style={{ marginBottom: '2.75rem' }}>
           <img src={logo} alt="NestFinder" style={{ height: '100px', width: 'auto' }} />
           <h2 className="m-0 text-[1.35rem] font-extrabold tracking-tight" style={{ color: headingColor }}>NestFinder</h2>
-          <p className="m-0 text-[0.75rem] font-medium" style={{ color: subColor }}>Nepals's trusted rental platform</p>
+          <p className="m-0 text-[0.75rem] font-medium" style={{ color: subColor }}>Nepal's trusted rental platform</p>
         </div>
 
         {/* Tabs */}
