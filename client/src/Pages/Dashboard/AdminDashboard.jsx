@@ -166,7 +166,7 @@ export const AdminDashboard = () => {
     <div className="animate-fade-in container px-6 pt-12 pb-20 text-left">
       {/* Header */}
 
-      <DashboardHeader className="flex justify-between items-start border-b border-[var(--border-color)] pb-6 mb-10">
+      <DashboardHeader className="flex justify-between items-start border-b border-(--border-color) pb-6 mb-8">
         <div>
           <img
             src={logo}

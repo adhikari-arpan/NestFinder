@@ -21,10 +21,10 @@ export const StepRoomLayout = ({
   onBack,
 }) => {
   return (
-    <div className="card animate-fade-in flex flex-col gap-10 rounded-[var(--radius-lg)] border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-lg sm:p-12">
+    <div className="card animate-fade-in flex flex-col gap-10 rounded-lg) border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
       <div>
         <h2 className="mb-2 text-[1.4rem]">Step 2: Room Layout</h2>
-        <p className="text-[0.9rem] text-[var(--text-muted)]">
+        <p className="text-[0.9rem] text-(--text-muted)">
           Select whether you require a single private bedroom or a full
           independent flat.
         </p>
@@ -55,7 +55,7 @@ export const StepRoomLayout = ({
                 key={item.val}
                 onClick={() => setSharing(item.val)}
                 type="button"
-                className={`${selBtnClass(sharing === item.val)} min-w-[150px] flex-1`}
+                className={`${selBtnClass(sharing === item.val)} min-w-37.5S flex-1`}
               >
                 {item.label}
               </button>
