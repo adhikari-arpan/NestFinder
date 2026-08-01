@@ -119,7 +119,7 @@ export const RoomDetails = () => {
           </button>
           <button
             onClick={() => toggleSaveListing(room.id)}
-            className={`btn btn-outline btn-sm flex items-center gap-1 ${isSaved ? 'border-[var(--danger)] text-[var(--danger)]' : 'border-[var(--border-color)]'}`}
+            className={`btn btn-outline btn-sm flex items-center gap-1 ${isSaved ? 'border-(--danger) text-(--danger)' : 'border-(--border-color)'}`}
           >
             <Heart size={16} style={{ fill: isSaved ? 'var(--danger)' : 'none' }} />
             {isSaved ? 'Saved' : 'Save'}
@@ -135,10 +135,10 @@ export const RoomDetails = () => {
 
           {/* Gallery */}
           <div className="flex flex-col gap-3">
-            <div className="relative h-[400px] w-full overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border-color)]">
+            <div className="relative h-100 w-full overflow-hidden rounded-lg) border border-(--border-color)">
               <img src={activeImage} alt="Active listing" className="size-full object-cover" />
               {room.featured && (
-                <span className="badge badge-accent absolute top-[15px] left-[15px] z-[5] px-3 py-1.5 text-[0.8rem]">
+                <span className="badge badge-accent absolute top-3.75 left-3.75 z-5 px-3 py-1.5 text-[0.8rem]">
                   Popular Choice
                 </span>
               )}
@@ -149,7 +149,7 @@ export const RoomDetails = () => {
                   <button
                     key={index}
                     onClick={() => setActiveImage(img)}
-                    className={`h-[60px] w-20 cursor-pointer overflow-hidden rounded-[var(--radius-sm)] border p-0 ${activeImage === img ? 'border-2 border-[var(--primary)]' : 'border border-[var(--border-color)]'
+                    className={`h-15 w-20 cursor-pointer overflow-hidden rounded-sm) border p-0 ${activeImage === img ? 'border-2 border-(--primary)' : 'border border-(--border-color)'
                       }`}
                   >
                     <img src={img} alt={`thumbnail ${index}`} className="size-full object-cover" />
@@ -167,16 +167,16 @@ export const RoomDetails = () => {
                 <h1 className="m-0 text-[1.8rem] font-extrabold">{room.title}</h1>
               </div>
               <div className="text-right">
-                <span className="block text-[1.8rem] font-extrabold text-[var(--primary)]">
+                <span className="block text-[1.8rem] font-extrabold text-(--primary)">
                   Rs. {room.price.toLocaleString('en-IN')}
                 </span>
-                <span className="text-[0.85rem] text-[var(--text-muted)]">per month (utilities negotiable)</span>
+                <span className="text-[0.85rem] text-(--text-muted)">per month (utilities negotiable)</span>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-6 border-y border-[var(--border-color)] py-3 text-[0.9rem] text-[var(--text-light)]">
+            <div className="flex flex-wrap items-center gap-6 border-y border-(--border-color) py-3 text-[0.9rem] text-(--text-light)">
               <div className="flex items-center gap-1">
-                <MapPin size={16} className="text-[var(--primary)]" />
+                <MapPin size={16} className="text-(--primary)" />
                 <span>{room.location}</span>
               </div>
               <div className="flex items-center gap-1">
@@ -197,7 +197,7 @@ export const RoomDetails = () => {
           {/* Description */}
           <div className="flex flex-col gap-3">
             <h3 className={sectionHeadingClass}>Description</h3>
-            <p className="text-[0.98rem] leading-[1.7] text-[var(--text-muted)]">{room.description}</p>
+            <p className="text-[0.98rem] leading-[1.7] text-(--text-muted)">{room.description}</p>
           </div>
 
           {/* Amenities */}
@@ -206,7 +206,7 @@ export const RoomDetails = () => {
             <div className="mt-2 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4">
               {room.amenities.map((amenity, i) => (
                 <div key={i} className="flex items-center gap-2 text-[0.95rem]">
-                  <CheckCircle2 size={18} className="text-[var(--secondary)]" />
+                  <CheckCircle2 size={18} className="text-(--secondary)" />
                   <span>{amenity}</span>
                 </div>
               ))}
@@ -216,10 +216,10 @@ export const RoomDetails = () => {
           {/* Nearby POIs Table */}
           <div className="flex flex-col gap-3">
             <h3 className={sectionHeadingClass}>Nearby Points of Interest (Walk Distance)</h3>
-            <div className="card overflow-hidden border border-[var(--border-color)] p-0">
+            <div className="card overflow-hidden border border-(--border-color) p-0">
               <table className="poi-table w-full border-collapse text-[0.9rem]">
                 <thead>
-                  <tr className="border-b border-[var(--border-color)] bg-[var(--bg-app)] text-left">
+                  <tr className="border-b border-(--border-color) bg-(--bg-app) text-left">
                     <th className="px-4 py-3">POI Name</th>
                     <th className="px-4 py-3">Category</th>
                     <th className="px-4 py-3 text-right">Distance</th>
@@ -227,12 +227,12 @@ export const RoomDetails = () => {
                 </thead>
                 <tbody>
                   {room.nearbyPOIs.map((poi, idx) => (
-                    <tr key={idx} className={idx !== room.nearbyPOIs.length - 1 ? 'border-b border-[var(--border-color)]' : ''}>
+                    <tr key={idx} className={idx !== room.nearbyPOIs.length - 1 ? 'border-b border-(--border-color)' : ''}>
                       <td className="px-4 py-3 font-semibold">{poi.name}</td>
-                      <td className="px-4 py-3 text-[var(--text-light)]">
+                      <td className="px-4 py-3 text-(--text-light)">
                         {poi.type === 'College' ? '🎓 College' : poi.type === 'Hospital' ? '🏥 Hospital' : poi.type === 'Market' ? '🛍️ Market' : '🚌 Transit stop'}
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-[var(--primary)]">{poi.distance} meters</td>
+                      <td className="px-4 py-3 text-right font-bold text-(--primary)">{poi.distance} meters</td>
                     </tr>
                   ))}
                 </tbody>
@@ -246,9 +246,9 @@ export const RoomDetails = () => {
         <div className="flex flex-col gap-8">
 
           {/* Landlord Card */}
-          <div className="card flex flex-col gap-5 border border-[var(--border-color)] p-6 shadow-lg">
+          <div className="card flex flex-col gap-5 border border-(--border-color) p-6 shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="flex size-[50px] items-center justify-center rounded-full bg-[var(--primary-light)] text-[1.2rem] font-bold text-[var(--primary)]">
+              <div className="flex size-12.5 items-center justify-center rounded-full bg-(--primary-light) text-[1.2rem] font-bold text-(--primary)">
                 {room.landlord?.name?.charAt(0) || '?'}
               </div>
               <div className="text-left">
@@ -258,23 +258,23 @@ export const RoomDetails = () => {
                     <CheckCircle2 size={16} style={{ color: 'var(--secondary)', fill: 'var(--secondary-light)' }} title="Verified Landlord" />
                   )}
                 </h3>
-                <span className="text-[0.8rem] text-[var(--text-light)]">Nest Landlord Profile</span>
+                <span className="text-[0.8rem] text-(--text-light)">Nest Landlord Profile</span>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 border-y border-[var(--border-color)] py-3 text-[0.88rem]">
+            <div className="flex flex-col gap-2 border-y border-(--border-color) py-3 text-[0.88rem]">
               <div className="flex items-center gap-2">
-                <Phone size={14} className="text-[var(--primary)]" />
+                <Phone size={14} className="text-(--primary)" />
                 <span><strong>Phone:</strong> {room.landlord?.phone || 'Not available'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Mail size={14} className="text-[var(--primary)]" />
+                <Mail size={14} className="text-(--primary)" />
                 <span><strong>Email:</strong> {room.landlord?.email || 'Not available'}</span>
               </div>
             </div>
 
             {inquirySent ? (
-              <div className="badge badge-secondary flex flex-col gap-1 rounded-[var(--radius-md)] p-3 text-[0.85rem] normal-case">
+              <div className="badge badge-secondary flex flex-col gap-1 rounded-md) p-3 text-[0.85rem] normal-case">
                 <strong className="block">✓ Inquiry Delivered!</strong>
                 The landlord has been notified and will contact you back.
               </div>
@@ -306,12 +306,12 @@ export const RoomDetails = () => {
           </div>
 
           {/* Mini Map */}
-          <div className="card h-[280px] overflow-hidden border border-[var(--border-color)] p-0">
-            <div className="flex h-[35px] items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-app)] px-4 text-[0.8rem] font-bold">
+          <div className="card h-70 overflow-hidden border border-(--border-color) p-0">
+            <div className="flex h-8.75 items-center justify-between border-b border-(--border-color) bg-(--bg-app) px-4 text-[0.8rem] font-bold">
               <span>📍 Location POI Radius Map</span>
               <span className="badge badge-primary text-[0.65rem]">OSM Leaflet</span>
             </div>
-            <div className="h-[245px]">
+            <div className="h-61.25">
               <MapContainer
                 listings={[room]}
                 activeListingId={room.id}
@@ -326,7 +326,7 @@ export const RoomDetails = () => {
 
       {/* Similar Rooms */}
       {similarRooms.length > 0 && (
-        <section className="mt-16 border-t border-[var(--border-color)] pt-12">
+        <section className="mt-16 border-t border-(--border-color) pt-12">
           <div className="mb-8 flex items-center gap-2 text-left">
             <Sparkles size={20} style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
             <h2 className="text-[1.6rem]">Similar Rooms & Flats in {room.city}</h2>
