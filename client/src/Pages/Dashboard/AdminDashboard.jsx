@@ -1,9 +1,12 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
+import * as api from "../../api/listingsapi";
 import logo from "../../assets/NestFinder Logo.png";
 import { DashboardHeader } from '../../components/DashboardHeader';
+import { StatTile } from '../../components/admin/StatTile';
+import { BarChartPanel } from '../../components/admin/BarChartPanel';
 
 import {
   ShieldAlert,
@@ -14,10 +17,13 @@ import {
   Flag,
   AlertTriangle,
   Users,
+  Building2,
   User,
   Image as ImageIcon,
   LogOut,
   X,
+  Search,
+  Loader2,
 } from "lucide-react";
 
 export const AdminDashboard = () => {
@@ -28,6 +34,12 @@ export const AdminDashboard = () => {
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [activeTab, setActiveTab] = useState("pending");
+
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [userSearch, setUserSearch] = useState("");
+  const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -43,22 +55,58 @@ export const AdminDashboard = () => {
     setShowLogoutConfirm(false);
   };
 
-  //id=f not loggedin or not admin, redirect to auth page
-  // useEffect(() => {
-  //   if (!currentUser || currentUser.role !== 'admin') {
-  //     navigate('/auth');
-  //   }
-  // }, [currentUser]);
+  const handleUserVerify = async (userId) => {
+    try {
+      await api.verifyLandlord(userId);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, is_verified: true } : u)),
+      );
+      setActionMessage({ text: "Landlord verified successfully.", type: "success" });
+    } catch (err) {
+      console.error("Failed to verify landlord:", err.message);
+      setActionMessage({ text: "Failed to verify landlord. Please try again.", type: "error" });
+    }
+  };
 
-  // if (!currentUser || currentUser.role !== 'admin') return null;
+  const handleUserSuspend = () => {
+    setActionMessage({
+      text: "Suspend isn't wired up yet — add a banned-status column to profiles in Supabase to enable it.",
+      type: "info",
+    });
+  };
+
+  // Not logged in or not an admin: bounce to the auth page
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      navigate('/auth');
+    }
+  }, [currentUser, navigate]);
+
+  useEffect(() => {
+    api
+      .fetchAllUsers()
+      .then(setUsers)
+      .catch((err) => {
+        console.error("Failed to load users:", err.message);
+        setActionMessage({ text: "Failed to load platform users.", type: "error" });
+      })
+      .finally(() => setUsersLoading(false));
+  }, []);
+
+  useEffect(() => {
+    if (!actionMessage) return;
+    const timer = setTimeout(() => setActionMessage(null), 3500);
+    return () => clearTimeout(timer);
+  }, [actionMessage]);
+
+  if (!currentUser || currentUser.role !== 'admin') return null;
+
   const adminListings = listings.filter(
     (l) =>
       // l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()   // blocks the dashboard changing from the url
 
       l.admin?.email?.toLowerCase() === currentUser?.email?.toLowerCase(),
   );
-
-  const [activeTab, setActiveTab] = useState("pending");
 
   const totalListings = listings.length;
   const verifiedCount = listings.filter((l) => l.status === "verified").length;
@@ -68,59 +116,44 @@ export const AdminDashboard = () => {
   const pendingListings = listings.filter((l) => l.status === "pending");
   const flaggedListings = listings.filter((l) => l.status === "flagged");
 
-  //mock users data for demonstration purposes
+  const verifiedLandlordCount = users.filter(
+    (u) => u.role === "landlord" && u.is_verified,
+  ).length;
 
-  const [mockUsers, setMockUsers] = useState([
-    {
-      id: 1,
-      name: "Roshan Gurung",
-      email: "roshan@gmail.com",
-      role: "Tenant",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Ramesh Shrestha",
-      email: "ramesh@nestfinder.com",
-      role: "Landlord",
-      status: "verified",
-    },
-    {
-      id: 3,
-      name: "Hari Bahadur Thapa",
-      email: "haribdr@nestfinder.com",
-      role: "Landlord",
-      status: "pending",
-    },
-    {
-      id: 4,
-      name: "Maya Shakya",
-      email: "maya@nestfinder.com",
-      role: "Landlord",
-      status: "verified",
-    },
-    {
-      id: 5,
-      name: "Saraswoti Adhikari",
-      email: "saraswoti@nestfinder.com",
-      role: "Landlord",
-      status: "verified",
-    },
-  ]);
+  const statusChartData = [
+    { label: "Verified", value: verifiedCount, colorVar: "--secondary" },
+    { label: "Pending", value: pendingCount, colorVar: "--accent" },
+    { label: "Flagged", value: flaggedCount, colorVar: "--danger" },
+  ];
 
-  const handleUserVerify = (userId) => {
-    setMockUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, status: "verified" } : u)),
+  const roleChartData = [
+    {
+      label: "Tenants",
+      value: users.filter((u) => u.role === "tenant").length,
+      colorVar: "--primary",
+    },
+    {
+      label: "Landlords",
+      value: users.filter((u) => u.role === "landlord").length,
+      colorVar: "--secondary",
+    },
+    {
+      label: "Admins",
+      value: users.filter((u) => u.role === "admin").length,
+      colorVar: "--accent",
+    },
+  ];
+
+  const filteredUsers = users.filter((u) => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)
     );
-    alert(`Landlord verification status updated for User ID ${userId}`);
-  };
+  });
 
-  const handleUserBan = (userId) => {
-    setMockUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, status: "banned" } : u)),
-    );
-    alert(`User ID ${userId} has been suspended.`);
-  };
+  const roleLabel = (role) =>
+    role ? role.charAt(0).toUpperCase() + role.slice(1) : "Unknown";
 
   const tabClass = (tab) =>
     `flex items-center gap-1.5 px-0.5 py-3 text-[0.95rem] font-bold border-b-[3px] bg-transparent border-x-0 border-t-0 cursor-pointer transition-colors ${
@@ -133,14 +166,17 @@ export const AdminDashboard = () => {
     <div className="animate-fade-in container px-6 pt-12 pb-20 text-left">
       {/* Header */}
 
-      <DashboardHeader className="flex justify-between items-start border-b border-[var(--border-color)] pb-6 mb-8">
+      <DashboardHeader className="flex justify-between items-start border-b border-[var(--border-color)] pb-6 mb-10">
         <div>
           <img
             src={logo}
             alt="NestFinder"
             style={{ height: "70px", width: "auto" }}
           />
-          <h1 className="flex items-center gap-2 text-[1.6rem] font-extrabold">
+          <p className="mt-2 text-[0.95rem] font-semibold text-(--primary)">
+            Hey, {currentUser?.name} 👋
+          </p>
+          <h1 className="mt-0.5 flex items-center gap-2 text-[1.6rem] font-extrabold">
             <ShieldAlert size={28} className="text-(--primary)" />
             Administrative Moderation Board
           </h1>
@@ -151,63 +187,77 @@ export const AdminDashboard = () => {
         </div>
       </DashboardHeader>
 
-      {/* Stats Grid */}
-      <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="card border border-(--border-color) p-5 text-center">
-          <span className="text-[0.75rem] font-bold tracking-wide text-(--text-light) uppercase">
-            Total Properties
-          </span>
-          <strong className="mt-1 block text-[1.8rem] text-(--text-main)">
-            {totalListings}
-          </strong>
+      {/* Overview */}
+      <section className="mb-12">
+        <h2 className="mb-4 text-[0.75rem] font-bold tracking-widest text-(--text-light) uppercase">
+          Overview
+        </h2>
+        <div className="grid grid-cols-3 gap-3 md:grid-cols-6">
+          <StatTile label="Total Properties" value={totalListings} />
+          <StatTile
+            label="Verified Rooms"
+            value={verifiedCount}
+            colorVar="--secondary"
+          />
+          <StatTile
+            label="Pending Review"
+            value={pendingCount}
+            colorVar="--accent"
+          />
+          <StatTile
+            label="Flagged / Spam"
+            value={flaggedCount}
+            colorVar="--danger"
+          />
+          <StatTile label="Total Users" value={usersLoading ? "—" : users.length} />
+          <StatTile
+            label="Verified Landlords"
+            value={usersLoading ? "—" : verifiedLandlordCount}
+            colorVar="--primary"
+          />
         </div>
-        <div className="card border border-(--border-color) p-5 text-center">
-          <span className="text-[0.75rem] font-bold tracking-wide text-(--secondary) uppercase">
-            Verified Rooms
-          </span>
-          <strong className="mt-1 block text-[1.8rem] text-(--secondary)">
-            {verifiedCount}
-          </strong>
-        </div>
-        <div className="card border border-(--border-color) p-5 text-center">
-          <span className="text-[0.75rem] font-bold tracking-wide text-(--accent) uppercase">
-            Pending Review
-          </span>
-          <strong className="mt-1 block text-[1.8rem] text-(--accent)">
-            {pendingCount}
-          </strong>
-        </div>
-        <div className="card border border-(--border-color) p-5 text-center">
-          <span className="text-[0.75rem] font-bold tracking-wide text-(--danger) uppercase">
-            Flagged / Spam
-          </span>
-          <strong className="mt-1 block text-[1.8rem] text-(--danger)">
-            {flaggedCount}
-          </strong>
-        </div>
-      </div>
+      </section>
 
-      {/* Tabs */}
-      <div className="mb-8 flex flex-wrap gap-6 border-b border-(--border-color)">
-        <button
-          onClick={() => setActiveTab("pending")}
-          className={tabClass("pending")}
-        >
-          <CheckCircle size={16} /> Approvals Queue ({pendingListings.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("flagged")}
-          className={tabClass("flagged")}
-        >
-          <Flag size={16} /> Flagged / Spam ({flaggedListings.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("users")}
-          className={tabClass("users")}
-        >
-          <Users size={16} /> Platform Users ({mockUsers.length})
-        </button>
-      </div>
+      {/* Analytics */}
+      <section className="mb-12">
+        <h2 className="mb-4 text-[0.75rem] font-bold tracking-widest text-(--text-light) uppercase">
+          Analytics
+        </h2>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <BarChartPanel title="Listings by Status" data={statusChartData} />
+          <BarChartPanel
+            title="Users by Role"
+            data={roleChartData}
+            emptyLabel={usersLoading ? "Loading users..." : "No users yet."}
+          />
+        </div>
+      </section>
+
+      {/* Management */}
+      <section>
+        <h2 className="mb-4 text-[0.75rem] font-bold tracking-widest text-(--text-light) uppercase">
+          Management
+        </h2>
+        <div className="mb-8 flex flex-wrap gap-6 border-b border-(--border-color)">
+          <button
+            onClick={() => setActiveTab("pending")}
+            className={tabClass("pending")}
+          >
+            <CheckCircle size={16} /> Approvals Queue ({pendingListings.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("flagged")}
+            className={tabClass("flagged")}
+          >
+            <Flag size={16} /> Flagged / Spam ({flaggedListings.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("users")}
+            className={tabClass("users")}
+          >
+            <Users size={16} /> Platform Users ({users.length})
+          </button>
+        </div>
 
       {/* 1. Pending Approvals */}
       {activeTab === "pending" && (
@@ -334,74 +384,130 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      {/* 3. Users Table */}
+      {/* 3. Platform Users */}
       {activeTab === "users" && (
-        <div className="card overflow-hidden border border-(--border-color) p-0">
-          <table className="poi-table w-full border-collapse text-[0.9rem]">
-            <thead>
-              <tr className="border-b border-(--border-color) bg-(--bg-app) text-left">
-                <th className="px-4 py-3">User details</th>
-                <th className="px-4 py-3">Email ID</th>
-                <th className="px-4 py-3">Account Type</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mockUsers.map((user) => (
-                <tr key={user.id} className="border-b border-(--border-color)">
-                  <td className="px-4 py-3 font-semibold">{user.name}</td>
-                  <td className="px-4 py-3 text-(--text-light)">
-                    {user.email}
-                  </td>
-                  <td className="px-4 py-3 font-bold text-(--primary)">
-                    {user.role}
-                  </td>
-                  <td className="px-4 py-3">
-                    {user.status === "verified" && (
-                      <span className="badge badge-secondary">
-                        Verified Host
-                      </span>
-                    )}
-                    {user.status === "pending" && (
-                      <span className="badge badge-accent">
-                        Verification Pending
-                      </span>
-                    )}
-                    {user.status === "active" && (
-                      <span className="badge badge-primary">Active</span>
-                    )}
-                    {user.status === "banned" && (
-                      <span className="badge badge-danger">Suspended</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-1">
-                      {user.role === "Landlord" &&
-                        user.status === "pending" && (
-                          <button
-                            onClick={() => handleUserVerify(user.id)}
-                            className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem]"
-                          >
-                            <UserCheck size={12} /> Verify
-                          </button>
-                        )}
-                      {user.status !== "banned" && (
-                        <button
-                          onClick={() => handleUserBan(user.id)}
-                          className="btn btn-outline btn-sm border-(--border-color) px-2 py-1 text-[0.75rem] text-(--danger)"
-                        >
-                          <UserMinus size={12} /> Suspend
-                        </button>
+        <div className="flex flex-col gap-4">
+          {actionMessage && (
+            <div
+              className={`rounded-(--radius-md) border px-4 py-3 text-[0.85rem] font-medium ${
+                actionMessage.type === "success"
+                  ? "border-(--secondary) bg-(--secondary-light) text-(--secondary)"
+                  : actionMessage.type === "error"
+                    ? "border-(--danger) bg-(--danger-light) text-(--danger)"
+                    : "border-(--border-color) bg-(--bg-app) text-(--text-muted)"
+              }`}
+            >
+              {actionMessage.text}
+            </div>
+          )}
+
+          <div className="relative">
+            <Search
+              size={16}
+              className="absolute top-1/2 left-3 -translate-y-1/2 text-(--text-light)"
+            />
+            <input
+              type="text"
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+              placeholder="Search users by name or email..."
+              className="form-input w-full text-[0.9rem]"
+              style={{ paddingLeft: "2.5rem" }}
+            />
+          </div>
+
+          {usersLoading ? (
+            <div className="card border border-(--border-color) p-12 text-center text-(--text-light)">
+              <Loader2
+                size={32}
+                className="mx-auto mb-2 animate-spin text-(--primary)"
+              />
+              <p>Loading platform users...</p>
+            </div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="card border border-(--border-color) p-12 text-center text-(--text-light)">
+              <Users size={40} className="mx-auto mb-2 text-(--secondary)" />
+              <p>
+                {users.length === 0
+                  ? "No registered users found."
+                  : "No users match your search."}
+              </p>
+            </div>
+          ) : (
+            filteredUsers.map((user) => (
+              <div
+                key={user.id}
+                className="card flex flex-col gap-4 border border-(--border-color) p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+              >
+                {/* Identity */}
+                <div className="flex items-center gap-4 text-left">
+                  <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-(--primary-light) text-[1rem] font-bold text-(--primary)">
+                    {(user.name || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="text-[1rem] font-semibold text-(--text-main)">
+                        {user.name || "Unnamed user"}
+                      </h3>
+                      {user.role === "admin" && (
+                        <ShieldAlert size={14} className="text-(--primary)" />
                       )}
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="text-[0.8rem] text-(--text-muted)">
+                      {user.email}
+                    </div>
+                    {user.phone && (
+                      <div className="text-[0.75rem] text-(--text-light)">
+                        {user.phone}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Badges + Actions */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="badge badge-primary flex items-center gap-1 text-[0.7rem]">
+                    {user.role === "landlord" ? (
+                      <Building2 size={12} />
+                    ) : (
+                      <User size={12} />
+                    )}
+                    {roleLabel(user.role)}
+                  </span>
+                  {user.role === "landlord" &&
+                    (user.is_verified ? (
+                      <span className="badge badge-secondary text-[0.7rem]">
+                        Verified Host
+                      </span>
+                    ) : (
+                      <span className="badge badge-accent text-[0.7rem]">
+                        Verification Pending
+                      </span>
+                    ))}
+
+                  <div className="ml-1 flex gap-1.5">
+                    {user.role === "landlord" && !user.is_verified && (
+                      <button
+                        onClick={() => handleUserVerify(user.id)}
+                        className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem]"
+                      >
+                        <UserCheck size={12} /> Verify
+                      </button>
+                    )}
+                    <button
+                      onClick={handleUserSuspend}
+                      className="btn btn-outline btn-sm border-(--border-color) px-2 py-1 text-[0.75rem] text-(--danger)"
+                    >
+                      <UserMinus size={12} /> Suspend
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       )}
+      </section>
     </div>
   );
 };
