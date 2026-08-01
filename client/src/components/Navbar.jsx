@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import logo from '../assets/NestFinder Logo.png';
+import { VerifiedBadge } from './VerifiedBadge';
 import {
   Home,
   Sparkles,
@@ -327,8 +328,9 @@ export const Navbar = () => {
           {/* User Area */}
           {currentUser ? (
             <div className="flex items-center gap-3">
-              <span className="hidden text-[0.85rem] font-semibold text-(--text-main) md:inline">
+              <span className="hidden items-center gap-2 text-[0.85rem] font-semibold text-(--text-main) md:inline-flex">
                 Welcome, <span className="text-(--primary)">{currentUser.name}</span>
+                {isLandlord && <VerifiedBadge isVerified={currentUser.is_verified} />}
               </span>
 
               {currentUser.role === 'tenant' && (
