@@ -455,7 +455,7 @@ export const LandlordDashboard = () => {
                   {inq.status === 'replied' ? (
                     <div style={{ padding: '0.75rem', backgroundColor: 'var(--secondary-light)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem' }}>
                       <strong style={{ color: 'var(--secondary)', display: 'block' }}>✓ You Replied:</strong>
-                      <span style={{ fontStyle: 'italic' }}>"{inq.replyText}"</span>
+                      <span style={{ fontStyle: 'italic' }}>"{inq.reply_text}"</span>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
