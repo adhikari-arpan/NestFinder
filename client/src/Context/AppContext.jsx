@@ -65,7 +65,7 @@ export const AppContextProvider = ({ children }) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, name, phone, email, is_verified")
+      .select("role, name, phone, email, is_verified, kyc_status")
       .eq("id", data.user.id)
       .single();
 
@@ -80,6 +80,18 @@ export const AppContextProvider = ({ children }) => {
   };
 
   const logoutUser = () => setCurrentUser(null);
+
+  // Re-fetch the profile row for the logged-in user, e.g. after a KYC
+  // submission or admin review changes kyc_status/is_verified mid-session.
+  const refreshCurrentUser = async () => {
+    if (!currentUser) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", currentUser.id)
+      .single();
+    if (profile) setCurrentUser((prev) => ({ ...prev, ...profile }));
+  };
 
   const signupUser = async (email, password, name, phone, role) => {
     const { error } = await supabase.auth.signUp({
@@ -210,6 +222,11 @@ export const AppContextProvider = ({ children }) => {
       return {
         success: false,
         message: "You must be logged in to post a listing.",
+      };
+    if (currentUser.role === "landlord" && !currentUser.is_verified)
+      return {
+        success: false,
+        message: "Complete KYC verification to post listings.",
       };
     try {
       const newListing = await api.createListing(formData, currentUser.id);
@@ -502,6 +519,7 @@ export const AppContextProvider = ({ children }) => {
         loginUser,
         logoutUser,
         signupUser,
+        refreshCurrentUser,
         theme,
         toggleTheme,
         createListing,
