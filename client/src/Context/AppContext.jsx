@@ -23,6 +23,48 @@ export const AppContextProvider = ({ children }) => {
     radius: 1000,
   });
 
+  // Paid Distance Access State (48 Hours Validity)
+  const [paidRadiusAccess, setPaidRadiusAccess] = useState(() => {
+    try {
+      const stored = localStorage.getItem("nestfinder_paid_access");
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      if (parsed.paidUntil && parsed.paidUntil > Date.now()) {
+        return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to parse stored paid access", e);
+    }
+    return null;
+  });
+
+  const getDistancePrice = (radiusMeters) => {
+    if (radiusMeters <= 500) return 100;
+    if (radiusMeters <= 1000) return 60;
+    if (radiusMeters <= 3000) return 30;
+    return 15;
+  };
+
+  const checkDistanceAccess = (location, radius) => {
+    if (!paidRadiusAccess) return false;
+    if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now()) return false;
+    if (radius > paidRadiusAccess.activeRadius) return false;
+    return true;
+  };
+
+  const grantRadiusAccess = (location, radius, pricePaid) => {
+    const paidUntil = Date.now() + 48 * 60 * 60 * 1000;
+    const accessData = {
+      activeRadius: radius,
+      location: location || tenantPreferences.poiLocation,
+      pricePaid,
+      paidUntil,
+      paidAt: Date.now(),
+    };
+    setPaidRadiusAccess(accessData);
+    localStorage.setItem("nestfinder_paid_access", JSON.stringify(accessData));
+  };
+
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [theme, setTheme] = useState(
@@ -537,6 +579,10 @@ export const AppContextProvider = ({ children }) => {
         aiLoading,
         aiError,
         calculateRecommendationScore,
+        paidRadiusAccess,
+        getDistancePrice,
+        checkDistanceAccess,
+        grantRadiusAccess,
       }}
     >
       {children}
