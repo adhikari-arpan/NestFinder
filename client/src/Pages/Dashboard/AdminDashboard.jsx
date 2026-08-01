@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import logo from "../../assets/NestFinder Logo.png";
+import { DashboardHeader } from '../../components/DashboardHeader';
 
 import {
   ShieldAlert,
