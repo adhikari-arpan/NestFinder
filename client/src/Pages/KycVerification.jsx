@@ -52,7 +52,15 @@ export const KycVerification = () => {
     kycApi
       .fetchMyKYC(currentUser.id)
       .then((row) => {
-        if (!row) return;
+        if (!row) {
+          // No prior submission — prefill from the account's profile data
+          // instead of making the landlord retype what they already gave us.
+          const [first, ...rest] = (currentUser.name || "").trim().split(/\s+/);
+          setFirstName(first || "");
+          setLastName(rest.join(" "));
+          setPhone(currentUser.phone || "");
+          return;
+        }
         setExisting(row);
         setFirstName(row.first_name);
         setLastName(row.last_name);
