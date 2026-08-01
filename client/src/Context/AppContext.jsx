@@ -323,6 +323,12 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+  if (currentUser?.role === 'landlord') {
+    loadLandlordInquiries();
+  }
+}, [currentUser]);
+
   // ------------------------------------------------------------
   // Recommendation scoring — unchanged, runs client-side on
   // whatever listings are currently loaded: Rule-based score.
