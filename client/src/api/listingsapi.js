@@ -341,16 +341,8 @@ export async function markNotificationRead(notificationId) {
 export async function fetchAllUsers() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, role, name, phone, email, is_verified')
+    .select('id, role, name, phone, email, is_verified, kyc_status')
     .order('name', { ascending: true });
   if (error) throw error;
   return data;
-}
-
-export async function verifyLandlord(userId) {
-  const { error } = await supabase
-    .from('profiles')
-    .update({ is_verified: true })
-    .eq('id', userId);
-  if (error) throw error;
 }
