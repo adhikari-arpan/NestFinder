@@ -213,7 +213,7 @@ export const RoomDetails = () => {
             </div>
           </div>
 
-          {/* Nearby POIs Table */}
+          {/* Nearby POIs Table
           <div className="flex flex-col gap-3">
             <h3 className={sectionHeadingClass}>Nearby Points of Interest (Walk Distance)</h3>
             <div className="card overflow-hidden border border-(--border-color) p-0">
@@ -238,7 +238,7 @@ export const RoomDetails = () => {
                 </tbody>
               </table>
             </div>
-          </div>
+          </div> */}
 
         </div>
 

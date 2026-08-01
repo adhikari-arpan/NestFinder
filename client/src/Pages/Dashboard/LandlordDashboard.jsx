@@ -1,12 +1,14 @@
 import { useState, useEffect, useContext } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
+import * as kycApi from '../../api/kycApi';
 import logo from '../../assets/NestFinder Logo.png';
-import { MapContainer as LeafletMap, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer as LeafletMap, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import ImageUploader from '../../components/ImageUploader';
 import { DashboardHeader } from '../../components/DashboardHeader';
+import { KycStatusBanner } from '../../components/KycStatusBanner';
 import { Trash2, X } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -29,16 +31,6 @@ import {
   FileText,
 } from 'lucide-react';
 
-// Click-to-pin handler component. Lives inside the map and listens for clicks
-const LocationPicker = ({ onPick }) => {
-  useMapEvents({
-    click(e) {
-      onPick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-};
-
 export const LandlordDashboard = () => {
   const {
     listings,
@@ -49,6 +41,16 @@ export const LandlordDashboard = () => {
     deleteListing,
     currentUser
   } = useContext(AppContext);
+
+  const [myKyc, setMyKyc] = useState(null);
+  const [gateNotice, setGateNotice] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== 'landlord') return;
+    kycApi.fetchMyKYC(currentUser.id).then(setMyKyc).catch((err) => {
+      console.error('Failed to load KYC record:', err.message);
+    });
+  }, [currentUser]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -86,10 +88,14 @@ export const LandlordDashboard = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get('action') === 'post') {
-      setIsPostModalOpen(true);
+      if (currentUser?.role === 'landlord' && !currentUser.is_verified) {
+        setGateNotice(true);
+      } else {
+        setIsPostModalOpen(true);
+      }
       navigate('/dashboard/landlord', { replace: true });
     }
-  }, [location.search]);
+  }, [location.search, currentUser]);
 
   useEffect(() => {
     document.body.style.overflow = isPostModalOpen ? 'hidden' : '';
@@ -116,8 +122,14 @@ export const LandlordDashboard = () => {
 
   // Find inquiries sent to this Landlord's listings
   const landlordInquiries = inquiries.filter(inq =>
-    landlordListings.some(l => l.id === inq.listingId)
+    landlordListings.some(l => l.id === inq.listing_id)
   );
+
+  console.log("RAW listings:", listings);
+  console.log("RAW inquiries:", inquiries);
+  console.log("currentUser email:", currentUser?.email);
+  console.log("landlordListings result:", landlordListings);
+  console.log("landlordInquiries result:", landlordInquiries);
 
   const toggleFormAmenity = (item) => {
     setFormAmenities(prev =>
@@ -131,15 +143,18 @@ export const LandlordDashboard = () => {
     setFormPrice('');
     setFormType('Room');
     setFormSharing('Single');
-    setFormLocation('');
-    setFormCity('Kathmandu');
-    setFormLat('27.6850');
-    setFormLng('85.3200');
     setFormImages([]);
     setFormAmenities([]);
   };
 
+  // Location fields (formLocation/formCity/formLat/formLng) are not reset
+  // here — they're always kept in sync with the landlord's verified KYC
+  // address by the effect below, for as long as the modal is open.
   const openCreateModal = () => {
+    if (currentUser?.role === 'landlord' && !currentUser.is_verified) {
+      setGateNotice(true);
+      return;
+    }
     setEditingListing(null);
     resetForm();
     setSubmitError('');
@@ -153,15 +168,23 @@ export const LandlordDashboard = () => {
     setFormPrice(String(item.price));
     setFormType(item.type);
     setFormSharing(item.sharing);
-    setFormLocation(item.location);
-    setFormCity(item.city);
-    setFormLat(String(item.latitude));
-    setFormLng(String(item.longitude));
     setFormImages(item.images || []);
     setFormAmenities(item.amenities || []);
     setSubmitError('');
     setIsPostModalOpen(true);
   };
+
+  // Posting location is locked to the landlord's verified KYC address —
+  // re-applied every time the modal opens so it can't drift from what an
+  // edited listing previously stored.
+  useEffect(() => {
+    if (isPostModalOpen && myKyc) {
+      setFormLat(String(myKyc.latitude));
+      setFormLng(String(myKyc.longitude));
+      setFormLocation(`${myKyc.tole}, ${myKyc.municipality}`);
+      setFormCity(myKyc.district);
+    }
+  }, [isPostModalOpen, myKyc]);
 
   const handlePostSubmit = async (e) => {
     e.preventDefault();
@@ -274,6 +297,24 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       </DashboardHeader>
+
+      {currentUser?.role === 'landlord' && (
+        <KycStatusBanner kycStatus={currentUser.kyc_status} rejectionReason={myKyc?.rejection_reason} />
+      )}
+
+      {gateNotice && (
+        <div style={{
+          display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between',
+          gap: '0.75rem', border: '1px solid var(--danger, #dc2626)', backgroundColor: 'rgba(220,38,38,0.08)',
+          borderRadius: 'var(--radius-md)', padding: '0.85rem 1rem', marginBottom: '1.5rem', fontSize: '0.88rem'
+        }}>
+          <span>Complete KYC verification to post listings.</span>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Link to="/kyc" className="btn btn-primary btn-sm">Complete KYC</Link>
+            <button onClick={() => setGateNotice(false)} className="btn btn-outline btn-sm">Dismiss</button>
+          </div>
+        </div>
+      )}
 
       {/* Tabs selectors: Rooms vs Inquiries */}
       <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
@@ -420,17 +461,17 @@ export const LandlordDashboard = () => {
                   {/* Inquiry Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <div style={{ textAlign: 'left' }}>
-                      <strong style={{ fontSize: '1rem' }}>{inq.tenantName}</strong>
+                      <strong style={{ fontSize: '1rem' }}>{inq.tenant_name}</strong>
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-light)', display: 'block' }}>
-                        📞 {inq.tenantPhone} • ✉ {inq.tenantEmail}
+                        📞 {inq.tenant_phone} • ✉ {inq.tenant_email}
                       </span>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <span className="badge badge-primary" style={{ fontSize: '0.7rem' }}>
-                        Property ID: {inq.listingId}
+                        Property ID: {inq.listing_id}
                       </span>
                       <span style={{ display: 'block', fontSize: '0.65rem', color: 'var(--text-light)', marginTop: '0.25rem' }}>
-                        {new Date(inq.createdAt).toLocaleString()}
+                        {new Date(inq.created_at).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -449,7 +490,7 @@ export const LandlordDashboard = () => {
                   {inq.status === 'replied' ? (
                     <div style={{ padding: '0.75rem', backgroundColor: 'var(--secondary-light)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem' }}>
                       <strong style={{ color: 'var(--secondary)', display: 'block' }}>✓ You Replied:</strong>
-                      <span style={{ fontStyle: 'italic' }}>"{inq.replyText}"</span>
+                      <span style={{ fontStyle: 'italic' }}>"{inq.reply_text}"</span>
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -576,29 +617,6 @@ export const LandlordDashboard = () => {
                   </div>
                 </div>
 
-                {/* Location details */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '0.75rem' }} className="form-row-two">
-                  <div className="form-group">
-                    <label className="form-label">Specific Address *</label>
-                    <input
-                      type="text"
-                      value={formLocation}
-                      onChange={(e) => setFormLocation(e.target.value)}
-                      placeholder="Kumaripati, Lalitpur (behind United Academy)"
-                      required
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">City *</label>
-                    <select value={formCity} onChange={(e) => setFormCity(e.target.value)} className="form-input">
-                      <option value="Kathmandu">Kathmandu</option>
-                      <option value="Lalitpur">Lalitpur</option>
-                      <option value="Bhaktapur">Bhaktapur</option>
-                    </select>
-                  </div>
-                </div>
-
                 {/* Description */}
                 <div className="form-group">
                   <label className="form-label">Detailed Description *</label>
@@ -648,48 +666,43 @@ export const LandlordDashboard = () => {
                 </div>
               </div>
 
-              {/* Map Pin Card */}
+              {/* Posting Location — locked to the landlord's verified KYC address */}
               <div className="card" style={{ padding: '1.5rem' }}>
                 <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
                   <MapPin size={14} style={{ display: 'inline', marginRight: '0.25rem' }} />
-                  Pin Exact Location on Map *
+                  Posting Location
                 </label>
-                <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginBottom: '0.75rem' }}>
-                  Click anywhere on the map to drop a pin. Coordinates fill in automatically.
-                </p>
-
-                <div style={{ height: '350px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                  <LeafletMap
-                    center={[Number(formLat) || 27.6850, Number(formLng) || 85.3200]}
-                    zoom={13}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='&copy; OpenStreetMap contributors'
-                    />
-                    <LocationPicker
-                      onPick={(lat, lng) => {
-                        setFormLat(lat.toFixed(6));
-                        setFormLng(lng.toFixed(6));
-                      }}
-                    />
-                    {formLat && formLng && (
-                      <Marker position={[Number(formLat), Number(formLng)]} />
-                    )}
-                  </LeafletMap>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1rem' }}>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Latitude</label>
-                    <input type="text" value={formLat} readOnly className="form-input" style={{ backgroundColor: 'var(--bg-app)' }} />
-                  </div>
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Longitude</label>
-                    <input type="text" value={formLng} readOnly className="form-input" style={{ backgroundColor: 'var(--bg-app)' }} />
-                  </div>
-                </div>
+                {myKyc ? (
+                  <>
+                    <p style={{ fontSize: '0.9rem', margin: '0 0 0.75rem 0' }}>
+                      {formLocation}, {formCity}
+                    </p>
+                    <div style={{ height: '220px', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                      <LeafletMap
+                        center={[Number(formLat), Number(formLng)]}
+                        zoom={14}
+                        style={{ height: '100%', width: '100%' }}
+                        dragging={false}
+                        scrollWheelZoom={false}
+                        doubleClickZoom={false}
+                        zoomControl={false}
+                      >
+                        <TileLayer
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          attribution='&copy; OpenStreetMap contributors'
+                        />
+                        <Marker position={[Number(formLat), Number(formLng)]} />
+                      </LeafletMap>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', marginTop: '0.75rem', marginBottom: 0 }}>
+                      This is set from your verified KYC address and can't be edited here. To post from a different location, <Link to="/kyc" style={{ color: 'var(--primary)', fontWeight: 600 }}>update your KYC verification</Link> — this will require re-approval before you can post again.
+                    </p>
+                  </>
+                ) : (
+                  <p style={{ fontSize: '0.85rem', color: 'var(--danger, #dc2626)' }}>
+                    No verified KYC address on file.
+                  </p>
+                )}
               </div>
 
               {/* Actions submit */}

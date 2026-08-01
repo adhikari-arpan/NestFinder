@@ -8,13 +8,13 @@ import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatTile } from "../../components/admin/StatTile";
 import { BarChartPanel } from "../../components/admin/BarChartPanel";
 import { SectionHeading } from "../../components/admin/SectionHeading";
+import { KycReviewModal } from "../../components/admin/KycReviewModal";
 
 import {
   ShieldAlert,
   CheckCircle,
   Trash2,
   UserMinus,
-  UserCheck,
   Flag,
   AlertTriangle,
   Users,
@@ -25,7 +25,15 @@ import {
   X,
   Search,
   Loader2,
+  IdCard,
 } from "lucide-react";
+
+const KYC_BADGE = {
+  not_submitted: { label: "No KYC Submitted", className: "badge badge-primary" },
+  pending: { label: "KYC Pending Review", className: "badge badge-accent" },
+  approved: { label: "KYC Verified", className: "badge badge-secondary" },
+  rejected: { label: "KYC Rejected", className: "badge badge-danger" },
+};
 
 export const AdminDashboard = () => {
   const { listings, updateListingStatus, currentUser, logoutUser } =
@@ -41,6 +49,7 @@ export const AdminDashboard = () => {
   const [usersLoading, setUsersLoading] = useState(true);
   const [userSearch, setUserSearch] = useState("");
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
+  const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
 
   const handleLogout = () => {
     setShowLogoutConfirm(true);
@@ -56,23 +65,19 @@ export const AdminDashboard = () => {
     setShowLogoutConfirm(false);
   };
 
-  const handleUserVerify = async (userId) => {
-    try {
-      await api.verifyLandlord(userId);
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, is_verified: true } : u)),
-      );
-      setActionMessage({
-        text: "Landlord verified successfully.",
-        type: "success",
-      });
-    } catch (err) {
-      console.error("Failed to verify landlord:", err.message);
-      setActionMessage({
-        text: "Failed to verify landlord. Please try again.",
-        type: "error",
-      });
-    }
+  const handleKycReviewed = (userId, decision) => {
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId
+          ? { ...u, kyc_status: decision, is_verified: decision === "approved" }
+          : u,
+      ),
+    );
+    setActionMessage({
+      text: decision === "approved" ? "Landlord's KYC approved." : "Landlord's KYC rejected.",
+      type: "success",
+    });
+    setReviewingUser(null);
   };
 
   const handleUserSuspend = () => {
@@ -487,24 +492,19 @@ export const AdminDashboard = () => {
                       )}
                       {roleLabel(user.role)}
                     </span>
-                    {user.role === "landlord" &&
-                      (user.is_verified ? (
-                        <span className="badge badge-secondary text-[0.7rem]">
-                          Verified Host
-                        </span>
-                      ) : (
-                        <span className="badge badge-accent text-[0.7rem]">
-                          Verification Pending
-                        </span>
-                      ))}
+                    {user.role === "landlord" && (
+                      <span className={`${KYC_BADGE[user.kyc_status || "not_submitted"].className} text-[0.7rem]`}>
+                        {KYC_BADGE[user.kyc_status || "not_submitted"].label}
+                      </span>
+                    )}
 
                     <div className="ml-1 flex gap-1.5">
-                      {user.role === "landlord" && !user.is_verified && (
+                      {user.role === "landlord" && user.kyc_status && user.kyc_status !== "not_submitted" && (
                         <button
-                          onClick={() => handleUserVerify(user.id)}
+                          onClick={() => setReviewingUser({ id: user.id, name: user.name || "Unnamed user" })}
                           className="btn btn-outline btn-sm py-1 px-2 text-[0.75rem]"
                         >
-                          <UserCheck size={12} /> Verify
+                          <IdCard size={12} /> Review KYC
                         </button>
                       )}
                       <button
@@ -521,6 +521,15 @@ export const AdminDashboard = () => {
           </div>
         )}
       </section>
+
+      {reviewingUser && (
+        <KycReviewModal
+          userId={reviewingUser.id}
+          userName={reviewingUser.name}
+          onClose={() => setReviewingUser(null)}
+          onReviewed={handleKycReviewed}
+        />
+      )}
     </div>
   );
 };

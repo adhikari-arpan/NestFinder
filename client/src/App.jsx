@@ -11,6 +11,7 @@ import { RoomDetails } from './Pages/RoomDetails';
 import { AIRecommend } from './Pages/AIRecommend';
 import { Auth } from './Pages/Auth';
 import { NotFound } from './Pages/NotFound';
+import { KycVerification } from './Pages/KycVerification';
 
 
 // Dashboards
@@ -33,6 +34,7 @@ function App() {
             <Route path="/room/:id" element={<RoomDetails />} />
             <Route path="/ai-recommend" element={<AIRecommend />} />
             <Route path="/rooms" element={<AllRooms />} />
+            <Route path="/kyc" element={<KycVerification />} />
 
 
             {/* Role Dashboards */}
