@@ -2,7 +2,8 @@ import { useState, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
-import { User, Image as ImageIcon, Trash2, LogOut, X } from 'lucide-react';
+import { User, Image as ImageIcon, Trash2, LogOut, X, IdCard } from 'lucide-react';
+import { VerifiedBadge } from './VerifiedBadge';
 
 // Shared dashboard header: renders whatever left-side content is passed as
 // children, plus the profile trigger, profile overlay menu, and logout
@@ -43,6 +44,9 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
             )}
           </div>
           <span className="text-text-muted text-[0.75rem] font-bold">Your Profile</span>
+          {currentUser?.role === 'landlord' && (
+            <VerifiedBadge isVerified={currentUser.is_verified} />
+          )}
         </div>
       </div>
 
@@ -74,6 +78,11 @@ export const DashboardHeader = ({ children, className = '', style = {} }) => {
               <div className="profile-menu-item" onClick={() => alert('Change Profile Picture functionality coming soon!')}>
                 <ImageIcon size={18} /> Change Profile Picture
               </div>
+              {currentUser?.role === 'landlord' && (
+                <div className="profile-menu-item" onClick={() => { setProfileMenuOpen(false); navigate('/kyc'); }}>
+                  <IdCard size={18} /> Update KYC
+                </div>
+              )}
               <div
                 className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
                 onClick={() => alert('Delete Profile Picture functionality coming soon!')}
