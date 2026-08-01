@@ -29,10 +29,10 @@ export const StepLocation = ({
   onSubmit,
 }) => {
   return (
-    <div className="card animate-fade-in flex flex-col gap-10 rounded-[var(--radius-lg)] border border-[var(--border-color)] bg-[var(--bg-card)] p-8 shadow-lg sm:p-12">
+    <div className="card animate-fade-in flex flex-col gap-10 rounded-lg) border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
       <div>
         <h2 className="mb-2 text-[1.4rem]">Step 4: Location</h2>
-        <p className="text-[0.9rem] text-[var(--text-muted)]">
+        <p className="text-[0.9rem] text-(--text-muted)">
           Add a location that you want to search rooms around. Choose from
           the following presets, or select your central location from the
           map.
@@ -71,7 +71,7 @@ export const StepLocation = ({
             <button
               type="button"
               onClick={() => setLocation(null)}
-              className="mt-3 cursor-pointer border-none bg-transparent text-[0.8rem] font-semibold text-[var(--text-muted)] hover:text-[var(--danger)]"
+              className="mt-3 cursor-pointer border-none bg-transparent text-[0.8rem] font-semibold text-(--text-muted) hover:text-(--danger)"
             >
               Clear selected location
             </button>
@@ -82,7 +82,7 @@ export const StepLocation = ({
           <label className="form-label mb-2 block">
             Or pick a point on the map
           </label>
-          <div className="h-[350px] overflow-hidden rounded-[var(--radius-md)] border border-[var(--border-color)]">
+          <div className="h-87.5 overflow-hidden rounded-md)] border border-(--border-color)">
             <MapContainer
               selectable
               onLocationSelect={(lat, lng) =>
@@ -95,7 +95,7 @@ export const StepLocation = ({
               currentCenter={location ? [location.lat, location.lng] : null}
             />
           </div>
-          <span className="mt-2 block text-[0.8rem] text-[var(--text-light)]">
+          <span className="mt-2 block text-[0.8rem] text-(--text-light)">
             {location
               ? `Selected: ${location.name || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}`
               : "Click anywhere on the map to drop a pin."}
@@ -119,13 +119,13 @@ export const StepLocation = ({
             step="100"
             value={radius}
             onChange={(e) => setRadius(Number(e.target.value))}
-            className="w-full cursor-pointer accent-[var(--primary)]"
+            className="w-full cursor-pointer accent-(--primary)"
           />
           <div className="mt-1 flex justify-between">
-            <span className="text-[0.75rem] text-[var(--text-light)]">
+            <span className="text-[0.75rem] text-(--text-light)">
               200m (walking)
             </span>
-            <span className="text-[0.75rem] text-[var(--text-light)]">
+            <span className="text-[0.75rem] text-(--text-light)">
               5km (cycling)
             </span>
           </div>
