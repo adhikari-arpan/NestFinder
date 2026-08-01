@@ -12,7 +12,7 @@ export const ProgressTracker = ({ step }) => {
 
   return (
     <div
-      className="flex items-center justify-between gap-5 rounded-[var(--radius-md)] border border-[var(--border-color)] bg-[var(--bg-card)] px-8 py-6"
+      className="flex items-center justify-between gap-5 rounded-md border border-(--border-color) bg-(--bg-card) px-8 py-6"
       style={{ marginBottom: "50px" }}
     >
       {STEPS.map((s) => (
@@ -23,10 +23,10 @@ export const ProgressTracker = ({ step }) => {
           <span
             className={`flex size-7 items-center justify-center rounded-full text-[0.85rem] font-bold text-white ${
               step === s.num
-                ? "bg-[var(--primary)]"
+                ? "bg-(--primary)"
                 : step > s.num
-                  ? "bg-[var(--secondary)]"
-                  : "bg-[var(--border-color)]"
+                  ? "bg-(--secondary)"
+                  : "bg-(--border-color)"
             }`}
           >
             {step > s.num ? <Check size={14} /> : s.num}
@@ -35,7 +35,7 @@ export const ProgressTracker = ({ step }) => {
             {s.label}
           </span>
           {s.num < 4 && (
-            <div className="hidden h-[2px] w-[30px] bg-[var(--border-color)] sm:block" />
+            <div className="hidden h-0.5 w-7.5 bg-(--border-color) sm:block" />
           )}
         </div>
       ))}
