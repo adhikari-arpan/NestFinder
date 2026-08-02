@@ -28,6 +28,8 @@ import {
   Eye,
   Check,
   XCircle,
+  X,
+  Image as ImageIcon,
 } from "lucide-react";
 
 const KYC_BADGE = {
@@ -41,12 +43,10 @@ const KYC_BADGE = {
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser, authLoading } = useContext(AppContext);
+  const { listings, updateListingStatus, currentUser, authLoading, grantRadiusAccess } = useContext(AppContext);
 
   const navigate = useNavigate();
 
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("payments"); // Default to payments tab so admin sees payment queue
 
   const [users, setUsers] = useState([]);
@@ -59,20 +59,6 @@ export const AdminDashboard = () => {
 
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
   const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
-
-  const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutConfirm(false);
-    logoutUser();
-    navigate("/");
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
 
   const handleKycReviewed = (userId, decision) => {
     setUsers((prev) =>
@@ -123,8 +109,10 @@ export const AdminDashboard = () => {
       .finally(() => setUsersLoading(false));
   }, []);
 
-  const refreshPayments = () => {
-    setPaymentsLoading(true);
+  // paymentsLoading already starts true, so the mount effect below doesn't
+  // need to (and shouldn't) set it synchronously — only the fetch's own
+  // async callbacks touch state.
+  const loadPayments = () => {
     fetchAllPayments()
       .then(setPayments)
       .catch((err) => console.error("Failed to load payments:", err))
@@ -132,7 +120,7 @@ export const AdminDashboard = () => {
   };
 
   useEffect(() => {
-    refreshPayments();
+    loadPayments();
   }, []);
 
   const handlePaymentVerification = async (paymentId, decision) => {
@@ -334,9 +322,8 @@ export const AdminDashboard = () => {
         {activeTab === "payments" && (
           <div className="flex flex-col gap-4">
             {paymentsLoading ? (
-              <div className="card p-12 text-center text-(--text-light)">
-                <Loader2 size={32} className="mx-auto mb-2 animate-spin text-(--primary)" />
-                <p>Loading payment verifications...</p>
+              <div className="card p-6">
+                <LoadingScreen label="Loading payment verifications..." fullScreen={false} />
               </div>
             ) : payments.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
@@ -355,18 +342,18 @@ export const AdminDashboard = () => {
                 return (
                   <div
                     key={p.id}
-                    className="card p-5 grid grid-cols-1 gap-6 shadow-sm md:grid-cols-[1.3fr_0.7fr]"
+                    className="card grid grid-cols-1 gap-6 p-5 shadow-sm md:grid-cols-[1.3fr_0.7fr]"
                   >
                     {/* Left: User & Payment Details */}
                     <div className="flex items-start gap-4 text-left">
                       {p.proof_image_url ? (
-                        <div className="relative group cursor-pointer" onClick={() => setPreviewProof(p.proof_image_url)}>
+                        <div className="group relative cursor-pointer" onClick={() => setPreviewProof(p.proof_image_url)}>
                           <img
                             src={p.proof_image_url}
-                            className="h-20 w-24 rounded-md object-cover border border-(--border-color)"
+                            className="h-20 w-24 rounded-md border border-(--border-color) object-cover"
                             alt="Payment screenshot proof"
                           />
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md color-white">
+                          <div className="color-white absolute inset-0 flex items-center justify-center rounded-md bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                             <Eye size={18} className="text-white" />
                           </div>
                         </div>
@@ -395,25 +382,25 @@ export const AdminDashboard = () => {
                         </div>
                         {p.transaction_code && (
                           <div className="mt-1 text-[0.75rem] text-(--text-muted)">
-                            Ref/Txn Code: <code className="bg-(--bg-app) px-1.5 py-0.5 rounded font-mono">{p.transaction_code}</code>
+                            Ref/Txn Code: <code className="rounded bg-(--bg-app) px-1.5 py-0.5 font-mono">{p.transaction_code}</code>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Right: Verification Action buttons */}
-                    <div className="flex flex-col sm:flex-row items-end justify-center gap-2">
+                    <div className="flex flex-col items-end justify-center gap-2 sm:flex-row">
                       {p.status === "pending" ? (
                         <>
                           <button
                             onClick={() => handlePaymentVerification(p.id, "approved")}
-                            className="btn btn-secondary btn-sm flex gap-1 w-full sm:w-auto"
+                            className="btn btn-secondary btn-sm flex w-full gap-1 sm:w-auto"
                           >
                             <Check size={16} /> Approve & Grant Access
                           </button>
                           <button
                             onClick={() => handlePaymentVerification(p.id, "rejected")}
-                            className="btn btn-outline btn-sm flex gap-1 text-(--danger) w-full sm:w-auto"
+                            className="btn btn-outline btn-sm flex w-full gap-1 text-(--danger) sm:w-auto"
                           >
                             <XCircle size={16} /> Reject
                           </button>
