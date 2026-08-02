@@ -9,6 +9,7 @@ import L from 'leaflet';
 import ImageUploader from '../../components/ImageUploader';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import { KycStatusBanner } from '../../components/KycStatusBanner';
+import { LoadingScreen } from '../../components/LoadingScreen';
 import { Trash2, X } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -39,11 +40,22 @@ export const LandlordDashboard = () => {
     createListing,
     updateListing,
     deleteListing,
-    currentUser
+    currentUser,
+    authLoading,
+    refreshCurrentUser
   } = useContext(AppContext);
 
   const [myKyc, setMyKyc] = useState(null);
   const [gateNotice, setGateNotice] = useState(false);
+
+  // Pick up any kyc_status/is_verified change an admin made since this landlord's session last loaded the profile (e.g. approved/rejected
+  // while they were away) — currentUser is otherwise only fetched once at login/session-restore and never auto-refreshes.
+  useEffect(() => {
+    if (currentUser?.role === 'landlord') {
+      refreshCurrentUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== 'landlord') return;
@@ -55,12 +67,15 @@ export const LandlordDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Redirect if not landlord or admin
+  // Redirect if not landlord or admin — wait for the initial session check
+  // to finish first, otherwise this fires on every reload before
+  // currentUser has had a chance to load and bounces straight to /auth.
   useEffect(() => {
+    if (authLoading) return;
     if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) {
       navigate('/auth');
     }
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   // Tab views: 'listings' or 'inquiries'
   const [activeTab, setActiveTab] = useState('listings');
@@ -124,12 +139,6 @@ export const LandlordDashboard = () => {
   const landlordInquiries = inquiries.filter(inq =>
     landlordListings.some(l => l.id === inq.listing_id)
   );
-
-  console.log("RAW listings:", listings);
-  console.log("RAW inquiries:", inquiries);
-  console.log("currentUser email:", currentUser?.email);
-  console.log("landlordListings result:", landlordListings);
-  console.log("landlordInquiries result:", landlordInquiries);
 
   const toggleFormAmenity = (item) => {
     setFormAmenities(prev =>
@@ -269,6 +278,10 @@ export const LandlordDashboard = () => {
     setReplyText('');
     setReplyInquiryId(null);
   };
+
+  // Still resolving the session on first load — show the loader rather than
+  // flashing the redirect-guard effect above into a trip to /auth.
+  if (authLoading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in container" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>

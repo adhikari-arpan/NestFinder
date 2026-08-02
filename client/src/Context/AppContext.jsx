@@ -67,6 +67,7 @@ export const AppContextProvider = ({ children }) => {
 
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
@@ -156,9 +157,12 @@ export const AppContextProvider = ({ children }) => {
           .select("*")
           .eq("id", session.user.id)
           .single()
-          .then(({ data: profile }) =>
-            setCurrentUser({ ...session.user, ...profile }),
-          );
+          .then(({ data: profile }) => {
+            setCurrentUser({ ...session.user, ...profile });
+            setAuthLoading(false);
+          });
+      } else {
+        setAuthLoading(false);
       }
     });
 
@@ -231,6 +235,18 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  const clearAllNotifications = async () => {
+    if (!currentUser || notifications.length === 0) return;
+    const previous = notifications;
+    setNotifications([]);
+    try {
+      await api.clearAllNotifications(currentUser.id);
+    } catch (err) {
+      console.error("Failed to clear notifications:", err.message);
+      setNotifications(previous);
+    }
+  };
+
   // ------------------------------------------------------------
   // Saved listings
   // ------------------------------------------------------------
@@ -279,6 +295,15 @@ export const AppContextProvider = ({ children }) => {
         `Your room "${newListing.title}" is pending admin moderation.`,
         "listing",
       );
+      try {
+        await api.notifyAdmins(
+          "New Listing Pending Review",
+          `"${newListing.title}" was submitted by ${currentUser.name} and needs moderation.`,
+          "listing",
+        );
+      } catch (err) {
+        console.error("Failed to notify admins of new listing:", err.message);
+      }
       return { success: true, listing: newListing };
     } catch (err) {
       console.error("Failed to create listing:", err.message);
@@ -557,13 +582,16 @@ export const AppContextProvider = ({ children }) => {
         sendInquiry,
         replyToInquiry,
         notifications,
+        pushNotification,
         markNotificationAsRead,
         markAllNotificationsRead,
+        clearAllNotifications,
         tenantPreferences,
         setTenantPreferences,
         savedListings,
         toggleSaveListing,
         currentUser,
+        authLoading,
         loginUser,
         logoutUser,
         signupUser,

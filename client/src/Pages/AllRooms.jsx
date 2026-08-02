@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
 import { RoomCard } from '../components/RoomCard';
 import { PaymentModal } from '../components/PaymentModal';
+import { LoadingScreen } from '../components/LoadingScreen';
 import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, ShieldAlert } from 'lucide-react';
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapContainer as SelectableMap } from '../components/MapContainer';
