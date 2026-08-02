@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { ProgressTracker } from "../components/ai-recommend/ProgressTracker";
 import { StepBudgetCity } from "../components/ai-recommend/StepBudgetCity";
@@ -7,23 +8,21 @@ import { StepFacilities } from "../components/ai-recommend/StepFacilities";
 import { StepLocation } from "../components/ai-recommend/StepLocation";
 import { LoadingStep } from "../components/ai-recommend/LoadingStep";
 import { ResultsStep } from "../components/ai-recommend/ResultsStep";
-import { PaymentModal } from "../components/PaymentModal";
 import { Brain } from "lucide-react";
-import { haversineDistance } from "../utils/geo";
+import{getDistancePrice} from "../payment/paymentUtils";
+import { getTier } from "../payment/paymentUtils";
 
 export const AIRecommend = () => {
+  const navigate = useNavigate();
   const {
     tenantPreferences,
     setTenantPreferences,
     getAIRecommendedListings,
     aiError,
     checkDistanceAccess,
-    grantRadiusAccess,
-    getDistancePrice,
   } = useContext(AppContext);
 
   const [step, setStep] = useState(1);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const [budget, setBudget] = useState(tenantPreferences.budget);
   const [city, setCity] = useState(tenantPreferences.preferredCity);
@@ -70,7 +69,10 @@ export const AIRecommend = () => {
     // Verify distance tier payment
     const isPaid = checkDistanceAccess(location, radius);
     if (!isPaid) {
-      setShowPaymentModal(true);
+      const latStr = location?.lat || 27.6644;
+      const lngStr = location?.lng || 85.3188;
+      const nameStr = encodeURIComponent(location?.name || "Selected Point");
+      navigate(`/payment?type=distance_radius&radius=${radius}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`);
     } else {
       executeRecommendationFlow(prefs);
     }
@@ -80,6 +82,7 @@ export const AIRecommend = () => {
     const price = getDistancePrice(radius);
     grantRadiusAccess(location, radius, price);
     setShowPaymentModal(false);
+    const tier=getTier(radius);
 
     const prefs = {
       budget,
@@ -220,16 +223,6 @@ export const AIRecommend = () => {
           onModify={() => setStep(1)}
         />
       )}
-
-      {/* Payment Gateway Modal */}
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        location={location}
-        radius={radius}
-        price={getDistancePrice(radius)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
     </div>
   );
 };

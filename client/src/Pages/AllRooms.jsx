@@ -8,6 +8,7 @@ import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, ShieldAlert } from 'luc
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapContainer as SelectableMap } from '../components/MapContainer';
 import { haversineDistance } from '../utils/geo';
+import { RADIUS_OPTIONS } from '../payment/paymentUtils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -30,24 +31,23 @@ const PRESET_LOCATIONS = [
   { name: "Kathmandu University", lat: 27.6206, lng: 85.556 },
 ];
 
-const RADIUS_OPTIONS = [
-  { label: "🚶 Walking (500m) — Rs. 100", val: 500 },
-  { label: "🏃 Near (1km) — Rs. 60", val: 1000 },
-  { label: "🚲 Cycling (3km) — Rs. 30", val: 3000 },
-  { label: "🌐 Extended (5km) — Rs. 15", val: 5000 },
-];
-
 export const AllRooms = () => {
   const {
     listings,
     listingsLoading,
-    calculateRecommendationScore,
-    tenantPreferences,
+    currentUser,
     paidRadiusAccess,
-    grantRadiusAccess,
     getDistancePrice,
+    checkDistanceAccess,
   } = useContext(AppContext);
+
   const navigate = useNavigate();
+
+  const isAccessPaid =
+    paidRadiusAccess &&
+    paidRadiusAccess.userId === currentUser?.id &&
+    paidRadiusAccess.paidUntil > Date.now() &&
+    paidRadiusAccess.location;
 
   const [selectedLocation, setSelectedLocation] = useState(
     paidRadiusAccess?.location || PRESET_LOCATIONS[0]
@@ -55,16 +55,11 @@ export const AllRooms = () => {
   const [selectedRadius, setSelectedRadius] = useState(
     paidRadiusAccess?.activeRadius || 1000
   );
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showRadiusPicker, setShowRadiusPicker] = useState(false);
 
-  const isAccessPaid =
-    paidRadiusAccess &&
-    paidRadiusAccess.paidUntil > Date.now() &&
-    paidRadiusAccess.location;
-
-  // Filter rooms strictly by distance radius if paid
+  // Filter rooms strictly by user's paid distance radius
   let verifiedRooms = listings;
-  if (isAccessPaid && paidRadiusAccess.location) {
+  if (isAccessPaid && paidRadiusAccess?.location) {
     const loc = paidRadiusAccess.location;
     const rad = paidRadiusAccess.activeRadius;
     verifiedRooms = listings.filter((room) => {
@@ -80,28 +75,22 @@ export const AllRooms = () => {
   }
 
   // Only rooms with valid coordinates get a pin on the map
-  const pinnableRooms = verifiedRooms.filter((r) => r.latitude && r.longitude);
+  const pinnableRooms = isAccessPaid
+    ? verifiedRooms.filter((r) => r.latitude && r.longitude)
+    : [];
 
-  // Center the map on paid location or average of pinned rooms
   const mapCenter = paidRadiusAccess?.location
     ? [paidRadiusAccess.location.lat, paidRadiusAccess.location.lng]
-    : pinnableRooms.length > 0
-    ? [
-        pinnableRooms.reduce((sum, r) => sum + Number(r.latitude), 0) /
-          pinnableRooms.length,
-        pinnableRooms.reduce((sum, r) => sum + Number(r.longitude), 0) /
-          pinnableRooms.length,
-      ]
     : [27.685, 85.32];
 
   const handleUnlockPayment = () => {
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentSuccess = () => {
+    const latStr = selectedLocation?.lat || 27.6644;
+    const lngStr = selectedLocation?.lng || 85.3188;
+    const nameStr = encodeURIComponent(selectedLocation?.name || "Selected Point");
     const price = getDistancePrice(selectedRadius);
-    grantRadiusAccess(selectedLocation, selectedRadius, price);
-    setShowPaymentModal(false);
+    navigate(
+      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`
+    );
   };
 
   const remainingHours = isAccessPaid
@@ -156,13 +145,13 @@ export const AllRooms = () => {
                     paidRadiusAccess.activeRadius >= 1000
                       ? (paidRadiusAccess.activeRadius / 1000).toFixed(1) + "km"
                       : paidRadiusAccess.activeRadius + "m"
-                  } of ${paidRadiusAccess.location.name || "selected area"}`
-                : "Select distance tier to unlock room listings across Kathmandu valley"}
+                  } of ${paidRadiusAccess.location.name || "selected location"}`
+                : "Distance tier payment required to view rooms for your account"}
             </p>
           </div>
         </div>
 
-        {/* Paid Access Banner / Switcher */}
+        {/* User-Specific Active Paid Access Banner */}
         {isAccessPaid && (
           <div
             style={{
@@ -178,9 +167,7 @@ export const AllRooms = () => {
               gap: "0.75rem",
             }}
           >
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}
-            >
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
               <Clock size={20} style={{ color: "#10b981" }} />
               <div>
                 <span
@@ -199,11 +186,8 @@ export const AllRooms = () => {
                     margin: "0.1rem 0 0",
                   }}
                 >
-                  Location:{" "}
-                  <strong>
-                    {paidRadiusAccess.location.name || "Custom Point"}
-                  </strong>{" "}
-                  • Radius:{" "}
+                  Account: <strong>{currentUser?.name || currentUser?.email}</strong> • Location:{" "}
+                  <strong>{paidRadiusAccess.location.name || "Custom Point"}</strong> • Radius:{" "}
                   <strong>
                     {paidRadiusAccess.activeRadius >= 1000
                       ? (paidRadiusAccess.activeRadius / 1000).toFixed(1) + "km"
@@ -212,22 +196,150 @@ export const AllRooms = () => {
                 </p>
               </div>
             </div>
+
             <button
-              onClick={() => {
-                setShowPaymentModal(false);
-                // Allow changing tier
-                setSelectedLocation(paidRadiusAccess.location);
-                setSelectedRadius(paidRadiusAccess.activeRadius);
-                handleUnlockPayment();
-              }}
+              onClick={() => setShowRadiusPicker((prev) => !prev)}
               className="btn btn-outline btn-sm"
-              style={{ fontSize: "0.8rem" }}
+              style={{ fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.4rem" }}
             >
-              Upgrade / Change Radius Tier
+              <Settings2 size={14} /> {showRadiusPicker ? "Close Picker" : "Change Radius Tier / Location"}
             </button>
           </div>
         )}
       </div>
+
+      {/* Inline Radius Picker Modal / Card when toggled or unpaid */}
+      {(showRadiusPicker || !isAccessPaid) && (
+        <div
+          className="card shadow-lg animate-fade-in"
+          style={{
+            padding: "2rem 1.5rem",
+            maxWidth: "720px",
+            margin: "0 auto 2.5rem",
+            borderRadius: "16px",
+            border: "1px solid var(--border-color)",
+            backgroundColor: "var(--bg-card)",
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+            <div
+              style={{
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                backgroundColor: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                color: "var(--primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 0.75rem",
+              }}
+            >
+              {isAccessPaid ? <Settings2 size={28} /> : <Lock size={28} />}
+            </div>
+            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
+              {isAccessPaid ? "Change Target Radius Tier & Location" : "Select Distance Tier to Unlock Rooms"}
+            </h3>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>
+              {isAccessPaid
+                ? "Selecting a new location or tighter radius tier requires a new verification payment."
+                : "Room access is strictly user-specific and locked per distance radius tier."}
+            </p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "1.5rem" }}>
+            <div>
+              <label style={{ display: "block", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.4rem" }}>
+                1. Target Location (College / Workplace):
+              </label>
+              <select
+                value={selectedLocation.name || ""}
+                onChange={(e) => {
+                  const found = PRESET_LOCATIONS.find((p) => p.name === e.target.value);
+                  if (found) setSelectedLocation(found);
+                }}
+                className="form-input"
+                style={{ width: "100%", padding: "0.75rem" }}
+              >
+                {PRESET_LOCATIONS.map((preset) => (
+                  <option key={preset.name} value={preset.name}>
+                    🎓 {preset.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.3rem", color: "var(--text-muted)" }}>
+                Or select point on map:
+              </label>
+              <div style={{ height: "200px", borderRadius: "10px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                <SelectableMap
+                  selectable
+                  onLocationSelect={(lat, lng) => setSelectedLocation({ name: "Custom Pin", lat, lng })}
+                  selectedLocation={selectedLocation ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : null}
+                  selectionRadius={selectedRadius}
+                  currentCenter={[selectedLocation.lat, selectedLocation.lng]}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <label style={{ fontWeight: 700, fontSize: "0.85rem" }}>2. Distance Radius Tier:</label>
+                <span style={{ fontWeight: 800, color: "var(--primary)", fontSize: "1.1rem" }}>
+                  Rs. {getDistancePrice(selectedRadius)}
+                </span>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem" }}>
+                {RADIUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.val}
+                    type="button"
+                    onClick={() => setSelectedRadius(opt.val)}
+                    style={{
+                      padding: "0.65rem 0.4rem",
+                      borderRadius: "8px",
+                      border: selectedRadius === opt.val ? "2px solid var(--primary)" : "1px solid var(--border-color)",
+                      backgroundColor: selectedRadius === opt.val ? "color-mix(in srgb, var(--primary) 12%, transparent)" : "transparent",
+                      fontWeight: selectedRadius === opt.val ? 700 : 500,
+                      cursor: "pointer",
+                      fontSize: "0.8rem",
+                      color: "var(--text-main)",
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleUnlockPayment}
+            style={{
+              width: "100%",
+              padding: "0.9rem",
+              borderRadius: "10px",
+              border: "none",
+              background: "linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)",
+              color: "white",
+              fontWeight: 800,
+              fontSize: "1rem",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+              boxShadow: "0 6px 18px rgba(99, 102, 241, 0.3)",
+            }}
+          >
+            <Sparkles size={18} style={{ fill: "white" }} />
+            Pay & Unlock Radius Tier (Rs. {getDistancePrice(selectedRadius)})
+          </button>
+        </div>
+      )}
 
       {/* Loading state */}
       {listingsLoading ? (
@@ -243,235 +355,21 @@ export const AllRooms = () => {
               margin: "0 auto 1rem",
             }}
           />
-          <p style={{ color: "var(--text-muted)" }}>
-            Fetching rooms from database...
-          </p>
+          <p style={{ color: "var(--text-muted)" }}>Fetching rooms from database...</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
-      ) : !isAccessPaid ? (
-        /* Paywall Screen for Unpaid Tenants */
-        <div
-          className="card shadow-lg"
-          style={{
-            padding: "2.5rem 1.5rem",
-            maxWidth: "720px",
-            margin: "0 auto",
-            borderRadius: "16px",
-            border: "1px solid var(--border-color)",
-            backgroundColor: "var(--bg-card)",
-          }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-            <div
-              style={{
-                width: "64px",
-                height: "64px",
-                borderRadius: "50%",
-                backgroundColor: "color-mix(in srgb, var(--primary) 12%, transparent)",
-                color: "var(--primary)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 1rem",
-              }}
-            >
-              <Lock size={32} />
-            </div>
-            <h3
-              style={{
-                fontSize: "1.6rem",
-                fontWeight: 800,
-                marginBottom: "0.5rem",
-              }}
-            >
-              Select Radius Tier to View Rooms
-            </h3>
-            <p
-              style={{
-                color: "var(--text-muted)",
-                fontSize: "0.95rem",
-                maxWidth: "540px",
-                margin: "0 auto",
-              }}
-            >
-              Room visibility is unlocked per distance radius tier. Closer proximity carries higher value for tenants. Select your location and target radius to unlock <strong>48 hours</strong> of full room listings.
-            </p>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "1.5rem",
-              marginBottom: "2rem",
-            }}
-          >
-            {/* Location selector */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontWeight: 700,
-                  fontSize: "0.9rem",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                1. Pick Target Location (College / Workplace):
-              </label>
-              <select
-                value={selectedLocation.name || ""}
-                onChange={(e) => {
-                  const found = PRESET_LOCATIONS.find(
-                    (p) => p.name === e.target.value
-                  );
-                  if (found) setSelectedLocation(found);
-                }}
-                className="form-input"
-                style={{ width: "100%", padding: "0.75rem" }}
-              >
-                {PRESET_LOCATIONS.map((preset) => (
-                  <option key={preset.name} value={preset.name}>
-                    🎓 {preset.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Map point picker */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontWeight: 700,
-                  fontSize: "0.85rem",
-                  marginBottom: "0.4rem",
-                  color: "var(--text-muted)",
-                }}
-              >
-                Or select point on map:
-              </label>
-              <div
-                style={{
-                  height: "220px",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-                  border: "1px solid var(--border-color)",
-                }}
-              >
-                <SelectableMap
-                  selectable
-                  onLocationSelect={(lat, lng) =>
-                    setSelectedLocation({ name: "Custom Pin", lat, lng })
-                  }
-                  selectedLocation={
-                    selectedLocation
-                      ? { lat: selectedLocation.lat, lng: selectedLocation.lng }
-                      : null
-                  }
-                  selectionRadius={selectedRadius}
-                  currentCenter={[selectedLocation.lat, selectedLocation.lng]}
-                />
-              </div>
-            </div>
-
-            {/* Radius tier selector */}
-            <div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "0.5rem",
-                }}
-              >
-                <label style={{ fontWeight: 700, fontSize: "0.9rem" }}>
-                  2. Choose Distance Radius Tier:
-                </label>
-                <span
-                  style={{
-                    fontWeight: 800,
-                    color: "var(--primary)",
-                    fontSize: "1.1rem",
-                  }}
-                >
-                  Rs. {getDistancePrice(selectedRadius)}
-                </span>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-                  gap: "0.6rem",
-                }}
-              >
-                {RADIUS_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.val}
-                    type="button"
-                    onClick={() => setSelectedRadius(opt.val)}
-                    style={{
-                      padding: "0.75rem 0.5rem",
-                      borderRadius: "10px",
-                      border:
-                        selectedRadius === opt.val
-                          ? "2px solid var(--primary)"
-                          : "1px solid var(--border-color)",
-                      backgroundColor:
-                        selectedRadius === opt.val
-                          ? "color-mix(in srgb, var(--primary) 12%, transparent)"
-                          : "transparent",
-                      fontWeight: selectedRadius === opt.val ? 700 : 500,
-                      cursor: "pointer",
-                      textAlign: "center",
-                      fontSize: "0.82rem",
-                      color: "var(--text-main)",
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Unlock action button */}
-          <button
-            onClick={handleUnlockPayment}
-            style={{
-              width: "100%",
-              padding: "1rem",
-              borderRadius: "12px",
-              border: "none",
-              background:
-                "linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)",
-              color: "white",
-              fontWeight: 800,
-              fontSize: "1.1rem",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.6rem",
-              boxShadow: "0 8px 20px rgba(99, 102, 241, 0.35)",
-            }}
-          >
-            <Sparkles size={20} style={{ fill: "white" }} />
-            Unlock Rooms for Rs. {getDistancePrice(selectedRadius)} (48 Hours Access)
-          </button>
-        </div>
-      ) : verifiedRooms.length === 0 ? (
+      ) : !isAccessPaid ? null : verifiedRooms.length === 0 ? (
         /* Empty state within radius */
         <div className="card text-center" style={{ padding: "5rem 2rem" }}>
-          <Home
-            size={48}
-            style={{ color: "var(--text-light)", margin: "0 auto 1rem" }}
-          />
+          <Home size={48} style={{ color: "var(--text-light)", margin: "0 auto 1rem" }} />
           <h3 style={{ marginBottom: "0.5rem" }}>
-            No Rooms Available within {paidRadiusAccess.activeRadius >= 1000 ? (paidRadiusAccess.activeRadius/1000) + 'km' : paidRadiusAccess.activeRadius + 'm'}
+            No Rooms Available within{" "}
+            {paidRadiusAccess.activeRadius >= 1000
+              ? paidRadiusAccess.activeRadius / 1000 + "km"
+              : paidRadiusAccess.activeRadius + "m"}
           </h3>
           <p style={{ color: "var(--text-muted)" }}>
-            Try increasing your radius tier or choosing another central location.
+            Try selecting a broader radius tier or another target location.
           </p>
         </div>
       ) : (
@@ -547,10 +445,7 @@ export const AllRooms = () => {
                   {pinnableRooms.map((room) => (
                     <Marker
                       key={room.id}
-                      position={[
-                        Number(room.latitude),
-                        Number(room.longitude),
-                      ]}
+                      position={[Number(room.latitude), Number(room.longitude)]}
                       eventHandlers={{
                         mouseover: (e) => e.target.openPopup(),
                         mouseout: (e) => e.target.closePopup(),
@@ -611,16 +506,6 @@ export const AllRooms = () => {
           </div>
         </div>
       )}
-
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        location={selectedLocation}
-        radius={selectedRadius}
-        price={getDistancePrice(selectedRadius)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
 
       <style>{`
         .all-rooms-layout {

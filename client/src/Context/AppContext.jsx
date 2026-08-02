@@ -2,6 +2,8 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
+import { fetchUserApprovedAccess } from "../payment/paymentAPI";
+import { getDistancePrice } from "../payment/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
 export const AppContext = createContext();
@@ -23,46 +25,55 @@ export const AppContextProvider = ({ children }) => {
     radius: 1000,
   });
 
-  // Paid Distance Access State (48 Hours Validity)
-  const [paidRadiusAccess, setPaidRadiusAccess] = useState(() => {
-    try {
-      const stored = localStorage.getItem("nestfinder_paid_access");
-      if (!stored) return null;
-      const parsed = JSON.parse(stored);
-      if (parsed.paidUntil && parsed.paidUntil > Date.now()) {
-        return parsed;
-      }
-    } catch (e) {
-      console.error("Failed to parse stored paid access", e);
-    }
-    return null;
-  });
+  // User-Specific Paid Distance Access State (48 Hours Validity)
+  const [paidRadiusAccess, setPaidRadiusAccess] = useState(null);
+  const [savedListings, setSavedListings] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const getDistancePrice = (radiusMeters) => {
-    if (radiusMeters <= 500) return 100;
-    if (radiusMeters <= 1000) return 60;
-    if (radiusMeters <= 3000) return 30;
-    return 15;
-  };
+  const refreshUserPaidAccess = useCallback(async (user) => {
+    if (!user) {
+      setPaidRadiusAccess(null);
+      return;
+    }
+    try {
+      const access = await fetchUserApprovedAccess(user.id);
+      setPaidRadiusAccess(access);
+    } catch (err) {
+      console.error("Error loading user paid access:", err);
+      setPaidRadiusAccess(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUserPaidAccess(currentUser);
+  }, [currentUser, refreshUserPaidAccess]);
 
   const checkDistanceAccess = (location, radius) => {
-    if (!paidRadiusAccess) return false;
+    if (!currentUser || !paidRadiusAccess) return false;
+    if (paidRadiusAccess.userId && paidRadiusAccess.userId !== currentUser.id) return false;
     if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now()) return false;
     if (radius > paidRadiusAccess.activeRadius) return false;
     return true;
   };
 
-  const grantRadiusAccess = (location, radius, pricePaid) => {
+  const grantRadiusAccess = (location, radius, pricePaid, targetUserId = null) => {
+    const userId = targetUserId || currentUser?.id;
     const paidUntil = Date.now() + 48 * 60 * 60 * 1000;
     const accessData = {
-      activeRadius: radius,
+      userId,
+      activeRadius: Number(radius),
       location: location || tenantPreferences.poiLocation,
       pricePaid,
       paidUntil,
       paidAt: Date.now(),
     };
-    setPaidRadiusAccess(accessData);
-    localStorage.setItem("nestfinder_paid_access", JSON.stringify(accessData));
+
+    if (currentUser && currentUser.id === userId) {
+      setPaidRadiusAccess(accessData);
+    }
+    if (userId) {
+      localStorage.setItem(`nestfinder_paid_access_${userId}`, JSON.stringify(accessData));
+    }
   };
 
   const [savedListings, setSavedListings] = useState([]);
