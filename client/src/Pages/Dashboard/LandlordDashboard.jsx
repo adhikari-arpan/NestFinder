@@ -10,7 +10,7 @@ import ImageUploader from '../../components/ImageUploader';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import { KycStatusBanner } from '../../components/KycStatusBanner';
 import { LoadingScreen } from '../../components/LoadingScreen';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, ArrowLeft } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -111,11 +111,6 @@ export const LandlordDashboard = () => {
       navigate('/dashboard/landlord', { replace: true });
     }
   }, [location.search, currentUser]);
-
-  useEffect(() => {
-    document.body.style.overflow = isPostModalOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isPostModalOpen]);
 
   // Form states for new Listing
   const [formTitle, setFormTitle] = useState('');
@@ -286,6 +281,8 @@ export const LandlordDashboard = () => {
   return (
     <div className="animate-fade-in dashboard-container"> 
 
+      {!isPostModalOpen && (
+        <>
       {/* ── Welcome Banner: landlord greeting + Add Room CTA ── */}
       <DashboardHeader style={{
         display: 'flex',
@@ -328,8 +325,11 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       )}
+        </>
+      )}
 
       {/* Tabs selectors: Rooms vs Inquiries */}
+      {!isPostModalOpen && (
       <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
         <button
           onClick={() => setActiveTab('listings')}
@@ -370,9 +370,10 @@ export const LandlordDashboard = () => {
           <MessageSquare size={16} /> Tenant Inquiries ({landlordInquiries.length})
         </button>
       </div>
+      )}
 
       {/* 1. Listings Table view */}
-      {activeTab === 'listings' && (
+      {activeTab === 'listings' && !isPostModalOpen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {landlordListings.length === 0 ? (
             <div className="card text-center" style={{ padding: '4rem 1rem' }}>
@@ -457,7 +458,7 @@ export const LandlordDashboard = () => {
       )}
 
       {/* 2. Inquiries message inbox */}
-      {activeTab === 'inquiries' && (
+      {activeTab === 'inquiries' && !isPostModalOpen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {landlordInquiries.length === 0 ? (
             <div className="card text-center" style={{ padding: '4rem 1rem' }}>
@@ -548,20 +549,17 @@ export const LandlordDashboard = () => {
           POST PROPERTY MODAL / OVERLAY FORM
           ======================================= */}
       {isPostModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          overflowY: 'auto',
-          zIndex: 2000,
-          padding: '2.5rem 1.5rem 5rem',
-          backgroundColor: 'var(--bg-app)'
-        }}>
+        <div style={{ paddingBottom: '2.5rem' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
             {/* Page Header */}
+            <button
+              onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }}
+              className="btn btn-outline btn-sm"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem' }}
+            >
+              <ArrowLeft size={16} /> Back to Dashboard
+            </button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -573,13 +571,6 @@ export const LandlordDashboard = () => {
                     : 'Provide specifications. Newly listed rentals start as pending for admin checks.'}
                 </p>
               </div>
-              <button
-                onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }}
-                className="btn btn-outline btn-sm"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                <X size={18} /> Cancel
-              </button>
             </div>
 
             {/* Form */}
