@@ -335,6 +335,14 @@ export async function markNotificationRead(notificationId) {
   if (error) throw error;
 }
 
+export async function clearAllNotifications(userId) {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
 // ------------------------------------------------------------
 // Admin: users
 // ------------------------------------------------------------
