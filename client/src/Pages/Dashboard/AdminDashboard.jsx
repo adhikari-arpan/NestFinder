@@ -140,7 +140,7 @@ export const AdminDashboard = () => {
 
       if (decision === "approved" && updated) {
         if (updated.target_location && updated.target_radius) {
-          grantRadiusAccess(updated.target_location, updated.target_radius, updated.amount);
+          grantRadiusAccess(updated.target_location, updated.target_radius, updated.amount, updated.user_id);
         }
         setActionMessage({
           text: `Payment of Rs. ${updated.amount} verified & approved! 48-Hour radius access granted.`,

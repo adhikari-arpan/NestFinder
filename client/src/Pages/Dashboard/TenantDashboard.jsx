@@ -5,8 +5,9 @@ import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import logo from '../../assets/NestFinder Logo.png';
+import { haversineDistance } from '../../utils/geo';
 import {
-  Heart, Sparkles, MessageSquare, Clock, ArrowRight
+  Heart, Sparkles, MessageSquare, Clock, ArrowRight, Lock
 } from 'lucide-react';
 
 const RoomCarousel = ({ listings }) => {
@@ -101,7 +102,8 @@ export const TenantDashboard = () => {
     inquiries,
     listings,
     tenantPreferences,
-    calculateRecommendationScore
+    calculateRecommendationScore,
+    paidRadiusAccess,
   } = useContext(AppContext);
 
   const navigate = useNavigate();
@@ -117,6 +119,25 @@ export const TenantDashboard = () => {
       navigate('/');
     }
   }, [currentUser, navigate]);
+
+  const isAccessPaid =
+    paidRadiusAccess &&
+    paidRadiusAccess.userId === currentUser?.id &&
+    paidRadiusAccess.paidUntil > Date.now() &&
+    paidRadiusAccess.location;
+
+  const visibleListings = isAccessPaid
+    ? listings.filter((l) => {
+        if (!l.latitude || !l.longitude) return false;
+        const dist = haversineDistance(
+          paidRadiusAccess.location.lat,
+          paidRadiusAccess.location.lng,
+          Number(l.latitude),
+          Number(l.longitude)
+        );
+        return dist <= paidRadiusAccess.activeRadius;
+      })
+    : [];
 
   const bookmarkedRooms = listings.filter(l => savedListings.includes(l.id));
 
@@ -232,36 +253,63 @@ export const TenantDashboard = () => {
       <div>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-[1.4rem] font-bold">
-            🗺️ All Available Rooms in Map View
+            🗺️ Unlocked Rooms in Map View
           </h3>
           <span className="badge badge-secondary" style={{ textTransform: 'none' }}>
-            Click pins to review
+            {isAccessPaid ? `Showing ${visibleListings.length} rooms in radius` : "Radius Access Locked"}
           </span>
         </div>
 
         <div className="map-section-full relative">
-          <div className="map-badge-helper absolute top-3.75 right-3.75 z-999">
-            🗺️ Map Discovery Mode
-          </div>
-
-          <MapContainer
-            listings={listings}
-            activeListingId={activeListingId}
-            highlightListingId={highlightListingId}
-            onMarkerClick={handleMarkerClick}
-            currentCenter={mapCenter}
-            radius={tenantPreferences.radius || 1000}
-            college={tenantPreferences.poiLocation?.name}
-          />
+          {isAccessPaid ? (
+            <MapContainer
+              listings={visibleListings}
+              activeListingId={activeListingId}
+              highlightListingId={highlightListingId}
+              onMarkerClick={handleMarkerClick}
+              currentCenter={paidRadiusAccess.location ? [paidRadiusAccess.location.lat, paidRadiusAccess.location.lng] : null}
+              radius={paidRadiusAccess.activeRadius}
+              college={paidRadiusAccess.location?.name}
+            />
+          ) : (
+            <div
+              style={{
+                height: "350px",
+                borderRadius: "var(--radius-lg)",
+                backgroundColor: "color-mix(in srgb, var(--primary) 8%, transparent)",
+                border: "2px dashed var(--border-color)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "2rem",
+                textAlign: "center",
+              }}
+            >
+              <Lock size={42} style={{ color: "var(--primary)", marginBottom: "0.75rem" }} />
+              <h4 style={{ fontSize: "1.3rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
+                Distance Tier Paywall Active
+              </h4>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.95rem", maxWidth: "480px", marginBottom: "1.25rem" }}>
+                Unlock your desired distance radius tier to view verified room pins and listings around your college or workplace.
+              </p>
+              <button
+                className="btn btn-primary font-bold"
+                onClick={() => navigate("/rooms")}
+              >
+                Unlock Distance Tier Access →
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 6. All Available Rooms (Carousel Section) */}
+      {/* 6. Available Rooms (Carousel Section) */}
       <div className="mt-8">
         <div className="carousel-section" style={{ marginTop: 0 }}>
           <div className="carousel-container">
             <div className="flex-1">
-              <RoomCarousel listings={listings} />
+              <RoomCarousel listings={isAccessPaid ? visibleListings : listings} />
             </div>
             <div className="glowing-arrow" onClick={() => navigate('/rooms')}>
               <ArrowRight size={24} />
@@ -273,7 +321,7 @@ export const TenantDashboard = () => {
             onClick={() => navigate('/rooms')}
             style={{ whiteSpace: 'nowrap' }}
           >
-            View All Rooms →
+            {isAccessPaid ? "View Unlocked Rooms →" : "Unlock & View All Rooms →"}
           </button>
         </div>
       </div>

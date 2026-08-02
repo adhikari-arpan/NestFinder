@@ -237,3 +237,53 @@ export async function fetchUserPayments(userId) {
   if (!userId) return all;
   return all.filter((p) => p.user_id === userId);
 }
+
+// ------------------------------------------------------------
+// Fetch active approved payment for specific user (User-specific access gate)
+// ------------------------------------------------------------
+export async function fetchUserApprovedAccess(userId) {
+  if (!userId) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from("payments")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "approved")
+      .order("approved_at", { ascending: false })
+      .limit(1);
+
+    if (!error && data?.length) {
+      const payment = data[0];
+      const approvedTime = payment.approved_at ? new Date(payment.approved_at).getTime() : new Date(payment.created_at).getTime();
+      const paidUntil = approvedTime + 48 * 60 * 60 * 1000;
+      if (paidUntil > Date.now()) {
+        return {
+          userId,
+          activeRadius: Number(payment.target_radius),
+          location: payment.target_location,
+          pricePaid: payment.amount,
+          paidUntil,
+          paidAt: approvedTime,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("Error fetching approved payment from DB:", err.message);
+  }
+
+  try {
+    const key = `nestfinder_paid_access_${userId}`;
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed.paidUntil && parsed.paidUntil > Date.now()) {
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.error("Error reading local user paid access:", err);
+  }
+
+  return null;
+}
