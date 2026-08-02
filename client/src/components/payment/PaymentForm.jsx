@@ -3,7 +3,7 @@
 
 import React, { useState } from "react";
 import { Upload, Image as ImageIcon, X, Send, ShieldAlert, CheckCircle2 } from "lucide-react";
-import { formatNPR } from "./paymentUtils";
+import { formatNPR } from "../../utils/paymentUtils";
 
 export const PaymentForm = ({
   amount,

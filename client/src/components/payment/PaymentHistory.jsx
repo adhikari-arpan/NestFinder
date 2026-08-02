@@ -2,8 +2,8 @@
 // User's payment history list showing status, target radius, screenshot proof, and approval date
 
 import React, { useEffect, useState } from "react";
-import { fetchUserPayments } from "./paymentAPI";
-import { formatNPR, getStatusBadge } from "./paymentUtils";
+import { fetchUserPayments } from "../../api/paymentAPI";
+import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
 import { Clock, CheckCircle, AlertCircle, Image as ImageIcon, Loader2 } from "lucide-react";
 
 export const PaymentHistory = ({ userId }) => {

@@ -8,8 +8,8 @@ import { PaymentQR } from "./PaymentQR";
 import { PaymentForm } from "./PaymentForm";
 import { PaymentSuccess } from "./PaymentSuccess";
 import { PaymentFailed } from "./PaymentFailed";
-import { submitPaymentProof } from "./paymentAPI";
-import { getDistancePrice } from "./paymentUtils";
+import { submitPaymentProof } from "../../api/paymentAPI";
+import { getDistancePrice } from "../../utils/paymentUtils";
 import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
 
 export const PaymentPage = () => {

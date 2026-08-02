@@ -4,7 +4,7 @@
 import React from "react";
 import { CheckCircle2, Clock, ArrowRight, ShieldCheck, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatNPR, getStatusBadge } from "./paymentUtils";
+import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
 
 export const PaymentSuccess = ({ paymentDetails, onReset }) => {
   const navigate = useNavigate();

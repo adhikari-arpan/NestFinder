@@ -1,4 +1,4 @@
-// src/payment/paymentUtils.js
+// src/utils/paymentUtils.js
 // Reusable utilities for the NestFinder Payment Module
 
 export const PAYMENT_TYPES = {
@@ -9,25 +9,25 @@ export const PAYMENT_TYPES = {
 
 export const DISTANCE_TIER_PRICING = {
   500: {
-    price: 100,
+    price: 75,
     label: "Walking (500m)",
     desc: "Highest precision & prime proximity",
     icon: "🚶",
   },
   1000: {
-    price: 150,
+    price: 100,
     label: "Near (1km)",
     desc: "Standard proximity tier",
     icon: "🏃",
   },
   3000: {
-    price: 200,
+    price: 150,
     label: "Cycling (3km)",
     desc: "Extended proximity tier",
     icon: "🚲",
   },
   5000: {
-    price: 230,
+    price: 200,
     label: "Extended (5km)",
     desc: "City-wide proximity tier",
     icon: "🌐",

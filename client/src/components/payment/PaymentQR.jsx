@@ -4,7 +4,7 @@
 import React from "react";
 import { QrCode, ShieldCheck, Copy, Check } from "lucide-react";
 import { useState } from "react";
-import { formatNPR } from "./paymentUtils";
+import { formatNPR } from "../../utils/paymentUtils";
 
 export const PaymentQR = ({ amount, targetLocation, radius }) => {
   const [copied, setCopied] = useState(false);
