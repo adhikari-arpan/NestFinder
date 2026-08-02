@@ -335,6 +335,30 @@ export async function markNotificationRead(notificationId) {
   if (error) throw error;
 }
 
+export async function clearAllNotifications(userId) {
+  const { error } = await supabase
+    .from('notifications')
+    .delete()
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
+// Fan out a notification to every admin — used for events admins need to
+// act on (new listing pending moderation, new KYC pending review).
+export async function notifyAdmins(title, message, type = 'info') {
+  const { data: admins, error: fetchError } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin');
+  if (fetchError) throw fetchError;
+  if (!admins?.length) return;
+
+  const { error } = await supabase
+    .from('notifications')
+    .insert(admins.map((a) => ({ user_id: a.id, title, message, type })));
+  if (error) throw error;
+}
+
 // ------------------------------------------------------------
 // Admin: users
 // ------------------------------------------------------------

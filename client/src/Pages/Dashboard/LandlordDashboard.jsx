@@ -9,7 +9,8 @@ import L from 'leaflet';
 import ImageUploader from '../../components/ImageUploader';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import { KycStatusBanner } from '../../components/KycStatusBanner';
-import { Trash2, X } from 'lucide-react';
+import { LoadingScreen } from '../../components/LoadingScreen';
+import { Trash2, ArrowLeft } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -39,11 +40,22 @@ export const LandlordDashboard = () => {
     createListing,
     updateListing,
     deleteListing,
-    currentUser
+    currentUser,
+    authLoading,
+    refreshCurrentUser
   } = useContext(AppContext);
 
   const [myKyc, setMyKyc] = useState(null);
   const [gateNotice, setGateNotice] = useState(false);
+
+  // Pick up any kyc_status/is_verified change an admin made since this landlord's session last loaded the profile (e.g. approved/rejected
+  // while they were away) — currentUser is otherwise only fetched once at login/session-restore and never auto-refreshes.
+  useEffect(() => {
+    if (currentUser?.role === 'landlord') {
+      refreshCurrentUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== 'landlord') return;
@@ -55,12 +67,15 @@ export const LandlordDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Redirect if not landlord or admin
+  // Redirect if not landlord or admin — wait for the initial session check
+  // to finish first, otherwise this fires on every reload before
+  // currentUser has had a chance to load and bounces straight to /auth.
   useEffect(() => {
+    if (authLoading) return;
     if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) {
       navigate('/auth');
     }
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   // Tab views: 'listings' or 'inquiries'
   const [activeTab, setActiveTab] = useState('listings');
@@ -97,11 +112,6 @@ export const LandlordDashboard = () => {
     }
   }, [location.search, currentUser]);
 
-  useEffect(() => {
-    document.body.style.overflow = isPostModalOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isPostModalOpen]);
-
   // Form states for new Listing
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
@@ -124,12 +134,6 @@ export const LandlordDashboard = () => {
   const landlordInquiries = inquiries.filter(inq =>
     landlordListings.some(l => l.id === inq.listing_id)
   );
-
-  console.log("RAW listings:", listings);
-  console.log("RAW inquiries:", inquiries);
-  console.log("currentUser email:", currentUser?.email);
-  console.log("landlordListings result:", landlordListings);
-  console.log("landlordInquiries result:", landlordInquiries);
 
   const toggleFormAmenity = (item) => {
     setFormAmenities(prev =>
@@ -270,9 +274,15 @@ export const LandlordDashboard = () => {
     setReplyInquiryId(null);
   };
 
-  return (
-    <div className="animate-fade-in container" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
+  // Still resolving the session on first load — show the loader rather than
+  // flashing the redirect-guard effect above into a trip to /auth.
+  if (authLoading) return <LoadingScreen />;
 
+  return (
+    <div className="animate-fade-in dashboard-container"> 
+
+      {!isPostModalOpen && (
+        <>
       {/* ── Welcome Banner: landlord greeting + Add Room CTA ── */}
       <DashboardHeader style={{
         display: 'flex',
@@ -315,8 +325,11 @@ export const LandlordDashboard = () => {
           </div>
         </div>
       )}
+        </>
+      )}
 
       {/* Tabs selectors: Rooms vs Inquiries */}
+      {!isPostModalOpen && (
       <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid var(--border-color)', marginBottom: '2rem' }}>
         <button
           onClick={() => setActiveTab('listings')}
@@ -357,9 +370,10 @@ export const LandlordDashboard = () => {
           <MessageSquare size={16} /> Tenant Inquiries ({landlordInquiries.length})
         </button>
       </div>
+      )}
 
       {/* 1. Listings Table view */}
-      {activeTab === 'listings' && (
+      {activeTab === 'listings' && !isPostModalOpen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {landlordListings.length === 0 ? (
             <div className="card text-center" style={{ padding: '4rem 1rem' }}>
@@ -444,7 +458,7 @@ export const LandlordDashboard = () => {
       )}
 
       {/* 2. Inquiries message inbox */}
-      {activeTab === 'inquiries' && (
+      {activeTab === 'inquiries' && !isPostModalOpen && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {landlordInquiries.length === 0 ? (
             <div className="card text-center" style={{ padding: '4rem 1rem' }}>
@@ -535,20 +549,17 @@ export const LandlordDashboard = () => {
           POST PROPERTY MODAL / OVERLAY FORM
           ======================================= */}
       {isPostModalOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          overflowY: 'auto',
-          zIndex: 2000,
-          padding: '2.5rem 1.5rem 5rem',
-          backgroundColor: 'var(--bg-app)'
-        }}>
+        <div style={{ paddingBottom: '2.5rem' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
 
             {/* Page Header */}
+            <button
+              onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }}
+              className="btn btn-outline btn-sm"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1.5rem' }}
+            >
+              <ArrowLeft size={16} /> Back to Dashboard
+            </button>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <div>
                 <h2 style={{ fontSize: '1.6rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -560,13 +571,6 @@ export const LandlordDashboard = () => {
                     : 'Provide specifications. Newly listed rentals start as pending for admin checks.'}
                 </p>
               </div>
-              <button
-                onClick={() => { setIsPostModalOpen(false); setEditingListing(null); }}
-                className="btn btn-outline btn-sm"
-                style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                <X size={18} /> Cancel
-              </button>
             </div>
 
             {/* Form */}

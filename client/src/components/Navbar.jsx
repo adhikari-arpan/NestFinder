@@ -49,7 +49,8 @@ export const Navbar = () => {
     toggleTheme,
     notifications,
     markNotificationAsRead,
-    markAllNotificationsRead
+    markAllNotificationsRead,
+    clearAllNotifications
   } = useContext(AppContext);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -271,6 +272,14 @@ export const Navbar = () => {
                             className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-(--primary) hover:underline"
                           >
                             Mark all read
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button
+                            onClick={clearAllNotifications}
+                            className="cursor-pointer border-none bg-transparent text-[0.75rem] font-semibold text-(--danger) hover:underline"
+                          >
+                            Clear all
                           </button>
                         )}
                         <button

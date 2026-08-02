@@ -2,6 +2,8 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
+import { fetchUserApprovedAccess } from "../payment/paymentAPI";
+import { getDistancePrice } from "../payment/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
 export const AppContext = createContext();
@@ -23,8 +25,59 @@ export const AppContextProvider = ({ children }) => {
     radius: 1000,
   });
 
+  // User-Specific Paid Distance Access State (48 Hours Validity)
+  const [paidRadiusAccess, setPaidRadiusAccess] = useState(null);
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+
+  const refreshUserPaidAccess = useCallback(async (user) => {
+    if (!user) {
+      setPaidRadiusAccess(null);
+      return;
+    }
+    try {
+      const access = await fetchUserApprovedAccess(user.id);
+      setPaidRadiusAccess(access);
+    } catch (err) {
+      console.error("Error loading user paid access:", err);
+      setPaidRadiusAccess(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshUserPaidAccess(currentUser);
+  }, [currentUser, refreshUserPaidAccess]);
+
+  const checkDistanceAccess = (location, radius) => {
+    if (!currentUser || !paidRadiusAccess) return false;
+    if (paidRadiusAccess.userId && paidRadiusAccess.userId !== currentUser.id) return false;
+    if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now()) return false;
+    if (radius > paidRadiusAccess.activeRadius) return false;
+    return true;
+  };
+
+  const grantRadiusAccess = (location, radius, pricePaid, targetUserId = null) => {
+    const userId = targetUserId || currentUser?.id;
+    const paidUntil = Date.now() + 48 * 60 * 60 * 1000;
+    const accessData = {
+      userId,
+      activeRadius: Number(radius),
+      location: location || tenantPreferences.poiLocation,
+      pricePaid,
+      paidUntil,
+      paidAt: Date.now(),
+    };
+
+    if (currentUser && currentUser.id === userId) {
+      setPaidRadiusAccess(accessData);
+    }
+    if (userId) {
+      localStorage.setItem(`nestfinder_paid_access_${userId}`, JSON.stringify(accessData));
+    }
+  };
+
+
+  const [authLoading, setAuthLoading] = useState(true);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
@@ -114,9 +167,12 @@ export const AppContextProvider = ({ children }) => {
           .select("*")
           .eq("id", session.user.id)
           .single()
-          .then(({ data: profile }) =>
-            setCurrentUser({ ...session.user, ...profile }),
-          );
+          .then(({ data: profile }) => {
+            setCurrentUser({ ...session.user, ...profile });
+            setAuthLoading(false);
+          });
+      } else {
+        setAuthLoading(false);
       }
     });
 
@@ -189,6 +245,18 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  const clearAllNotifications = async () => {
+    if (!currentUser || notifications.length === 0) return;
+    const previous = notifications;
+    setNotifications([]);
+    try {
+      await api.clearAllNotifications(currentUser.id);
+    } catch (err) {
+      console.error("Failed to clear notifications:", err.message);
+      setNotifications(previous);
+    }
+  };
+
   // ------------------------------------------------------------
   // Saved listings
   // ------------------------------------------------------------
@@ -237,6 +305,15 @@ export const AppContextProvider = ({ children }) => {
         `Your room "${newListing.title}" is pending admin moderation.`,
         "listing",
       );
+      try {
+        await api.notifyAdmins(
+          "New Listing Pending Review",
+          `"${newListing.title}" was submitted by ${currentUser.name} and needs moderation.`,
+          "listing",
+        );
+      } catch (err) {
+        console.error("Failed to notify admins of new listing:", err.message);
+      }
       return { success: true, listing: newListing };
     } catch (err) {
       console.error("Failed to create listing:", err.message);
@@ -515,13 +592,16 @@ export const AppContextProvider = ({ children }) => {
         sendInquiry,
         replyToInquiry,
         notifications,
+        pushNotification,
         markNotificationAsRead,
         markAllNotificationsRead,
+        clearAllNotifications,
         tenantPreferences,
         setTenantPreferences,
         savedListings,
         toggleSaveListing,
         currentUser,
+        authLoading,
         loginUser,
         logoutUser,
         signupUser,
@@ -537,6 +617,10 @@ export const AppContextProvider = ({ children }) => {
         aiLoading,
         aiError,
         calculateRecommendationScore,
+        paidRadiusAccess,
+        getDistancePrice,
+        checkDistanceAccess,
+        grantRadiusAccess,
       }}
     >
       {children}

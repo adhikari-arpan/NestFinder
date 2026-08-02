@@ -8,10 +8,11 @@ import { StepAddress } from "../components/kyc/StepAddress";
 import { StepLocation } from "../components/kyc/StepLocation";
 import { StepDocuments } from "../components/kyc/StepDocuments";
 import { StepReview } from "../components/kyc/StepReview";
+import { LoadingScreen } from "../components/LoadingScreen";
 import { IdCard } from "lucide-react";
 
 export const KycVerification = () => {
-  const { currentUser, refreshCurrentUser } = useContext(AppContext);
+  const { currentUser, authLoading, refreshCurrentUser } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
@@ -42,10 +43,11 @@ export const KycVerification = () => {
   const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
+    if (authLoading) return;
     if (!currentUser) {
       navigate("/auth");
     }
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -79,6 +81,7 @@ export const KycVerification = () => {
       .finally(() => setLoadingExisting(false));
   }, [currentUser]);
 
+  if (authLoading) return <LoadingScreen />;
   if (!currentUser) return null;
 
   const nextStep = () => setStep((s) => s + 1);
@@ -128,11 +131,7 @@ export const KycVerification = () => {
   };
 
   if (loadingExisting) {
-    return (
-      <div className="container flex min-h-screen items-center justify-center">
-        <p className="text-(--text-muted)">Loading…</p>
-      </div>
-    );
+    return <LoadingScreen label="Loading your KYC details..." />;
   }
 
   return (

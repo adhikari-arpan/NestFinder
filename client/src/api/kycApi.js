@@ -4,6 +4,7 @@
 // return plain data shapes.
 
 import supabase from '../../db/supabaseClient';
+import { notifyAdmins } from './listingsapi';
 
 const KYC_BUCKET = 'kyc-documents';
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -82,6 +83,17 @@ export async function submitKYC(userId, userEmail, formData, files) {
     .select()
     .single();
   if (error) throw error;
+
+  try {
+    await notifyAdmins(
+      "KYC Submission Pending Review",
+      `${formData.first_name} ${formData.last_name} submitted KYC verification and needs review.`,
+      "kyc",
+    );
+  } catch (err) {
+    console.error("Failed to notify admins of KYC submission:", err.message);
+  }
+
   return data;
 }
 

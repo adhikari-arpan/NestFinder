@@ -1334,3 +1334,136 @@ body:not([data-theme="dark"]) .hero-cta-btn {
   }
 }
 }
+
+/* ── App-wide LoadingScreen (see components/LoadingScreen.jsx) ── */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 3rem 1.5rem;
+}
+
+.loading-screen--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: var(--bg-app);
+}
+
+.loading-screen__logo {
+  /* Fixed box (matches the source PNG's aspect ratio) reserved from the
+     very first paint via width/height attributes + these rules together —
+     otherwise the browser has no intrinsic size to lay out before the
+     image decodes and briefly shows its broken/loading placeholder glyph
+     instead of the logo. */
+  height: 56px;
+  width: 102px;
+  object-fit: contain;
+  animation: loading-logo-pulse 2s ease-in-out infinite;
+}
+
+@keyframes loading-logo-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(0.94); }
+}
+
+.loading-screen__label {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Four-circle pulse loader — plain-CSS port of the supplied design
+   (kept dependency-free instead of pulling in styled-components). */
+.loading-circles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  --loading-color: var(--primary);
+  --loading-anim: 2s ease-in-out infinite;
+}
+
+.loading-circles .circle {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  border: solid 2px var(--loading-color);
+  border-radius: 50%;
+  margin: 0 8px;
+  background-color: transparent;
+  animation: loading-circle-keys var(--loading-anim) both;
+}
+
+.loading-circles .circle .dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--loading-color);
+  transform: translate(-50%, -50%) scale(1);
+  animation: loading-dot-keys var(--loading-anim) both;
+}
+
+.loading-circles .circle .outline {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  animation: loading-outline-keys var(--loading-anim) both;
+}
+
+.loading-circles .circle:nth-child(2) { animation-delay: 0.3s; }
+.loading-circles .circle:nth-child(3) { animation-delay: 0.6s; }
+.loading-circles .circle:nth-child(4) { animation-delay: 0.9s; }
+
+.loading-circles .circle:nth-child(2) .dot { animation-delay: 0.3s; }
+.loading-circles .circle:nth-child(3) .dot { animation-delay: 0.6s; }
+.loading-circles .circle:nth-child(4) .dot { animation-delay: 0.9s; }
+
+.loading-circles .circle:nth-child(1) .outline { animation-delay: 0.9s; }
+.loading-circles .circle:nth-child(2) .outline { animation-delay: 1.2s; }
+.loading-circles .circle:nth-child(3) .outline { animation-delay: 1.5s; }
+.loading-circles .circle:nth-child(4) .outline { animation-delay: 1.8s; }
+
+@keyframes loading-circle-keys {
+  0%   { transform: scale(1); opacity: 1; }
+  50%  { transform: scale(1.5); opacity: 0.5; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes loading-dot-keys {
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  50%  { transform: translate(-50%, -50%) scale(0); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes loading-outline-keys {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    box-shadow: 0 0 0 8px var(--loading-color);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.2);
+    box-shadow: 0 0 0 0 transparent;
+    opacity: 0;
+  }
+}
+
+.dashboard-container{
+    padding:3rem 2rem 5rem;
+}
+
+@media (max-width:768px){
+    .dashboard-container{
+        padding:1rem;
+    }
+}

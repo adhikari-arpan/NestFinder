@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { ProgressTracker } from "../components/ai-recommend/ProgressTracker";
 import { StepBudgetCity } from "../components/ai-recommend/StepBudgetCity";
@@ -8,10 +9,18 @@ import { StepLocation } from "../components/ai-recommend/StepLocation";
 import { LoadingStep } from "../components/ai-recommend/LoadingStep";
 import { ResultsStep } from "../components/ai-recommend/ResultsStep";
 import { Brain } from "lucide-react";
+import{getDistancePrice} from "../payment/paymentUtils";
+import { getTier } from "../payment/paymentUtils";
 
 export const AIRecommend = () => {
-  const { tenantPreferences, setTenantPreferences, getAIRecommendedListings, aiError } =
-    useContext(AppContext);
+  const navigate = useNavigate();
+  const {
+    tenantPreferences,
+    setTenantPreferences,
+    getAIRecommendedListings,
+    aiError,
+    checkDistanceAccess,
+  } = useContext(AppContext);
 
   const [step, setStep] = useState(1);
 
@@ -40,6 +49,12 @@ export const AIRecommend = () => {
     );
   };
 
+  const executeRecommendationFlow = (prefs) => {
+    setTenantPreferences(prefs);
+    setActivePreferences(prefs);
+    nextStep();
+  };
+
   const handleRunAssessment = () => {
     const prefs = {
       budget,
@@ -50,9 +65,35 @@ export const AIRecommend = () => {
       poiLocation: location,
       radius,
     };
-    setTenantPreferences(prefs);
-    setActivePreferences(prefs);
-    nextStep();
+
+    // Verify distance tier payment
+    const isPaid = checkDistanceAccess(location, radius);
+    if (!isPaid) {
+      const latStr = location?.lat || 27.6644;
+      const lngStr = location?.lng || 85.3188;
+      const nameStr = encodeURIComponent(location?.name || "Selected Point");
+      navigate(`/payment?type=distance_radius&radius=${radius}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`);
+    } else {
+      executeRecommendationFlow(prefs);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    const price = getDistancePrice(radius);
+    grantRadiusAccess(location, radius, price);
+    setShowPaymentModal(false);
+    const tier=getTier(radius);
+
+    const prefs = {
+      budget,
+      preferredCity: city,
+      sharing,
+      roomType,
+      essentialAmenities: amenities,
+      poiLocation: location,
+      radius,
+    };
+    executeRecommendationFlow(prefs);
   };
 
   useEffect(() => {
