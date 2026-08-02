@@ -12,7 +12,7 @@ import { DashboardHeader } from '../../components/DashboardHeader';
 import { KycStatusBanner } from '../../components/KycStatusBanner';
 import { LoadingScreen } from '../../components/LoadingScreen';
 import { getListingFee, formatNPR, PAYMENT_TYPES } from '../../utils/paymentUtils';
-import { Trash2, ArrowLeft, Wallet } from 'lucide-react';
+import { Trash2, ArrowLeft, ArrowRight, Wallet } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -731,17 +731,34 @@ export const LandlordDashboard = () => {
 
               {/* Listing Fee — charged only when posting a brand-new listing */}
               {!editingListing && (
-                <div className="card" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <Wallet size={20} style={{ color: 'var(--primary)' }} />
-                    <div>
-                      <p style={{ fontWeight: 700, margin: 0 }}>Listing Fee</p>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: '0.2rem 0 0' }}>
-                        2% of monthly rent · min Rs. 100 · max Rs. 600
-                      </p>
+                <div className="card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <Wallet size={20} style={{ color: 'var(--primary)' }} />
+                      <div>
+                        <p style={{ fontWeight: 700, margin: 0 }}>Listing Fee</p>
+                        <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: '0.2rem 0 0' }}>
+                          2% of monthly rent · min Rs. 100 · max Rs. 600
+                        </p>
+                      </div>
                     </div>
+                    <strong style={{ fontSize: '1.4rem', color: 'var(--primary)' }}>{formatNPR(listingFee)}</strong>
                   </div>
-                  <strong style={{ fontSize: '1.4rem', color: 'var(--primary)' }}>{formatNPR(listingFee)}</strong>
+                  <Link
+                    to="/about/payment"
+                    style={{
+                      fontStyle: 'italic',
+                      textDecoration: 'underline',
+                      fontSize: '0.8rem',
+                      color: 'var(--primary)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      width: 'fit-content'
+                    }}
+                  >
+                    Learn more about pricing <ArrowRight size={10} />
+                  </Link>
                 </div>
               )}
 
