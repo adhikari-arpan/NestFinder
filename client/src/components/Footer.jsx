@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { Globe, Share2, MessageSquare, Mail, Phone, MapPin } from 'lucide-react';
-import logo from '../assets/NestFinder Logo.png';
+import { AppContext } from '../Context/AppContext';
+import whiteLogo from '../assets/White_NestFinderLogo.png';
+import darkLogo from '../assets/Dark_NestFinderLogo.png';
 
 export const Footer = () => {
+  const { theme } = useContext(AppContext);
+  const logo = theme === 'dark' ? darkLogo : whiteLogo;
   const linkClass = "text-[var(--text-muted)] text-[0.85rem] transition-colors hover:text-[var(--primary)]";
 
   return (
