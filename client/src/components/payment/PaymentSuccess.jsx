@@ -4,10 +4,11 @@
 import React from "react";
 import { CheckCircle2, Clock, ArrowRight, ShieldCheck, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatNPR, getStatusBadge } from "./paymentUtils";
+import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
 
 export const PaymentSuccess = ({ paymentDetails, onReset }) => {
   const navigate = useNavigate();
+  const isListingFee = paymentDetails?.payment_type === "landlord_listing";
 
   const radiusLabel =
     paymentDetails?.target_radius >= 1000
@@ -78,14 +79,16 @@ export const PaymentSuccess = ({ paymentDetails, onReset }) => {
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
-          <span style={{ color: "var(--text-muted)" }}>Target Location:</span>
+          <span style={{ color: "var(--text-muted)" }}>{isListingFee ? "Listing:" : "Target Location:"}</span>
           <strong>{locationName}</strong>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
-          <span style={{ color: "var(--text-muted)" }}>Unlocked Radius:</span>
-          <strong>{radiusLabel}</strong>
-        </div>
+        {!isListingFee && (
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+            <span style={{ color: "var(--text-muted)" }}>Unlocked Radius:</span>
+            <strong>{radiusLabel}</strong>
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
           <span style={{ color: "var(--text-muted)" }}>Amount Paid:</span>
@@ -113,25 +116,41 @@ export const PaymentSuccess = ({ paymentDetails, onReset }) => {
         }}
       >
         <ShieldCheck size={18} style={{ color: "#10b981", flexShrink: 0 }} />
-        <span>Once the admin approves your payment, room listings within {radiusLabel} will unlock automatically for 48 hours.</span>
+        <span>
+          {isListingFee
+            ? "Once the admin approves your payment, your listing will go live for tenants to see."
+            : `Once the admin approves your payment, room listings within ${radiusLabel} will unlock automatically for 48 hours.`}
+        </span>
       </div>
 
       {/* Navigation Buttons */}
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        <button
-          onClick={() => navigate("/rooms")}
-          className="btn btn-outline"
-          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
-        >
-          <Home size={16} /> View Rooms
-        </button>
-        <button
-          onClick={() => navigate("/ai-recommend")}
-          className="btn btn-secondary"
-          style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
-        >
-          AI Recommend <ArrowRight size={16} />
-        </button>
+        {isListingFee ? (
+          <button
+            onClick={() => navigate("/dashboard/landlord")}
+            className="btn btn-primary"
+            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+          >
+            <Home size={16} /> Back to Dashboard
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => navigate("/rooms")}
+              className="btn btn-outline"
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            >
+              <Home size={16} /> View Rooms
+            </button>
+            <button
+              onClick={() => navigate("/ai-recommend")}
+              className="btn btn-secondary"
+              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            >
+              AI Recommend <ArrowRight size={16} />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

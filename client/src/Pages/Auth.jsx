@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
-import logo from '../assets/NestFinder Logo.png';
+import whiteLogo from '../assets/White_NestFinderLogo.png';
+import darkLogo from '../assets/Dark_NestFinderLogo.png';
 import { User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 
 // --- Animated Canvas Background ---
@@ -79,6 +80,7 @@ export const Auth = () => {
   const { currentUser, loginUser, signupUser, theme } = useContext(AppContext);
   const navigate = useNavigate();
   const isDark = theme === 'dark';
+  const logo = isDark ? darkLogo : whiteLogo;
 
   const [activeTab, setActiveTab] = useState('login');
   const [selectedRole, setSelectedRole] = useState('tenant');

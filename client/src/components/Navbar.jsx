@@ -2,7 +2,8 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
-import logo from '../assets/NestFinder Logo.png';
+import whiteLogo from '../assets/White_NestFinderLogo.png';
+import darkLogo from '../assets/Dark_NestFinderLogo.png';
 import { VerifiedBadge } from './VerifiedBadge';
 import {
   Home,
@@ -52,6 +53,7 @@ export const Navbar = () => {
     markAllNotificationsRead,
     clearAllNotifications
   } = useContext(AppContext);
+  const logo = theme === 'dark' ? darkLogo : whiteLogo;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);

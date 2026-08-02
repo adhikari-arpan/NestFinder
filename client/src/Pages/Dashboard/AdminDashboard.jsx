@@ -2,9 +2,10 @@ import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
-import { fetchAllPayments, updatePaymentStatus as apiUpdatePaymentStatus } from "../../payment/paymentAPI";
-import { formatNPR, getStatusBadge } from "../../payment/paymentUtils";
-import logo from "../../assets/NestFinder Logo.png";
+import { fetchAllPayments, updatePaymentStatus as apiUpdatePaymentStatus } from "../../api/paymentAPI";
+import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
+import whiteLogo from "../../assets/White_NestFinderLogo.png";
+import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatTile } from "../../components/admin/StatTile";
 import { BarChartPanel } from "../../components/admin/BarChartPanel";
@@ -43,7 +44,8 @@ const KYC_BADGE = {
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser, authLoading, grantRadiusAccess } = useContext(AppContext);
+  const { listings, updateListingStatus, currentUser, authLoading, grantRadiusAccess, theme } = useContext(AppContext);
+  const logo = theme === 'dark' ? darkLogo : whiteLogo;
 
   const navigate = useNavigate();
 
@@ -131,11 +133,14 @@ export const AdminDashboard = () => {
       );
 
       if (decision === "approved" && updated) {
-        if (updated.target_location && updated.target_radius) {
+        const isListingFee = updated.payment_type === "landlord_listing";
+        if (!isListingFee && updated.target_location && updated.target_radius) {
           grantRadiusAccess(updated.target_location, updated.target_radius, updated.amount, updated.user_id);
         }
         setActionMessage({
-          text: `Payment of Rs. ${updated.amount} verified & approved! 48-Hour radius access granted.`,
+          text: isListingFee
+            ? `Listing fee of Rs. ${updated.amount} verified & approved!`
+            : `Payment of Rs. ${updated.amount} verified & approved! 48-Hour radius access granted.`,
           type: "success",
         });
       } else {
@@ -333,6 +338,7 @@ export const AdminDashboard = () => {
             ) : (
               payments.map((p) => {
                 const badge = getStatusBadge(p.status);
+                const isListingFee = p.payment_type === "landlord_listing";
                 const radiusLabel =
                   p.target_radius >= 1000
                     ? `${(p.target_radius / 1000).toFixed(1)} km`
@@ -372,10 +378,10 @@ export const AdminDashboard = () => {
                         </div>
 
                         <h3 className="mt-1 mb-0.5 text-[1.05rem] font-bold">
-                          {radiusLabel} Distance Tier Access
+                          {isListingFee ? "Room Listing Fee" : `${radiusLabel} Distance Tier Access`}
                         </h3>
                         <div className="text-[0.8rem] text-(--text-muted)">
-                          Target Area: <strong>{locationName}</strong> • Submitted: {new Date(p.created_at).toLocaleString()}
+                          {isListingFee ? "Listing" : "Target Area"}: <strong>{locationName}</strong> • Submitted: {new Date(p.created_at).toLocaleString()}
                         </div>
                         <div className="mt-2 text-[0.8rem] text-(--text-light)">
                           User: <strong>{p.user_name}</strong> ({p.user_email || p.user_phone || "No contact info"})
@@ -396,7 +402,7 @@ export const AdminDashboard = () => {
                             onClick={() => handlePaymentVerification(p.id, "approved")}
                             className="btn btn-secondary btn-sm flex w-full gap-1 sm:w-auto"
                           >
-                            <Check size={16} /> Approve & Grant Access
+                            <Check size={16} /> {isListingFee ? "Approve Payment" : "Approve & Grant Access"}
                           </button>
                           <button
                             onClick={() => handlePaymentVerification(p.id, "rejected")}
@@ -407,7 +413,9 @@ export const AdminDashboard = () => {
                         </>
                       ) : (
                         <span className="text-[0.8rem] font-semibold text-(--text-muted)">
-                          {p.status === "approved" ? "✓ Granted 48h Access" : "✕ Rejected"}
+                          {p.status === "approved"
+                            ? (isListingFee ? "✓ Payment Approved" : "✓ Granted 48h Access")
+                            : "✕ Rejected"}
                         </span>
                       )}
                     </div>

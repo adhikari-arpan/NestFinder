@@ -8,7 +8,7 @@ import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, ShieldAlert } from 'luc
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapContainer as SelectableMap } from '../components/MapContainer';
 import { haversineDistance } from '../utils/geo';
-import { RADIUS_OPTIONS } from '../payment/paymentUtils';
+import { RADIUS_OPTIONS } from '../utils/paymentUtils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Settings2 } from "lucide-react";

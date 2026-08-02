@@ -12,7 +12,9 @@ import { AIRecommend } from './Pages/AIRecommend';
 import { Auth } from './Pages/Auth';
 import { NotFound } from './Pages/NotFound';
 import { KycVerification } from './Pages/KycVerification';
-import { PaymentPage } from './payment/PaymentPage';
+import { PaymentPage } from './components/payment/PaymentPage';
+import { About } from './Pages/About/About';
+import { AboutPayment } from './Pages/About/AboutPayment';
 
 
 // Dashboards
@@ -37,6 +39,8 @@ function App() {
             <Route path="/rooms" element={<AllRooms />} />
             <Route path="/kyc" element={<KycVerification />} />
             <Route path="/payment" element={<PaymentPage />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/about/payment" element={<AboutPayment />} />
 
 
             {/* Role Dashboards */}

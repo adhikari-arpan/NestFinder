@@ -1,4 +1,4 @@
-// src/payment/paymentAPI.js
+// src/api/paymentAPI.js
 // Data access layer for payments, screenshot proof uploads, and admin verification
 
 import supabase from "../../db/supabaseClient";

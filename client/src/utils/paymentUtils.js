@@ -1,4 +1,4 @@
-// src/payment/paymentUtils.js
+// src/utils/paymentUtils.js
 // Reusable utilities for the NestFinder Payment Module
 
 export const PAYMENT_TYPES = {
@@ -9,25 +9,25 @@ export const PAYMENT_TYPES = {
 
 export const DISTANCE_TIER_PRICING = {
   500: {
-    price: 100,
+    price: 75,
     label: "Walking (500m)",
     desc: "Highest precision & prime proximity",
     icon: "🚶",
   },
   1000: {
-    price: 150,
+    price: 100,
     label: "Near (1km)",
     desc: "Standard proximity tier",
     icon: "🏃",
   },
   3000: {
-    price: 200,
+    price: 150,
     label: "Cycling (3km)",
     desc: "Extended proximity tier",
     icon: "🚲",
   },
   5000: {
-    price: 230,
+    price: 200,
     label: "Extended (5km)",
     desc: "City-wide proximity tier",
     icon: "🌐",
@@ -50,6 +50,23 @@ export function getDistancePrice(radiusMeters) {
   if (radiusMeters <= 1000) return DISTANCE_TIER_PRICING[1000].price;
   if (radiusMeters <= 3000) return DISTANCE_TIER_PRICING[3000].price;
   return DISTANCE_TIER_PRICING[5000].price;
+}
+
+// ------------------------------------------------------------
+// Landlord room-listing posting fee
+// 2% of monthly rent, rounded UP to the nearest Rs. 10 (e.g. 111 -> 120,
+// 110 stays 110), clamped between Rs. 100 and Rs. 600
+// ------------------------------------------------------------
+export const LISTING_FEE_RATE = 0.02;
+export const LISTING_FEE_MIN = 100;
+export const LISTING_FEE_MAX = 600;
+export const LISTING_FEE_ROUND_TO = 10;
+
+export function getListingFee(monthlyRent) {
+  const rent = Number(monthlyRent) || 0;
+  const raw = rent * LISTING_FEE_RATE;
+  const rounded = Math.ceil(raw / LISTING_FEE_ROUND_TO) * LISTING_FEE_ROUND_TO;
+  return Math.min(LISTING_FEE_MAX, Math.max(LISTING_FEE_MIN, rounded));
 }
 
 export function formatNPR(amount) {
