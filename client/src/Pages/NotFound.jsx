@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Home, ArrowLeft } from 'lucide-react';
-import logo from '../assets/NestFinder Logo.png';
+import { AppContext } from '../Context/AppContext';
+import whiteLogo from '../assets/White_NestFinderLogo.png';
+import darkLogo from '../assets/Dark_NestFinderLogo.png';
 
 export const NotFound = () => {
     const navigate = useNavigate();
+    const { theme } = useContext(AppContext);
+    const logo = theme === 'dark' ? darkLogo : whiteLogo;
 
     return (
         <div
