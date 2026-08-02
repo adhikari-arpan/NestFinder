@@ -284,7 +284,7 @@ export const LandlordDashboard = () => {
   if (authLoading) return <LoadingScreen />;
 
   return (
-    <div className="animate-fade-in container" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>
+    <div className="animate-fade-in dashboard-container"> 
 
       {/* ── Welcome Banner: landlord greeting + Add Room CTA ── */}
       <DashboardHeader style={{

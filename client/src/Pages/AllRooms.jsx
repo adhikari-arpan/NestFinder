@@ -11,6 +11,7 @@ import { haversineDistance } from '../utils/geo';
 import { RADIUS_OPTIONS } from '../payment/paymentUtils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { Settings2 } from "lucide-react";
 
 // Fix Leaflet's default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
