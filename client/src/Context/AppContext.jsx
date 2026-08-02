@@ -3,6 +3,7 @@ import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
 import { fetchUserApprovedAccess } from "../payment/paymentAPI";
+import { getDistancePrice } from "../payment/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
 export const AppContext = createContext();
@@ -46,13 +47,6 @@ export const AppContextProvider = ({ children }) => {
   useEffect(() => {
     refreshUserPaidAccess(currentUser);
   }, [currentUser, refreshUserPaidAccess]);
-
-  const getDistancePrice = (radiusMeters) => {
-    if (radiusMeters <= 500) return 100;
-    if (radiusMeters <= 1000) return 60;
-    if (radiusMeters <= 3000) return 30;
-    return 15;
-  };
 
   const checkDistanceAccess = (location, radius) => {
     if (!currentUser || !paidRadiusAccess) return false;

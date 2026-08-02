@@ -8,17 +8,48 @@ export const PAYMENT_TYPES = {
 };
 
 export const DISTANCE_TIER_PRICING = {
-  500: { price: 100, label: "Walking (500m)", desc: "Highest precision & prime proximity" },
-  1000: { price: 60, label: "Near (1km)", desc: "Standard proximity tier" },
-  3000: { price: 30, label: "Cycling (3km)", desc: "Extended proximity tier" },
-  5000: { price: 15, label: "Extended (5km)", desc: "City-wide proximity tier" },
+  500: {
+    price: 100,
+    label: "Walking (500m)",
+    desc: "Highest precision & prime proximity",
+    icon: "🚶",
+  },
+  1000: {
+    price: 150,
+    label: "Near (1km)",
+    desc: "Standard proximity tier",
+    icon: "🏃",
+  },
+  3000: {
+    price: 200,
+    label: "Cycling (3km)",
+    desc: "Extended proximity tier",
+    icon: "🚲",
+  },
+  5000: {
+    price: 230,
+    label: "Extended (5km)",
+    desc: "City-wide proximity tier",
+    icon: "🌐",
+  },
 };
 
+export const RADIUS_OPTIONS = [
+  { val: 500, label: `${DISTANCE_TIER_PRICING[500].icon} ${DISTANCE_TIER_PRICING[500].label} — Rs. ${DISTANCE_TIER_PRICING[500].price}` },
+  { val: 1000, label: `${DISTANCE_TIER_PRICING[1000].icon} ${DISTANCE_TIER_PRICING[1000].label} — Rs. ${DISTANCE_TIER_PRICING[1000].price}` },
+  { val: 3000, label: `${DISTANCE_TIER_PRICING[3000].icon} ${DISTANCE_TIER_PRICING[3000].label} — Rs. ${DISTANCE_TIER_PRICING[3000].price}` },
+  { val: 5000, label: `${DISTANCE_TIER_PRICING[5000].icon} ${DISTANCE_TIER_PRICING[5000].label} — Rs. ${DISTANCE_TIER_PRICING[5000].price}` },
+];
+
+export function getTier(radius) {
+  return DISTANCE_TIER_PRICING[radius] || DISTANCE_TIER_PRICING[1000];
+}
+
 export function getDistancePrice(radiusMeters) {
-  if (radiusMeters <= 500) return 100;
-  if (radiusMeters <= 1000) return 60;
-  if (radiusMeters <= 3000) return 30;
-  return 15;
+  if (radiusMeters <= 500) return DISTANCE_TIER_PRICING[500].price;
+  if (radiusMeters <= 1000) return DISTANCE_TIER_PRICING[1000].price;
+  if (radiusMeters <= 3000) return DISTANCE_TIER_PRICING[3000].price;
+  return DISTANCE_TIER_PRICING[5000].price;
 }
 
 export function formatNPR(amount) {

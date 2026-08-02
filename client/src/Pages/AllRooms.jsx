@@ -6,6 +6,7 @@ import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, Settings2 } from 'lucid
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapContainer as SelectableMap } from '../components/MapContainer';
 import { haversineDistance } from '../utils/geo';
+import { RADIUS_OPTIONS } from '../payment/paymentUtils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -26,13 +27,6 @@ const PRESET_LOCATIONS = [
   { name: "Apex College Baneshwor", lat: 27.6893, lng: 85.3355 },
   { name: "United Academy Kumaripati", lat: 27.6789, lng: 85.3212 },
   { name: "Kathmandu University", lat: 27.6206, lng: 85.556 },
-];
-
-const RADIUS_OPTIONS = [
-  { label: "🚶 Walking (500m) — Rs. 100", val: 500 },
-  { label: "🏃 Near (1km) — Rs. 60", val: 1000 },
-  { label: "🚲 Cycling (3km) — Rs. 30", val: 3000 },
-  { label: "🌐 Extended (5km) — Rs. 15", val: 5000 },
 ];
 
 export const AllRooms = () => {

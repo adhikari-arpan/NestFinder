@@ -9,6 +9,8 @@ import { StepLocation } from "../components/ai-recommend/StepLocation";
 import { LoadingStep } from "../components/ai-recommend/LoadingStep";
 import { ResultsStep } from "../components/ai-recommend/ResultsStep";
 import { Brain } from "lucide-react";
+import{getDistancePrice} from "../payment/paymentUtils";
+import { getTier } from "../payment/paymentUtils";
 
 export const AIRecommend = () => {
   const navigate = useNavigate();
@@ -80,6 +82,7 @@ export const AIRecommend = () => {
     const price = getDistancePrice(radius);
     grantRadiusAccess(location, radius, price);
     setShowPaymentModal(false);
+    const tier=getTier(radius);
 
     const prefs = {
       budget,
