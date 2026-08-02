@@ -189,6 +189,18 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
+  const clearAllNotifications = async () => {
+    if (!currentUser || notifications.length === 0) return;
+    const previous = notifications;
+    setNotifications([]);
+    try {
+      await api.clearAllNotifications(currentUser.id);
+    } catch (err) {
+      console.error("Failed to clear notifications:", err.message);
+      setNotifications(previous);
+    }
+  };
+
   // ------------------------------------------------------------
   // Saved listings
   // ------------------------------------------------------------
@@ -517,6 +529,7 @@ export const AppContextProvider = ({ children }) => {
         notifications,
         markNotificationAsRead,
         markAllNotificationsRead,
+        clearAllNotifications,
         tenantPreferences,
         setTenantPreferences,
         savedListings,
