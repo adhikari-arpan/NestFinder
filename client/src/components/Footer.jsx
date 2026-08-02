@@ -6,9 +6,10 @@ import whiteLogo from '../assets/White_NestFinderLogo.png';
 import darkLogo from '../assets/Dark_NestFinderLogo.png';
 
 export const Footer = () => {
-  const { theme } = useContext(AppContext);
+  const { theme, currentUser } = useContext(AppContext);
   const logo = theme === 'dark' ? darkLogo : whiteLogo;
   const linkClass = "text-[var(--text-muted)] text-[0.85rem] transition-colors hover:text-[var(--primary)]";
+  const role = currentUser?.role;
 
   return (
     <footer className="mt-auto border-t border-(--border-color) bg-(--bg-card)"
@@ -34,6 +35,27 @@ export const Footer = () => {
                   <Icon size={15} />
                 </a>
               ))}
+            </div>
+          </div>
+
+          {/* Middle: Quick Links */}
+          <div className="flex flex-col gap-3">
+            <h4 className="m-0 text-[0.82rem] font-bold tracking-widest text-(--text-main) uppercase">
+              Quick Links
+            </h4>
+            <div className="flex flex-col gap-2.5">
+              <Link to="/" className={linkClass}>Home</Link>
+              {(!role || role === 'tenant') && (
+                <>
+                  <Link to="/rooms" className={linkClass}>Browse Rooms</Link>
+                  <Link to="/ai-recommend" className={linkClass}>AI Recommend</Link>
+                </>
+              )}
+              {role === 'landlord' && (
+                <Link to="/dashboard/landlord?action=post" className={linkClass}>Post New Room</Link>
+              )}
+              <Link to="/about" className={linkClass}>About Us</Link>
+              <Link to="/about/payment" className={linkClass}>Payment &amp; Pricing</Link>
             </div>
           </div>
 
