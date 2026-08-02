@@ -94,7 +94,11 @@ export const AllRooms = () => {
     : [27.685, 85.32];
 
   const handleUnlockPayment = () => {
-    setShowPaymentModal(true);
+    const latStr = selectedLocation?.lat || 27.6644;
+    const lngStr = selectedLocation?.lng || 85.3188;
+    const nameStr = encodeURIComponent(selectedLocation?.name || "Selected Point");
+    const price = getDistancePrice(selectedRadius);
+    navigate(`/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`);
   };
 
   const handlePaymentSuccess = () => {
@@ -610,16 +614,6 @@ export const AllRooms = () => {
           </div>
         </div>
       )}
-
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        location={selectedLocation}
-        radius={selectedRadius}
-        price={getDistancePrice(selectedRadius)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
 
       <style>{`
         .all-rooms-layout {

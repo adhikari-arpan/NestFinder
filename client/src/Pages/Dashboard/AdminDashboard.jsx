@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
+import { fetchAllPayments, updatePaymentStatus as apiUpdatePaymentStatus } from "../../payment/paymentAPI";
+import { formatNPR, getStatusBadge } from "../../payment/paymentUtils";
 import logo from "../../assets/NestFinder Logo.png";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatTile } from "../../components/admin/StatTile";
@@ -26,6 +28,10 @@ import {
   Search,
   Loader2,
   IdCard,
+  CreditCard,
+  Eye,
+  Check,
+  XCircle,
 } from "lucide-react";
 
 const KYC_BADGE = {
@@ -36,18 +42,23 @@ const KYC_BADGE = {
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser, logoutUser } =
+  const { listings, updateListingStatus, currentUser, logoutUser, grantRadiusAccess } =
     useContext(AppContext);
 
   const navigate = useNavigate();
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-  const [activeTab, setActiveTab] = useState("pending");
+  const [activeTab, setActiveTab] = useState("payments"); // Default to payments tab so admin sees payment queue
 
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [userSearch, setUserSearch] = useState("");
+
+  const [payments, setPayments] = useState([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [previewProof, setPreviewProof] = useState(null);
+
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
   const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
 
@@ -107,6 +118,44 @@ export const AdminDashboard = () => {
       })
       .finally(() => setUsersLoading(false));
   }, []);
+
+  const refreshPayments = () => {
+    setPaymentsLoading(true);
+    fetchAllPayments()
+      .then(setPayments)
+      .catch((err) => console.error("Failed to load payments:", err))
+      .finally(() => setPaymentsLoading(false));
+  };
+
+  useEffect(() => {
+    refreshPayments();
+  }, []);
+
+  const handlePaymentVerification = async (paymentId, decision) => {
+    try {
+      const updated = await apiUpdatePaymentStatus(paymentId, decision);
+      setPayments((prev) =>
+        prev.map((p) => (p.id === paymentId ? { ...p, status: decision } : p))
+      );
+
+      if (decision === "approved" && updated) {
+        if (updated.target_location && updated.target_radius) {
+          grantRadiusAccess(updated.target_location, updated.target_radius, updated.amount);
+        }
+        setActionMessage({
+          text: `Payment of Rs. ${updated.amount} verified & approved! 48-Hour radius access granted.`,
+          type: "success",
+        });
+      } else {
+        setActionMessage({
+          text: `Payment verification rejected.`,
+          type: "info",
+        });
+      }
+    } catch (err) {
+      console.error("Payment status update failed:", err);
+    }
+  };
 
   useEffect(() => {
     if (!actionMessage) return;
@@ -257,10 +306,16 @@ export const AdminDashboard = () => {
         <SectionHeading>Management</SectionHeading>
         <div className="mb-8 flex flex-wrap gap-6 border-b border-(--border-color)">
           <button
+            onClick={() => setActiveTab("payments")}
+            className={tabClass("payments")}
+          >
+            <CreditCard size={16} /> Payment Verifications ({payments.filter((p) => p.status === "pending").length})
+          </button>
+          <button
             onClick={() => setActiveTab("pending")}
             className={tabClass("pending")}
           >
-            <CheckCircle size={16} /> Approvals Queue ({pendingListings.length})
+            <CheckCircle size={16} /> Room Approvals ({pendingListings.length})
           </button>
           <button
             onClick={() => setActiveTab("flagged")}
@@ -275,6 +330,107 @@ export const AdminDashboard = () => {
             <Users size={16} /> Platform Users ({users.length})
           </button>
         </div>
+
+        {/* 0. Payment Verifications Queue */}
+        {activeTab === "payments" && (
+          <div className="flex flex-col gap-4">
+            {paymentsLoading ? (
+              <div className="card p-12 text-center text-(--text-light)">
+                <Loader2 size={32} className="mx-auto mb-2 animate-spin text-(--primary)" />
+                <p>Loading payment verifications...</p>
+              </div>
+            ) : payments.length === 0 ? (
+              <div className="card p-12 text-center text-(--text-light)">
+                <CreditCard size={40} className="mx-auto mb-2 text-(--secondary)" />
+                <p>No payment proof submissions in queue.</p>
+              </div>
+            ) : (
+              payments.map((p) => {
+                const badge = getStatusBadge(p.status);
+                const radiusLabel =
+                  p.target_radius >= 1000
+                    ? `${(p.target_radius / 1000).toFixed(1)} km`
+                    : `${p.target_radius} m`;
+                const locationName = p.target_location?.name || "Selected Area";
+
+                return (
+                  <div
+                    key={p.id}
+                    className="card p-5 grid grid-cols-1 gap-6 shadow-sm md:grid-cols-[1.3fr_0.7fr]"
+                  >
+                    {/* Left: User & Payment Details */}
+                    <div className="flex items-start gap-4 text-left">
+                      {p.proof_image_url ? (
+                        <div className="relative group cursor-pointer" onClick={() => setPreviewProof(p.proof_image_url)}>
+                          <img
+                            src={p.proof_image_url}
+                            className="h-20 w-24 rounded-md object-cover border border-(--border-color)"
+                            alt="Payment screenshot proof"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-md color-white">
+                            <Eye size={18} className="text-white" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-(--border-color)">
+                          <ImageIcon size={24} className="text-(--text-muted)" />
+                        </div>
+                      )}
+
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={badge.className}>{badge.label}</span>
+                          <span className="text-[0.75rem] font-bold text-(--primary)">
+                            {formatNPR(p.amount)}
+                          </span>
+                        </div>
+
+                        <h3 className="mt-1 mb-0.5 text-[1.05rem] font-bold">
+                          {radiusLabel} Distance Tier Access
+                        </h3>
+                        <div className="text-[0.8rem] text-(--text-muted)">
+                          Target Area: <strong>{locationName}</strong> • Submitted: {new Date(p.created_at).toLocaleString()}
+                        </div>
+                        <div className="mt-2 text-[0.8rem] text-(--text-light)">
+                          User: <strong>{p.user_name}</strong> ({p.user_email || p.user_phone || "No contact info"})
+                        </div>
+                        {p.transaction_code && (
+                          <div className="mt-1 text-[0.75rem] text-(--text-muted)">
+                            Ref/Txn Code: <code className="bg-(--bg-app) px-1.5 py-0.5 rounded font-mono">{p.transaction_code}</code>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: Verification Action buttons */}
+                    <div className="flex flex-col sm:flex-row items-end justify-center gap-2">
+                      {p.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => handlePaymentVerification(p.id, "approved")}
+                            className="btn btn-secondary btn-sm flex gap-1 w-full sm:w-auto"
+                          >
+                            <Check size={16} /> Approve & Grant Access
+                          </button>
+                          <button
+                            onClick={() => handlePaymentVerification(p.id, "rejected")}
+                            className="btn btn-outline btn-sm flex gap-1 text-(--danger) w-full sm:w-auto"
+                          >
+                            <XCircle size={16} /> Reject
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-[0.8rem] font-semibold text-(--text-muted)">
+                          {p.status === "approved" ? "✓ Granted 48h Access" : "✕ Rejected"}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
 
         {/* 1. Pending Approvals */}
         {activeTab === "pending" && (
@@ -529,6 +685,54 @@ export const AdminDashboard = () => {
           onClose={() => setReviewingUser(null)}
           onReviewed={handleKycReviewed}
         />
+      )}
+
+      {/* Payment Proof Modal Preview */}
+      {previewProof && (
+        <div
+          onClick={() => setPreviewProof(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 99999,
+            backgroundColor: "rgba(15, 23, 42, 0.85)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+          }}
+        >
+          <div style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh" }}>
+            <button
+              onClick={() => setPreviewProof(null)}
+              style={{
+                position: "absolute",
+                top: "-15px",
+                right: "-15px",
+                backgroundColor: "white",
+                color: "black",
+                border: "none",
+                borderRadius: "50%",
+                width: "32px",
+                height: "32px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: "bold",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+              }}
+            >
+              <X size={18} />
+            </button>
+            <img
+              src={previewProof}
+              alt="Payment screenshot proof"
+              style={{ maxHeight: "85vh", maxWidth: "85vw", borderRadius: "12px" }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
