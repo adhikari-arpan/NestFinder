@@ -125,12 +125,6 @@ export const LandlordDashboard = () => {
     landlordListings.some(l => l.id === inq.listing_id)
   );
 
-  console.log("RAW listings:", listings);
-  console.log("RAW inquiries:", inquiries);
-  console.log("currentUser email:", currentUser?.email);
-  console.log("landlordListings result:", landlordListings);
-  console.log("landlordInquiries result:", landlordInquiries);
-
   const toggleFormAmenity = (item) => {
     setFormAmenities(prev =>
       prev.includes(item) ? prev.filter(a => a !== item) : [...prev, item]
