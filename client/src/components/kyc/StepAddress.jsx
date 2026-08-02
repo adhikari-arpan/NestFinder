@@ -1,6 +1,6 @@
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { stepNavClass } from "./kycStepStyles";
-import { NEPAL_PROVINCES, DISTRICTS_BY_PROVINCE, MUNICIPALITIES_BY_DISTRICT } from "./nepalLocations";
+import { NEPAL_PROVINCES, DISTRICTS_BY_PROVINCE, MUNICIPALITIES_BY_DISTRICT } from "../../utils/nepalLocations";
 
 export const StepAddress = ({
   province,
