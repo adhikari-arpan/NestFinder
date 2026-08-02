@@ -52,6 +52,7 @@ export const PaymentHistory = ({ userId }) => {
 
       {payments.map((p) => {
         const badge = getStatusBadge(p.status);
+        const isListingFee = p.payment_type === "landlord_listing";
         const radiusLabel =
           p.target_radius >= 1000
             ? `${(p.target_radius / 1000).toFixed(1)} km`
@@ -106,13 +107,15 @@ export const PaymentHistory = ({ userId }) => {
 
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <strong style={{ fontSize: "0.95rem" }}>{radiusLabel} Radius Access</strong>
+                  <strong style={{ fontSize: "0.95rem" }}>
+                    {isListingFee ? "Room Listing Fee" : `${radiusLabel} Radius Access`}
+                  </strong>
                   <span className={badge.className} style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem" }}>
                     {badge.label}
                   </span>
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                  Location: {locationName} • {new Date(p.created_at).toLocaleDateString()}
+                  {isListingFee ? "Listing" : "Location"}: {locationName} • {new Date(p.created_at).toLocaleDateString()}
                 </div>
               </div>
             </div>

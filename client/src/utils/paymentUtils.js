@@ -52,6 +52,23 @@ export function getDistancePrice(radiusMeters) {
   return DISTANCE_TIER_PRICING[5000].price;
 }
 
+// ------------------------------------------------------------
+// Landlord room-listing posting fee
+// 2% of monthly rent, rounded UP to the nearest Rs. 10 (e.g. 111 -> 120,
+// 110 stays 110), clamped between Rs. 100 and Rs. 600
+// ------------------------------------------------------------
+export const LISTING_FEE_RATE = 0.02;
+export const LISTING_FEE_MIN = 100;
+export const LISTING_FEE_MAX = 600;
+export const LISTING_FEE_ROUND_TO = 10;
+
+export function getListingFee(monthlyRent) {
+  const rent = Number(monthlyRent) || 0;
+  const raw = rent * LISTING_FEE_RATE;
+  const rounded = Math.ceil(raw / LISTING_FEE_ROUND_TO) * LISTING_FEE_ROUND_TO;
+  return Math.min(LISTING_FEE_MAX, Math.max(LISTING_FEE_MIN, rounded));
+}
+
 export function formatNPR(amount) {
   return `Rs. ${Number(amount || 0).toLocaleString()}`;
 }

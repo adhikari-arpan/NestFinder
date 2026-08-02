@@ -11,7 +11,8 @@ import ImageUploader from '../../components/ImageUploader';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import { KycStatusBanner } from '../../components/KycStatusBanner';
 import { LoadingScreen } from '../../components/LoadingScreen';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { getListingFee, formatNPR, PAYMENT_TYPES } from '../../utils/paymentUtils';
+import { Trash2, ArrowLeft, Wallet } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -128,6 +129,9 @@ export const LandlordDashboard = () => {
   const [formImages, setFormImages] = useState([]);
   const [formAmenities, setFormAmenities] = useState([]);
 
+  // Posting fee charged for new listings only — 2% of monthly rent, clamped Rs.100-600
+  const listingFee = getListingFee(formPrice);
+
   // Find listings belonging to logged-in Landlord
   const landlordListings = listings.filter(l =>
     l.landlord?.email?.toLowerCase() === currentUser?.email?.toLowerCase()
@@ -239,8 +243,21 @@ export const LandlordDashboard = () => {
       resetForm();
       setIsPostModalOpen(false);
       setEditingListing(null);
-      setConfirmedListing(result.listing);
-      setConfirmedAction(wasEditing ? 'updated' : 'created');
+
+      if (wasEditing) {
+        setConfirmedListing(result.listing);
+        setConfirmedAction('updated');
+      } else {
+        // New listings require the posting fee to be paid before going live —
+        // send the landlord straight to the existing /payment flow instead of
+        // the plain confirmation modal.
+        const params = new URLSearchParams({
+          type: PAYMENT_TYPES.LANDLORD_LISTING,
+          amount: String(listingFee),
+          name: result.listing.title,
+        });
+        navigate(`/payment?${params.toString()}`);
+      }
     } catch (err) {
       console.error('Unexpected error saving listing:', err);
       setSubmitError('Something went wrong. Please try again.');
@@ -712,6 +729,22 @@ export const LandlordDashboard = () => {
                 )}
               </div>
 
+              {/* Listing Fee — charged only when posting a brand-new listing */}
+              {!editingListing && (
+                <div className="card" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Wallet size={20} style={{ color: 'var(--primary)' }} />
+                    <div>
+                      <p style={{ fontWeight: 700, margin: 0 }}>Listing Fee</p>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-light)', margin: '0.2rem 0 0' }}>
+                        2% of monthly rent · min Rs. 100 · max Rs. 600
+                      </p>
+                    </div>
+                  </div>
+                  <strong style={{ fontSize: '1.4rem', color: 'var(--primary)' }}>{formatNPR(listingFee)}</strong>
+                </div>
+              )}
+
               {/* Actions submit */}
               {submitError && (
                 <p style={{ color: 'var(--danger, #dc2626)', fontSize: '0.85rem', textAlign: 'right' }}>
@@ -723,7 +756,11 @@ export const LandlordDashboard = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary btn-sm" disabled={isSubmitting}>
-                  {isSubmitting ? 'Saving…' : editingListing ? 'Save Changes' : 'Publish Listing'}
+                  {isSubmitting
+                    ? 'Saving…'
+                    : editingListing
+                      ? 'Save Changes'
+                      : `Proceed to Payment (${formatNPR(listingFee)})`}
                 </button>
               </div>
 

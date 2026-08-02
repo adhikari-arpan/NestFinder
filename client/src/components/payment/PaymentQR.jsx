@@ -6,9 +6,10 @@ import { QrCode, ShieldCheck, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { formatNPR } from "../../utils/paymentUtils";
 
-export const PaymentQR = ({ amount, targetLocation, radius }) => {
+export const PaymentQR = ({ amount, targetLocation, radius, paymentType }) => {
   const [copied, setCopied] = useState(false);
   const esewaNumber = "9841000000";
+  const isListingFee = paymentType === "landlord_listing";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(esewaNumber);
@@ -132,7 +133,11 @@ export const PaymentQR = ({ amount, targetLocation, radius }) => {
             borderRadius: "20px",
           }}
         >
-          Purpose: <strong>{radiusLabel} Radius Access</strong> ({locationName})
+          Purpose: {isListingFee ? (
+            <strong>Room Listing Fee</strong>
+          ) : (
+            <strong>{radiusLabel} Radius Access</strong>
+          )} ({locationName})
         </div>
       </div>
 

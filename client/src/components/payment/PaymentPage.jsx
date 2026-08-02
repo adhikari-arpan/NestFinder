@@ -113,7 +113,7 @@ export const PaymentPage = () => {
           }}
         >
           {/* Left Column: eSewa / Fonepay QR Card & Info */}
-          <PaymentQR amount={amount} targetLocation={targetLocation} radius={radius} />
+          <PaymentQR amount={amount} targetLocation={targetLocation} radius={radius} paymentType={paymentType} />
 
           {/* Right Column: Screenshot Proof Upload Form */}
           <PaymentForm
