@@ -4,7 +4,8 @@ import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
 import { fetchAllPayments, updatePaymentStatus as apiUpdatePaymentStatus } from "../../payment/paymentAPI";
 import { formatNPR, getStatusBadge } from "../../payment/paymentUtils";
-import logo from "../../assets/NestFinder Logo.png";
+import whiteLogo from "../../assets/White_NestFinderLogo.png";
+import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { StatTile } from "../../components/admin/StatTile";
 import { BarChartPanel } from "../../components/admin/BarChartPanel";
@@ -43,7 +44,8 @@ const KYC_BADGE = {
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser, authLoading, grantRadiusAccess } = useContext(AppContext);
+  const { listings, updateListingStatus, currentUser, authLoading, grantRadiusAccess, theme } = useContext(AppContext);
+  const logo = theme === 'dark' ? darkLogo : whiteLogo;
 
   const navigate = useNavigate();
 

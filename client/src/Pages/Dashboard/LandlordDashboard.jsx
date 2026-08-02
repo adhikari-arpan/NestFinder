@@ -2,7 +2,8 @@ import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../../Context/AppContext";
 import * as kycApi from '../../api/kycApi';
-import logo from '../../assets/NestFinder Logo.png';
+import whiteLogo from '../../assets/White_NestFinderLogo.png';
+import darkLogo from '../../assets/Dark_NestFinderLogo.png';
 import { MapContainer as LeafletMap, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -42,8 +43,10 @@ export const LandlordDashboard = () => {
     deleteListing,
     currentUser,
     authLoading,
-    refreshCurrentUser
+    refreshCurrentUser,
+    theme
   } = useContext(AppContext);
+  const logo = theme === 'dark' ? darkLogo : whiteLogo;
 
   const [myKyc, setMyKyc] = useState(null);
   const [gateNotice, setGateNotice] = useState(false);

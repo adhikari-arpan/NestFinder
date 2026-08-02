@@ -4,7 +4,8 @@ import { AppContext } from "../../Context/AppContext";
 import { RoomCard } from '../../components/RoomCard';
 import { MapContainer } from '../../components/MapContainer';
 import { DashboardHeader } from '../../components/DashboardHeader';
-import logo from '../../assets/NestFinder Logo.png';
+import whiteLogo from '../../assets/White_NestFinderLogo.png';
+import darkLogo from '../../assets/Dark_NestFinderLogo.png';
 import { haversineDistance } from '../../utils/geo';
 import {
   Heart, Sparkles, MessageSquare, Clock, ArrowRight, Lock
@@ -104,7 +105,9 @@ export const TenantDashboard = () => {
     tenantPreferences,
     calculateRecommendationScore,
     paidRadiusAccess,
+    theme,
   } = useContext(AppContext);
+  const logo = theme === 'dark' ? darkLogo : whiteLogo;
 
   const navigate = useNavigate();
 
