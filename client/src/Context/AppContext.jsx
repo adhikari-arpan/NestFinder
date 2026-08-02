@@ -2,8 +2,8 @@ import { createContext, useState, useEffect, useCallback } from "react";
 import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
-import { fetchUserApprovedAccess } from "../payment/paymentAPI";
-import { getDistancePrice } from "../payment/paymentUtils";
+import { fetchUserApprovedAccess } from "../components/payment/paymentAPI";
+import { getDistancePrice } from "../components/payment/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
 export const AppContext = createContext();

@@ -3,7 +3,7 @@
 
 import React, { useState, useContext } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { AppContext } from "../Context/AppContext";
+import { AppContext } from "../../Context/AppContext";
 import { PaymentQR } from "./PaymentQR";
 import { PaymentForm } from "./PaymentForm";
 import { PaymentSuccess } from "./PaymentSuccess";

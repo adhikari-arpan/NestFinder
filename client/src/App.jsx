@@ -12,7 +12,7 @@ import { AIRecommend } from './Pages/AIRecommend';
 import { Auth } from './Pages/Auth';
 import { NotFound } from './Pages/NotFound';
 import { KycVerification } from './Pages/KycVerification';
-import { PaymentPage } from './payment/PaymentPage';
+import { PaymentPage } from './components/payment/PaymentPage';
 
 
 // Dashboards

@@ -1,7 +1,7 @@
 // src/payment/paymentAPI.js
 // Data access layer for payments, screenshot proof uploads, and admin verification
 
-import supabase from "../../db/supabaseClient";
+import supabase from "../../../db/supabaseClient";
 
 const PAYMENT_STORAGE_BUCKET = "payment-proofs";
 const LOCAL_STORAGE_KEY = "nestfinder_payments_cache";

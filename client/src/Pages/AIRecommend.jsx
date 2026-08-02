@@ -9,8 +9,8 @@ import { StepLocation } from "../components/ai-recommend/StepLocation";
 import { LoadingStep } from "../components/ai-recommend/LoadingStep";
 import { ResultsStep } from "../components/ai-recommend/ResultsStep";
 import { Brain } from "lucide-react";
-import{getDistancePrice} from "../payment/paymentUtils";
-import { getTier } from "../payment/paymentUtils";
+import{getDistancePrice} from "../components/payment/paymentUtils";
+import { getTier } from "../components/payment/paymentUtils";
 
 export const AIRecommend = () => {
   const navigate = useNavigate();
