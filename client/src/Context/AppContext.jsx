@@ -76,8 +76,7 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
-  const [savedListings, setSavedListings] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+
   const [authLoading, setAuthLoading] = useState(true);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
