@@ -11,15 +11,57 @@ import {
   XCircle,
   FileText,
   IdCard,
+  User,
+  MapPin,
+  Camera,
+  History,
+  MessageSquare,
 } from "lucide-react";
+
+const STATUS_BADGE = {
+  pending: { label: "Pending Review", className: "badge badge-accent" },
+  approved: { label: "Approved", className: "badge badge-secondary" },
+  rejected: { label: "Rejected", className: "badge badge-danger" },
+};
 
 const isPdf = (path) => !!path && path.toLowerCase().endsWith(".pdf");
 
+// Section wrapper: icon + title + generous spacing, divided by a rule.
+const Section = ({ icon: Icon, title, children }) => (
+  <section className="border-b border-(--border-color) pb-7 last:border-b-0 last:pb-0">
+    <h3 className="mb-4 flex items-center gap-2 text-[1rem] font-bold text-(--text-main)">
+      <Icon size={18} className="text-(--primary)" /> {title}
+    </h3>
+    {children}
+  </section>
+);
+
+// Read-only label/value pair, matches the form field it was collected from.
+const Field = ({ label, value }) => (
+  <div>
+    <div className="text-[0.7rem] font-semibold tracking-wide text-(--text-light) uppercase">
+      {label}
+    </div>
+    <div className="mt-1 text-[0.95rem] text-(--text-main)">{value || "—"}</div>
+  </div>
+);
+
 const DocPreview = ({ label, path, signedUrl }) => {
-  if (!signedUrl) return null;
+  if (!signedUrl) {
+    return (
+      <div>
+        <div className="text-[0.7rem] font-semibold tracking-wide text-(--text-light) uppercase">
+          {label}
+        </div>
+        <div className="mt-1 text-[0.85rem] text-(--text-light) italic">Not provided</div>
+      </div>
+    );
+  }
   return (
-    <div className="form-group" style={{ marginBottom: 0 }}>
-      <label className="form-label">{label}</label>
+    <div>
+      <div className="mb-1.5 text-[0.7rem] font-semibold tracking-wide text-(--text-light) uppercase">
+        {label}
+      </div>
       {isPdf(path) ? (
         <a
           href={signedUrl}
@@ -36,7 +78,7 @@ const DocPreview = ({ label, path, signedUrl }) => {
             alt={label}
             style={{
               width: "100%",
-              maxHeight: "180px",
+              height: "200px",
               objectFit: "cover",
               borderRadius: "var(--radius-md)",
               border: "1px solid var(--border-color)",
@@ -58,7 +100,6 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [reason, setReason] = useState("");
-  const [showRejectForm, setShowRejectForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -74,10 +115,7 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
   }, [userId]);
 
   const decide = async (decision) => {
-    if (decision === "rejected" && !reason.trim()) {
-      setShowRejectForm(true);
-      return;
-    }
+    if (decision === "rejected" && !reason.trim()) return;
     setSubmitting(true);
     setSubmitError("");
     try {
@@ -99,6 +137,8 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
     }
   };
 
+  const statusBadge = kyc ? STATUS_BADGE[kyc.status] : null;
+
   return createPortal(
     <>
       <div
@@ -113,23 +153,29 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
           transform: "translate(-50%, -50%)",
           zIndex: 2001,
           width: "100%",
-          maxWidth: "680px",
-          maxHeight: "88vh",
+          maxWidth: "min(860px, 94vw)",
+          maxHeight: "90vh",
           overflowY: "auto",
           background: "var(--bg-card)",
           border: "1px solid var(--border-color)",
           borderRadius: "var(--radius-lg)",
-          padding: "2rem",
+          padding: "2.25rem 2.5rem",
           boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" }}>
-          <h2 style={{ fontSize: "1.3rem", display: "flex", alignItems: "center", gap: "0.5rem", margin: 0 }}>
-            <IdCard size={22} style={{ color: "var(--primary)" }} /> KYC Submission — {userName}
-          </h2>
-          <button onClick={onClose} className="btn btn-outline btn-sm" aria-label="Close">
-            <X size={16} />
-          </button>
+        <div className="mb-7 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="m-0 flex items-center gap-2 text-[1.4rem] font-extrabold">
+              <IdCard size={24} className="text-(--primary)" /> KYC Submission
+            </h2>
+            <p className="mt-1 text-[0.9rem] text-(--text-light)">{userName}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {statusBadge && <span className={`${statusBadge.className} text-[0.75rem]`}>{statusBadge.label}</span>}
+            <button onClick={onClose} className="btn btn-outline btn-sm" aria-label="Close">
+              <X size={16} />
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -142,81 +188,114 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
         ) : !kyc ? (
           <p style={{ color: "var(--text-light)" }}>This user hasn't submitted a KYC form yet.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            <div className="grid grid-cols-1 gap-x-6 gap-y-1 text-[0.88rem] sm:grid-cols-2">
-              <div><strong>Name:</strong> {kyc.first_name} {kyc.last_name}</div>
-              <div><strong>Phone:</strong> {kyc.phone}</div>
-              <div><strong>Email:</strong> {kyc.email}</div>
-              <div>
-                <strong>Document:</strong>{" "}
-                {kyc.document_type === "citizenship" ? "Citizenship" : "NID"} — {kyc.document_number}
+          <div className="flex flex-col gap-7">
+            <Section icon={User} title="Personal Information">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+                <Field label="First Name" value={kyc.first_name} />
+                <Field label="Last Name" value={kyc.last_name} />
+                <Field label="Phone" value={kyc.phone} />
+                <Field label="Email" value={kyc.email} />
               </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <strong>Address:</strong> {kyc.tole}, {kyc.municipality}, {kyc.district}, {kyc.province}
-              </div>
-              <div>
-                <strong>Utility Bill:</strong> {kyc.utility_bill_type === "electricity" ? "Electricity" : "Water"}
-              </div>
-              <div>
-                <strong>Submitted:</strong> {new Date(kyc.submitted_at).toLocaleString()}
-              </div>
-            </div>
+            </Section>
 
-            <div style={{ height: "200px", borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--border-color)" }}>
-              <LeafletMap
-                center={[kyc.latitude, kyc.longitude]}
-                zoom={14}
-                style={{ height: "100%", width: "100%" }}
-                dragging={false}
-                scrollWheelZoom={false}
-                doubleClickZoom={false}
-                zoomControl={false}
-              >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
-                <Marker position={[kyc.latitude, kyc.longitude]} />
-              </LeafletMap>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <DocPreview label="Document — Front" path={kyc.document_front_url} signedUrl={kyc.document_front_signed_url} />
-              <DocPreview label="Document — Back" path={kyc.document_back_url} signedUrl={kyc.document_back_signed_url} />
-              <DocPreview label="Utility Bill" path={kyc.utility_bill_url} signedUrl={kyc.utility_bill_signed_url} />
-              <DocPreview label="Selfie" path={kyc.selfie_url} signedUrl={kyc.selfie_signed_url} />
-            </div>
-
-            {kyc.status !== "pending" && (
-              <p style={{ fontSize: "0.85rem", color: "var(--text-light)" }}>
-                Current status: <strong>{kyc.status}</strong>
-                {kyc.rejection_reason ? ` — "${kyc.rejection_reason}"` : ""}
+            <Section icon={MapPin} title="Permanent Address">
+              <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+                <Field label="Province" value={kyc.province} />
+                <Field label="District" value={kyc.district} />
+                <Field label="Local Level" value={kyc.municipality} />
+                <Field label="Tole / Street" value={kyc.tole} />
+              </div>
+              <div style={{ height: "240px", borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+                <LeafletMap
+                  center={[kyc.latitude, kyc.longitude]}
+                  zoom={14}
+                  style={{ height: "100%", width: "100%" }}
+                  dragging={false}
+                  scrollWheelZoom={false}
+                  doubleClickZoom={false}
+                  zoomControl={false}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+                  <Marker position={[kyc.latitude, kyc.longitude]} />
+                </LeafletMap>
+              </div>
+              <p className="mt-2 text-[0.78rem] text-(--text-light)">
+                Pin: {kyc.latitude}, {kyc.longitude} &middot; Posting radius: {kyc.allowed_radius_meters}m
               </p>
+            </Section>
+
+            <Section icon={IdCard} title="Identity Document">
+              <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
+                <Field
+                  label="Document Type"
+                  value={kyc.document_type === "citizenship" ? "Citizenship Certificate" : "National ID (NID)"}
+                />
+                <Field label="Document Number" value={kyc.document_number} />
+              </div>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <DocPreview label="Front Side" path={kyc.document_front_url} signedUrl={kyc.document_front_signed_url} />
+                {kyc.document_type === "citizenship" && (
+                  <DocPreview label="Back Side" path={kyc.document_back_url} signedUrl={kyc.document_back_signed_url} />
+                )}
+              </div>
+            </Section>
+
+            <Section icon={FileText} title="Utility Bill">
+              <div className="mb-5">
+                <Field label="Bill Type" value={kyc.utility_bill_type === "electricity" ? "Electricity" : "Water"} />
+              </div>
+              <div className="max-w-sm">
+                <DocPreview label="Uploaded Bill" path={kyc.utility_bill_url} signedUrl={kyc.utility_bill_signed_url} />
+              </div>
+            </Section>
+
+            {kyc.selfie_signed_url && (
+              <Section icon={Camera} title="Selfie Verification">
+                <div className="max-w-sm">
+                  <DocPreview label="Selfie Holding Document" path={kyc.selfie_url} signedUrl={kyc.selfie_signed_url} />
+                </div>
+              </Section>
             )}
 
-            {showRejectForm && (
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Rejection reason *</label>
-                <textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  rows={2}
-                  placeholder="Explain what's wrong so the landlord can fix it..."
-                  className="form-input"
-                  style={{ resize: "vertical" }}
-                />
+            <Section icon={History} title="Submission History">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+                <Field label="Submitted" value={new Date(kyc.submitted_at).toLocaleString()} />
+                {kyc.reviewed_at && <Field label="Last Reviewed" value={new Date(kyc.reviewed_at).toLocaleString()} />}
+                {statusBadge && <Field label="Current Status" value={statusBadge.label} />}
               </div>
-            )}
+              {kyc.rejection_reason && (
+                <p className="mt-4 text-[0.85rem]" style={{ color: "var(--danger, #dc2626)" }}>
+                  Rejection reason: "{kyc.rejection_reason}"
+                </p>
+              )}
+            </Section>
+
+            <Section icon={MessageSquare} title="Rejection Remarks">
+              <p className="mb-3 text-[0.82rem] text-(--text-light)">
+                Only required if you're rejecting this submission — the landlord sees this exact text.
+              </p>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={3}
+                placeholder="e.g. Document photo is blurry, please re-upload a clearer scan of the front side."
+                className="form-input"
+                style={{ resize: "vertical", width: "100%" }}
+              />
+            </Section>
 
             {submitError && (
               <p style={{ color: "var(--danger, #dc2626)", fontSize: "0.85rem" }}>{submitError}</p>
             )}
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+            <div className="flex justify-end gap-2 border-t border-(--border-color) pt-6">
               <button
                 onClick={() => decide("rejected")}
-                disabled={submitting || (showRejectForm && !reason.trim())}
+                disabled={submitting || !reason.trim()}
                 className="btn btn-outline btn-sm flex gap-1"
                 style={{ color: "var(--danger, #dc2626)", borderColor: "var(--danger, #dc2626)" }}
               >
-                <XCircle size={14} /> {showRejectForm ? "Confirm Reject" : "Reject"}
+                <XCircle size={14} /> Reject
               </button>
               <button
                 onClick={() => decide("approved")}
