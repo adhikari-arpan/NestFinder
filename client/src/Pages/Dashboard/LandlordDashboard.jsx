@@ -39,11 +39,21 @@ export const LandlordDashboard = () => {
     createListing,
     updateListing,
     deleteListing,
-    currentUser
+    currentUser,
+    refreshCurrentUser
   } = useContext(AppContext);
 
   const [myKyc, setMyKyc] = useState(null);
   const [gateNotice, setGateNotice] = useState(false);
+
+  // Pick up any kyc_status/is_verified change an admin made since this landlord's session last loaded the profile (e.g. approved/rejected
+  // while they were away) — currentUser is otherwise only fetched once at login/session-restore and never auto-refreshes.
+  useEffect(() => {
+    if (currentUser?.role === 'landlord') {
+      refreshCurrentUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!currentUser || currentUser.role !== 'landlord') return;
