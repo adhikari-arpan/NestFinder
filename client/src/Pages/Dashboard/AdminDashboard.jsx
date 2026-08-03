@@ -1,5 +1,4 @@
 import { useState, useContext, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
@@ -20,50 +19,33 @@ import {
   Users,
   Building2,
   User,
-  Image as ImageIcon,
-  LogOut,
-  X,
   Search,
   Loader2,
   IdCard,
 } from "lucide-react";
 
 const KYC_BADGE = {
-  not_submitted: { label: "No KYC Submitted", className: "badge badge-primary" },
+  not_submitted: {
+    label: "No KYC Submitted",
+    className: "badge badge-primary",
+  },
   pending: { label: "KYC Pending Review", className: "badge badge-accent" },
   approved: { label: "KYC Verified", className: "badge badge-secondary" },
   rejected: { label: "KYC Rejected", className: "badge badge-danger" },
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser, logoutUser } =
-    useContext(AppContext);
+  const { listings, updateListingStatus, currentUser } = useContext(AppContext);
 
   const navigate = useNavigate();
 
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState("pending");
 
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [userSearch, setUserSearch] = useState("");
-  const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
-  const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
-
-  const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = () => {
-    setShowLogoutConfirm(false);
-    logoutUser();
-    navigate("/");
-  };
-
-  const cancelLogout = () => {
-    setShowLogoutConfirm(false);
-  };
+  const [actionMessage, setActionMessage] = useState(null);
+  const [reviewingUser, setReviewingUser] = useState(null);
 
   const handleKycReviewed = (userId, decision) => {
     setUsers((prev) =>
@@ -74,7 +56,10 @@ export const AdminDashboard = () => {
       ),
     );
     setActionMessage({
-      text: decision === "approved" ? "Landlord's KYC approved." : "Landlord's KYC rejected.",
+      text:
+        decision === "approved"
+          ? "Landlord's KYC approved."
+          : "Landlord's KYC rejected.",
       type: "success",
     });
     setReviewingUser(null);
@@ -115,13 +100,6 @@ export const AdminDashboard = () => {
   }, [actionMessage]);
 
   if (!currentUser || currentUser.role !== "admin") return null;
-
-  const adminListings = listings.filter(
-    (l) =>
-      // l.landlord.email.toLowerCase() === currentUser?.email.toLowerCase()   // blocks the dashboard changing from the url
-
-      l.admin?.email?.toLowerCase() === currentUser?.email?.toLowerCase(),
-  );
 
   const totalListings = listings.length;
   const verifiedCount = listings.filter((l) => l.status === "verified").length;
@@ -197,7 +175,8 @@ export const AdminDashboard = () => {
           </h1>
           <p className="mt-1 text-[0.85rem] text-(--text-light)">
             Moderate housing listings, manage registered users, and audit
-            platform activity.
+            platform activity. Check notifications for new tasks that require
+            your review.
           </p>
         </div>
       </DashboardHeader>
@@ -291,7 +270,7 @@ export const AdminDashboard = () => {
               pendingListings.map((item) => (
                 <div
                   key={item.id}
-                  className="card p-5 grid grid-cols-1 gap-8 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
+                  className="card grid grid-cols-1 gap-8 p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
                 >
                   {/* Details */}
                   <div className="flex items-start gap-4 text-left">
@@ -356,7 +335,7 @@ export const AdminDashboard = () => {
               flaggedListings.map((item) => (
                 <div
                   key={item.id}
-                  className="card p-5 grid grid-cols-1 gap-8 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
+                  className="card grid grid-cols-1 gap-8 p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
                 >
                   {/* Details */}
                   <div className="flex items-start gap-4 text-left">
@@ -407,7 +386,7 @@ export const AdminDashboard = () => {
           <div className="flex flex-col gap-4">
             {actionMessage && (
               <div
-                className={`rounded-(--radius-md) border px-4 py-3 text-[0.85rem] font-medium ${
+                className={`rounded-md border px-4 py-3 text-[0.85rem] font-medium ${
                   actionMessage.type === "success"
                     ? "border-(--secondary) bg-(--secondary-light) text-(--secondary)"
                     : actionMessage.type === "error"
@@ -455,7 +434,7 @@ export const AdminDashboard = () => {
               filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="card p-5 flex flex-col gap-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                  className="card flex flex-col gap-4 p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
                 >
                   {/* Identity */}
                   <div className="flex items-center gap-4 text-left">
@@ -493,23 +472,32 @@ export const AdminDashboard = () => {
                       {roleLabel(user.role)}
                     </span>
                     {user.role === "landlord" && (
-                      <span className={`${KYC_BADGE[user.kyc_status || "not_submitted"].className} text-[0.7rem]`}>
+                      <span
+                        className={`${KYC_BADGE[user.kyc_status || "not_submitted"].className} text-[0.7rem]`}
+                      >
                         {KYC_BADGE[user.kyc_status || "not_submitted"].label}
                       </span>
                     )}
 
                     <div className="ml-1 flex gap-1.5">
-                      {user.role === "landlord" && user.kyc_status && user.kyc_status !== "not_submitted" && (
-                        <button
-                          onClick={() => setReviewingUser({ id: user.id, name: user.name || "Unnamed user" })}
-                          className="btn btn-outline btn-sm py-1 px-2 text-[0.75rem]"
-                        >
-                          <IdCard size={12} /> Review KYC
-                        </button>
-                      )}
+                      {user.role === "landlord" &&
+                        user.kyc_status &&
+                        user.kyc_status !== "not_submitted" && (
+                          <button
+                            onClick={() =>
+                              setReviewingUser({
+                                id: user.id,
+                                name: user.name || "Unnamed user",
+                              })
+                            }
+                            className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem]"
+                          >
+                            <IdCard size={12} /> Review KYC
+                          </button>
+                        )}
                       <button
                         onClick={handleUserSuspend}
-                        className="btn btn-outline btn-sm py-1 px-2 text-[0.75rem] text-(--danger)"
+                        className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem] text-(--danger)"
                       >
                         <UserMinus size={12} /> Suspend
                       </button>
