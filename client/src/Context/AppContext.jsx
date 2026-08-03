@@ -25,6 +25,7 @@ export const AppContextProvider = ({ children }) => {
 
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "light"
   );
@@ -114,9 +115,12 @@ export const AppContextProvider = ({ children }) => {
           .select("*")
           .eq("id", session.user.id)
           .single()
-          .then(({ data: profile }) =>
-            setCurrentUser({ ...session.user, ...profile }),
-          );
+          .then(({ data: profile }) => {
+            setCurrentUser({ ...session.user, ...profile });
+            setAuthLoading(false);
+          });
+      } else {
+        setAuthLoading(false);
       }
     });
 
@@ -545,6 +549,7 @@ export const AppContextProvider = ({ children }) => {
         savedListings,
         toggleSaveListing,
         currentUser,
+        authLoading,
         loginUser,
         logoutUser,
         signupUser,

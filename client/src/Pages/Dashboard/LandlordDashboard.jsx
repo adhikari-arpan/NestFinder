@@ -40,6 +40,7 @@ export const LandlordDashboard = () => {
     updateListing,
     deleteListing,
     currentUser,
+    authLoading,
     refreshCurrentUser
   } = useContext(AppContext);
 
@@ -65,12 +66,15 @@ export const LandlordDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Redirect if not landlord or admin
+  // Redirect if not landlord or admin — wait for the initial session check
+  // to finish first, otherwise this fires on every reload before
+  // currentUser has had a chance to load and bounces straight to /auth.
   useEffect(() => {
+    if (authLoading) return;
     if (!currentUser || (currentUser.role !== 'landlord' && currentUser.role !== 'admin')) {
       navigate('/auth');
     }
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   // Tab views: 'listings' or 'inquiries'
   const [activeTab, setActiveTab] = useState('listings');
@@ -273,6 +277,10 @@ export const LandlordDashboard = () => {
     setReplyText('');
     setReplyInquiryId(null);
   };
+
+  // Still resolving the session on first load — render nothing rather than
+  // flashing the redirect-guard effect above into a trip to /auth.
+  if (authLoading) return null;
 
   return (
     <div className="animate-fade-in container" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>

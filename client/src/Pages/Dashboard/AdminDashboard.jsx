@@ -35,7 +35,7 @@ const KYC_BADGE = {
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser } = useContext(AppContext);
+  const { listings, updateListingStatus, currentUser, authLoading } = useContext(AppContext);
 
   const navigate = useNavigate();
 
@@ -72,12 +72,15 @@ export const AdminDashboard = () => {
     });
   };
 
-  // Not logged in or not an admin: bounce to the auth page
+  // Not logged in or not an admin: bounce to the auth page. Wait for the
+  // initial session check first, otherwise this fires on every reload
+  // before currentUser has loaded and bounces straight to /auth.
   useEffect(() => {
+    if (authLoading) return;
     if (!currentUser || currentUser.role !== "admin") {
       navigate("/auth");
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, authLoading, navigate]);
 
   useEffect(() => {
     api
@@ -99,7 +102,7 @@ export const AdminDashboard = () => {
     return () => clearTimeout(timer);
   }, [actionMessage]);
 
-  if (!currentUser || currentUser.role !== "admin") return null;
+  if (authLoading || !currentUser || currentUser.role !== "admin") return null;
 
   const totalListings = listings.length;
   const verifiedCount = listings.filter((l) => l.status === "verified").length;

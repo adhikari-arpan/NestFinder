@@ -11,7 +11,7 @@ import { StepReview } from "../components/kyc/StepReview";
 import { IdCard } from "lucide-react";
 
 export const KycVerification = () => {
-  const { currentUser, refreshCurrentUser } = useContext(AppContext);
+  const { currentUser, authLoading, refreshCurrentUser } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
@@ -42,10 +42,11 @@ export const KycVerification = () => {
   const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
+    if (authLoading) return;
     if (!currentUser) {
       navigate("/auth");
     }
-  }, [currentUser]);
+  }, [currentUser, authLoading]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -79,7 +80,7 @@ export const KycVerification = () => {
       .finally(() => setLoadingExisting(false));
   }, [currentUser]);
 
-  if (!currentUser) return null;
+  if (authLoading || !currentUser) return null;
 
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
