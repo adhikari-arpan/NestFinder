@@ -8,6 +8,7 @@ import { StatTile } from "../../components/admin/StatTile";
 import { BarChartPanel } from "../../components/admin/BarChartPanel";
 import { SectionHeading } from "../../components/admin/SectionHeading";
 import { KycReviewModal } from "../../components/admin/KycReviewModal";
+import { LoadingScreen } from "../../components/LoadingScreen";
 
 import {
   ShieldAlert,
@@ -20,7 +21,6 @@ import {
   Building2,
   User,
   Search,
-  Loader2,
   IdCard,
 } from "lucide-react";
 
@@ -102,7 +102,8 @@ export const AdminDashboard = () => {
     return () => clearTimeout(timer);
   }, [actionMessage]);
 
-  if (authLoading || !currentUser || currentUser.role !== "admin") return null;
+  if (authLoading) return <LoadingScreen />;
+  if (!currentUser || currentUser.role !== "admin") return null;
 
   const totalListings = listings.length;
   const verifiedCount = listings.filter((l) => l.status === "verified").length;
@@ -417,12 +418,8 @@ export const AdminDashboard = () => {
             </div>
 
             {usersLoading ? (
-              <div className="card p-12 text-center text-(--text-light)">
-                <Loader2
-                  size={32}
-                  className="mx-auto mb-2 animate-spin text-(--primary)"
-                />
-                <p>Loading platform users...</p>
+              <div className="card p-6">
+                <LoadingScreen label="Loading platform users..." fullScreen={false} />
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">

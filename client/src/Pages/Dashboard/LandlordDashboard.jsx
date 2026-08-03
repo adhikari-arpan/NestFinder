@@ -9,6 +9,7 @@ import L from 'leaflet';
 import ImageUploader from '../../components/ImageUploader';
 import { DashboardHeader } from '../../components/DashboardHeader';
 import { KycStatusBanner } from '../../components/KycStatusBanner';
+import { LoadingScreen } from '../../components/LoadingScreen';
 import { Trash2, X } from 'lucide-react';
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -278,9 +279,9 @@ export const LandlordDashboard = () => {
     setReplyInquiryId(null);
   };
 
-  // Still resolving the session on first load — render nothing rather than
+  // Still resolving the session on first load — show the loader rather than
   // flashing the redirect-guard effect above into a trip to /auth.
-  if (authLoading) return null;
+  if (authLoading) return <LoadingScreen />;
 
   return (
     <div className="animate-fade-in container" style={{ padding: '3rem 1.5rem 5rem 1.5rem', textAlign: 'left' }}>

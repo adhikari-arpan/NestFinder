@@ -8,6 +8,7 @@ import { StepAddress } from "../components/kyc/StepAddress";
 import { StepLocation } from "../components/kyc/StepLocation";
 import { StepDocuments } from "../components/kyc/StepDocuments";
 import { StepReview } from "../components/kyc/StepReview";
+import { LoadingScreen } from "../components/LoadingScreen";
 import { IdCard } from "lucide-react";
 
 export const KycVerification = () => {
@@ -80,7 +81,8 @@ export const KycVerification = () => {
       .finally(() => setLoadingExisting(false));
   }, [currentUser]);
 
-  if (authLoading || !currentUser) return null;
+  if (authLoading) return <LoadingScreen />;
+  if (!currentUser) return null;
 
   const nextStep = () => setStep((s) => s + 1);
   const prevStep = () => setStep((s) => s - 1);
@@ -129,11 +131,7 @@ export const KycVerification = () => {
   };
 
   if (loadingExisting) {
-    return (
-      <div className="container flex min-h-screen items-center justify-center">
-        <p className="text-(--text-muted)">Loading…</p>
-      </div>
-    );
+    return <LoadingScreen label="Loading your KYC details..." />;
   }
 
   return (

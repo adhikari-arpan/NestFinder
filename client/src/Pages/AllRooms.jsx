@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
 import { RoomCard } from '../components/RoomCard';
+import { LoadingScreen } from '../components/LoadingScreen';
 import { ArrowLeft, Sparkles, Home, MapPin } from 'lucide-react';
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -70,16 +71,8 @@ export const AllRooms = () => {
 
       {/* Loading state */}
       {listingsLoading ? (
-        <div className="card text-center" style={{ padding: '5rem 2rem' }}>
-          <div style={{
-            width: '40px', height: '40px', borderRadius: '50%',
-            border: '3px solid var(--primary-light)',
-            borderTopColor: 'var(--primary)',
-            animation: 'spin 0.8s linear infinite',
-            margin: '0 auto 1rem'
-          }} />
-          <p style={{ color: 'var(--text-muted)' }}>Fetching rooms from database...</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div className="card" style={{ padding: '3rem 2rem' }}>
+          <LoadingScreen label="Fetching rooms from database..." fullScreen={false} />
         </div>
 
       ) : verifiedRooms.length === 0 ? (

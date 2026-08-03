@@ -4,9 +4,9 @@ import { AppContext } from "../../Context/AppContext";
 import * as kycApi from "../../api/kycApi";
 import { MapContainer as LeafletMap, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import { LoadingScreen } from "../LoadingScreen";
 import {
   X,
-  Loader2,
   CheckCircle,
   XCircle,
   FileText,
@@ -186,10 +186,7 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
         </div>
 
         {loading ? (
-          <div className="p-12 text-center text-(--text-light)">
-            <Loader2 size={32} className="mx-auto mb-2 animate-spin text-(--primary)" />
-            <p>Loading submission...</p>
-          </div>
+          <LoadingScreen label="Loading submission..." fullScreen={false} />
         ) : loadError ? (
           <p style={{ color: "var(--danger, #dc2626)" }}>{loadError}</p>
         ) : !kyc ? (
