@@ -249,6 +249,15 @@ export const AppContextProvider = ({ children }) => {
         `Your room "${newListing.title}" is pending admin moderation.`,
         "listing",
       );
+      try {
+        await api.notifyAdmins(
+          "New Listing Pending Review",
+          `"${newListing.title}" was submitted by ${currentUser.name} and needs moderation.`,
+          "listing",
+        );
+      } catch (err) {
+        console.error("Failed to notify admins of new listing:", err.message);
+      }
       return { success: true, listing: newListing };
     } catch (err) {
       console.error("Failed to create listing:", err.message);
