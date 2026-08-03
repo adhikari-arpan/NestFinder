@@ -25,14 +25,14 @@ const team = [
   },
   {
     name: 'Purnima Bhattrai',
-    photo: '/team_img/purnima.jpeg',
+    photo: '/team_img/Purnima.jpeg',
     initials: 'PB',
     socials: [
-      { icon: Globe, label: 'Website', url: '#' },
-      { icon: Github, label: 'GitHub', url: '#' },
-      { icon: Linkedin, label: 'LinkedIn', url: '#' },
-      { icon: Instagram, label: 'Instagram', url: '#' },
-      { icon: Facebook, label: 'Facebook', url: '#' },
+      { icon: Globe, label: 'Website', url: 'https://www.purnimabhattrai.com.np/' },
+      { icon: Github, label: 'GitHub', url: 'https://github.com/Purnimabhattrai' },
+      { icon: Linkedin, label: 'LinkedIn', url: 'https://www.linkedin.com/in/purnima-bhattrai-aba922356' },
+      { icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/purnimabhattrai09/' },
+      { icon: Facebook, label: 'Facebook', url: 'https://www.facebook.com/purnima.bhattrai.855174' },
     ],
   },
 ];
