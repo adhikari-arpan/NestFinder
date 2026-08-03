@@ -104,6 +104,13 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
   const [submitError, setSubmitError] = useState("");
 
   useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
+  useEffect(() => {
     kycApi
       .fetchKYCByUserId(userId)
       .then(setKyc)
@@ -270,41 +277,45 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
               )}
             </Section>
 
-            <Section icon={MessageSquare} title="Rejection Remarks">
-              <p className="mb-3 text-[0.82rem] text-(--text-light)">
-                Only required if you're rejecting this submission — the landlord sees this exact text.
-              </p>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                rows={3}
-                placeholder="e.g. Document photo is blurry, please re-upload a clearer scan of the front side."
-                className="form-input"
-                style={{ resize: "vertical", width: "100%" }}
-              />
-            </Section>
+            {kyc.status === "pending" && (
+              <>
+                <Section icon={MessageSquare} title="Rejection Remarks">
+                  <p className="mb-3 text-[0.82rem] text-(--text-light)">
+                    Only required if you're rejecting this submission — the landlord sees this exact text.
+                  </p>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    rows={3}
+                    placeholder="e.g. Document photo is blurry, please re-upload a clearer scan of the front side."
+                    className="form-input"
+                    style={{ resize: "vertical", width: "100%" }}
+                  />
+                </Section>
 
-            {submitError && (
-              <p style={{ color: "var(--danger, #dc2626)", fontSize: "0.85rem" }}>{submitError}</p>
+                {submitError && (
+                  <p style={{ color: "var(--danger, #dc2626)", fontSize: "0.85rem" }}>{submitError}</p>
+                )}
+
+                <div className="flex justify-end gap-2 border-t border-(--border-color) pt-6">
+                  <button
+                    onClick={() => decide("rejected")}
+                    disabled={submitting || !reason.trim()}
+                    className="btn btn-outline btn-sm flex gap-1"
+                    style={{ color: "var(--danger, #dc2626)", borderColor: "var(--danger, #dc2626)" }}
+                  >
+                    <XCircle size={14} /> Reject
+                  </button>
+                  <button
+                    onClick={() => decide("approved")}
+                    disabled={submitting}
+                    className="btn btn-secondary btn-sm flex gap-1"
+                  >
+                    <CheckCircle size={14} /> Approve
+                  </button>
+                </div>
+              </>
             )}
-
-            <div className="flex justify-end gap-2 border-t border-(--border-color) pt-6">
-              <button
-                onClick={() => decide("rejected")}
-                disabled={submitting || !reason.trim()}
-                className="btn btn-outline btn-sm flex gap-1"
-                style={{ color: "var(--danger, #dc2626)", borderColor: "var(--danger, #dc2626)" }}
-              >
-                <XCircle size={14} /> Reject
-              </button>
-              <button
-                onClick={() => decide("approved")}
-                disabled={submitting}
-                className="btn btn-secondary btn-sm flex gap-1"
-              >
-                <CheckCircle size={14} /> Approve
-              </button>
-            </div>
           </div>
         )}
       </div>
