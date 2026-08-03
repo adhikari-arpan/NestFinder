@@ -536,6 +536,7 @@ export const AppContextProvider = ({ children }) => {
         sendInquiry,
         replyToInquiry,
         notifications,
+        pushNotification,
         markNotificationAsRead,
         markAllNotificationsRead,
         clearAllNotifications,
