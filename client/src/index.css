@@ -1386,9 +1386,6 @@ body:not([data-theme="dark"]) .hero-cta-btn {
 }
 
 .loading-circles .circle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
   width: 16px;
   height: 16px;
@@ -1396,26 +1393,31 @@ body:not([data-theme="dark"]) .hero-cta-btn {
   border-radius: 50%;
   margin: 0 8px;
   background-color: transparent;
-  animation: loading-circle-keys var(--loading-anim);
+  animation: loading-circle-keys var(--loading-anim) both;
 }
 
 .loading-circles .circle .dot {
   position: absolute;
-  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
   width: 12px;
   height: 12px;
   border-radius: 50%;
   background-color: var(--loading-color);
-  animation: loading-dot-keys var(--loading-anim);
+  transform: translate(-50%, -50%) scale(1);
+  animation: loading-dot-keys var(--loading-anim) both;
 }
 
 .loading-circles .circle .outline {
   position: absolute;
-  transform: translate(-50%, -50%);
+  top: 50%;
+  left: 50%;
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  animation: loading-outline-keys var(--loading-anim);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  animation: loading-outline-keys var(--loading-anim) both;
 }
 
 .loading-circles .circle:nth-child(2) { animation-delay: 0.3s; }
@@ -1438,12 +1440,20 @@ body:not([data-theme="dark"]) .hero-cta-btn {
 }
 
 @keyframes loading-dot-keys {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(0); }
-  100% { transform: scale(1); }
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  50%  { transform: translate(-50%, -50%) scale(0); }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
 @keyframes loading-outline-keys {
-  0%   { transform: scale(0); outline: solid 16px var(--loading-color); outline-offset: 0; opacity: 1; }
-  100% { transform: scale(1); outline: solid 0 transparent; outline-offset: 16px; opacity: 0; }
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    box-shadow: 0 0 0 8px var(--loading-color);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.2);
+    box-shadow: 0 0 0 0 transparent;
+    opacity: 0;
+  }
 }
