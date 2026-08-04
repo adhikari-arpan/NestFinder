@@ -118,9 +118,17 @@ export const AppContextProvider = ({ children }) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, name, phone, email, is_verified, kyc_status")
+      .select("role, name, phone, email, is_verified, kyc_status, is_suspended")
       .eq("id", data.user.id)
       .single();
+
+    if (profile?.is_suspended) {
+      await supabase.auth.signOut();
+      return {
+        success: false,
+        message: "Your account has been suspended. Contact support for help.",
+      };
+    }
 
     setCurrentUser({ ...data.user, ...profile });
     pushNotification(
@@ -168,7 +176,12 @@ export const AppContextProvider = ({ children }) => {
           .eq("id", session.user.id)
           .single()
           .then(({ data: profile }) => {
-            setCurrentUser({ ...session.user, ...profile });
+            if (profile?.is_suspended) {
+              supabase.auth.signOut();
+              setCurrentUser(null);
+            } else {
+              setCurrentUser({ ...session.user, ...profile });
+            }
             setAuthLoading(false);
           });
       } else {

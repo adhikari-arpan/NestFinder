@@ -18,6 +18,7 @@ import {
   CheckCircle,
   Trash2,
   UserMinus,
+  UserCheck,
   Flag,
   AlertTriangle,
   Users,
@@ -61,6 +62,7 @@ export const AdminDashboard = () => {
 
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
   const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
+  const [suspendingId, setSuspendingId] = useState(null);
 
   const handleKycReviewed = (userId, decision) => {
     setUsers((prev) =>
@@ -80,11 +82,38 @@ export const AdminDashboard = () => {
     setReviewingUser(null);
   };
 
-  const handleUserSuspend = () => {
-    setActionMessage({
-      text: "Suspend isn't wired up yet — add a banned-status column to profiles in Supabase to enable it.",
-      type: "info",
-    });
+  const handleUserSuspend = async (user) => {
+    const nextSuspended = !user.is_suspended;
+    const confirmed = window.confirm(
+      nextSuspended
+        ? `Suspend ${user.name || "this user"}? They won't be able to sign in until reactivated.`
+        : `Reactivate ${user.name || "this user"}?`,
+    );
+    if (!confirmed) return;
+
+    setSuspendingId(user.id);
+    try {
+      await api.setUserSuspended(user.id, nextSuspended);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, is_suspended: nextSuspended } : u,
+        ),
+      );
+      setActionMessage({
+        text: nextSuspended
+          ? `${user.name || "User"} has been suspended.`
+          : `${user.name || "User"} has been reactivated.`,
+        type: "success",
+      });
+    } catch (err) {
+      console.error("Failed to update suspension status:", err.message);
+      setActionMessage({
+        text: "Couldn't update the user's suspension status.",
+        type: "error",
+      });
+    } finally {
+      setSuspendingId(null);
+    }
   };
 
   // Not logged in or not an admin: bounce to the auth page. Wait for the
@@ -645,6 +674,11 @@ export const AdminDashboard = () => {
                         {KYC_BADGE[user.kyc_status || "not_submitted"].label}
                       </span>
                     )}
+                    {user.is_suspended && (
+                      <span className="badge badge-danger text-[0.7rem]">
+                        Suspended
+                      </span>
+                    )}
 
                     <div className="ml-1 flex gap-1.5">
                       {user.role === "landlord" &&
@@ -662,12 +696,23 @@ export const AdminDashboard = () => {
                             <IdCard size={12} /> Review KYC
                           </button>
                         )}
-                      <button
-                        onClick={handleUserSuspend}
-                        className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem] text-(--danger)"
-                      >
-                        <UserMinus size={12} /> Suspend
-                      </button>
+                      {user.id !== currentUser.id && (
+                        <button
+                          onClick={() => handleUserSuspend(user)}
+                          disabled={suspendingId === user.id}
+                          className="btn btn-outline btn-sm px-2 py-1 text-[0.75rem] text-(--danger) disabled:opacity-60"
+                        >
+                          {user.is_suspended ? (
+                            <>
+                              <UserCheck size={12} /> Reactivate
+                            </>
+                          ) : (
+                            <>
+                              <UserMinus size={12} /> Suspend
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
