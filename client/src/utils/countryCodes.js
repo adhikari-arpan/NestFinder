@@ -214,6 +214,24 @@ export function flagEmoji(iso2) {
 // prefix ranges used by NTC, Ncell, and Smart Cell).
 const NEPAL_MOBILE_RE = /^9[678]\d{8}$/;
 
+// Splits a stored phone value like "+97798XXXXXXXX" back into
+// { dial: '977', number: '98XXXXXXXX' } for prefilling a country-code +
+// number pair. Longest dial code is matched first since codes overlap in
+// length (e.g. '1' vs '1876'). Numbers without a leading '+' are assumed to
+// be legacy Nepal-only entries saved before this feature existed.
+export function splitPhoneNumber(raw) {
+  if (!raw) return { dial: '977', number: '' };
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith('+')) {
+    return { dial: '977', number: trimmed.replace(/\D/g, '') };
+  }
+  const digits = trimmed.slice(1).replace(/\D/g, '');
+  const byLongestDial = [...COUNTRY_CODES].sort((a, b) => b.dial.length - a.dial.length);
+  const match = byLongestDial.find((c) => digits.startsWith(c.dial));
+  if (!match) return { dial: '977', number: digits };
+  return { dial: match.dial, number: digits.slice(match.dial.length) };
+}
+
 // National number validation. Nepal gets the real rule above; everything
 // else gets a generic sanity check (digits only, plausible national-number
 // length) since exact per-country formats need full metadata we don't ship.
