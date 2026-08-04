@@ -5,6 +5,8 @@ import whiteLogo from '../assets/White_NestFinderLogo.png';
 import darkLogo from '../assets/Dark_NestFinderLogo.png';
 import { User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
 import { LoadingScreen } from '../components/LoadingScreen';
+import { CountryCodeSelect } from '../components/CountryCodeSelect';
+import { validatePhoneNumber } from '../utils/countryCodes';
 
 // --- Animated Canvas Background ---
 const AnimatedBackground = ({ theme }) => {
@@ -89,6 +91,7 @@ export const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
+  const [countryDial, setCountryDial] = useState('977');
   const [showPassword, setShowPassword] = useState(false);
   const [formMsg, setFormMsg] = useState({ text: '', type: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -123,9 +126,15 @@ export const Auth = () => {
         setFormMsg({ text: 'Please fill all signup fields.', type: 'error' });
         return;
       }
+      const phoneError = validatePhoneNumber(countryDial, phone);
+      if (phoneError) {
+        setFormMsg({ text: phoneError, type: 'error' });
+        return;
+      }
       setSubmitting(true);
       try {
-        const result = await signupUser(email, password, name, phone, selectedRole);
+        const fullPhone = `+${countryDial}${phone.trim()}`;
+        const result = await signupUser(email, password, name, fullPhone, selectedRole);
         setFormMsg({ text: result.message, type: result.success ? 'success' : 'error' });
       } finally {
         setSubmitting(false);
@@ -253,8 +262,19 @@ export const Auth = () => {
             onChange={e => setEmail(e.target.value)} placeholder="Email address" required />
 
           {activeTab === 'signup' && (
-            <InputField isDark={isDark} icon={Phone} type="tel" value={phone} disabled={submitting}
-              onChange={e => setPhone(e.target.value)} placeholder="Phone: 98XXXXXXXX" required />
+            <div className="flex w-full items-start gap-2">
+              <CountryCodeSelect
+                isDark={isDark}
+                value={countryDial}
+                onChange={setCountryDial}
+                disabled={submitting}
+              />
+              <div className="flex-1">
+                <InputField isDark={isDark} icon={Phone} type="tel" value={phone} disabled={submitting}
+                  onChange={e => setPhone(e.target.value.replace(/\D/g, ''))}
+                  placeholder={countryDial === '977' ? '98XXXXXXXX' : 'Phone number'} required />
+              </div>
+            </div>
           )}
 
           <InputField isDark={isDark} icon={Lock}

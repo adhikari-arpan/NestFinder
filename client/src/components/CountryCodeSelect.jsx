@@ -3,7 +3,13 @@ import { ChevronDown } from 'lucide-react';
 import { COUNTRY_CODES, flagEmoji } from '../utils/countryCodes';
 
 // Compact "+977 ▾" trigger that opens a searchable country list. Meant to
-// sit directly beside a phone number input (see Auth.jsx signup form).
+// sit directly beside a phone number input.
+//
+// isDark is only passed by Auth.jsx's glass-card signup form, which paints
+// its own translucent colors instead of the app's normal --bg-card /
+// --border-color tokens. Everywhere else (e.g. the KYC form, which uses the
+// standard .form-input look), omit isDark and it themes itself off those
+// CSS variables instead, matching .form-input automatically in both modes.
 export const CountryCodeSelect = ({ value, onChange, isDark, disabled }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -29,11 +35,14 @@ export const CountryCodeSelect = ({ value, onChange, isDark, disabled }) => {
       )
     : COUNTRY_CODES;
 
-  const panelBg = isDark ? '#111827' : '#ffffff';
-  const panelBorder = isDark ? 'rgba(255,255,255,0.10)' : 'rgba(99,102,241,0.18)';
-  const textColor = isDark ? 'rgba(255,255,255,0.92)' : '#1e1b4b';
-  const mutedColor = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)';
-  const hoverBg = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.08)';
+  const glass = isDark !== undefined;
+  const triggerBg = glass ? (isDark ? 'rgba(255,255,255,0.055)' : 'rgba(99,102,241,0.05)') : 'var(--bg-app)';
+  const border = glass ? (isDark ? 'rgba(255,255,255,0.10)' : 'rgba(99,102,241,0.18)') : 'var(--border-color)';
+  const panelBg = glass ? (isDark ? '#111827' : '#ffffff') : 'var(--bg-card)';
+  const textColor = glass ? (isDark ? 'rgba(255,255,255,0.92)' : '#1e1b4b') : 'var(--text-main)';
+  const mutedColor = glass ? (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)') : 'var(--text-light)';
+  const hoverBg = glass ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.08)') : 'var(--primary-light)';
+  const searchBg = glass ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.06)') : 'var(--bg-app)';
 
   return (
     <div ref={rootRef} className="relative">
@@ -41,10 +50,10 @@ export const CountryCodeSelect = ({ value, onChange, isDark, disabled }) => {
         type="button"
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
-        className="flex h-13.5 items-center gap-1.5 rounded-xl px-3 text-[0.9rem] transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        className={`flex items-center gap-1.5 rounded-xl px-3 text-[0.9rem] transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50 ${glass ? 'h-13.5' : 'h-full py-3'}`}
         style={{
-          background: isDark ? 'rgba(255,255,255,0.055)' : 'rgba(99,102,241,0.05)',
-          border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(99,102,241,0.18)'}`,
+          background: triggerBg,
+          border: `1.5px solid ${border}`,
           color: textColor,
         }}
       >
@@ -56,9 +65,9 @@ export const CountryCodeSelect = ({ value, onChange, isDark, disabled }) => {
       {open && (
         <div
           className="absolute top-[calc(100%+0.5rem)] left-0 z-20 w-70 overflow-hidden rounded-xl"
-          style={{ background: panelBg, border: `1.5px solid ${panelBorder}`, boxShadow: '0 20px 45px rgba(0,0,0,0.25)' }}
+          style={{ background: panelBg, border: `1.5px solid ${border}`, boxShadow: '0 20px 45px rgba(0,0,0,0.25)' }}
         >
-          <div className="p-2" style={{ borderBottom: `1px solid ${panelBorder}` }}>
+          <div className="p-2" style={{ borderBottom: `1px solid ${border}` }}>
             <input
               autoFocus
               type="text"
@@ -67,8 +76,8 @@ export const CountryCodeSelect = ({ value, onChange, isDark, disabled }) => {
               placeholder="Search country or code..."
               className="h-9 w-full rounded-lg px-3 text-[0.85rem] outline-none"
               style={{
-                background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(99,102,241,0.06)',
-                border: `1px solid ${panelBorder}`,
+                background: searchBg,
+                border: `1px solid ${border}`,
                 color: textColor,
               }}
             />
