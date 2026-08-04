@@ -217,24 +217,26 @@ export const Auth = () => {
           ))}
         </div>
 
-        {/* Role selector */}
-        <div className="flex gap-2.5" style={{ marginBottom: '2.25rem' }}>
-          {roles.map(r => (
-            <button key={r.val} type="button" disabled={submitting} onClick={() => setSelectedRole(r.val)}
-              className="flex-1 cursor-pointer rounded-xl border px-1 py-3 text-[0.82rem] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
-              style={selectedRole === r.val ? {
-                borderColor: 'rgba(151, 153, 237, 0.55)',
-                background: isDark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.1)',
-                color: roleActiveText,
-              } : {
-                borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.14)',
-                background: 'transparent',
-                color: roleInactiveText,
-              }}>
-              {r.label}
-            </button>
-          ))}
-        </div>
+        {/* Role selector — only relevant when creating an account */}
+        {activeTab === 'signup' && (
+          <div className="flex gap-2.5" style={{ marginBottom: '2.25rem' }}>
+            {roles.map(r => (
+              <button key={r.val} type="button" disabled={submitting} onClick={() => setSelectedRole(r.val)}
+                className="flex-1 cursor-pointer rounded-xl border px-1 py-3 text-[0.82rem] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
+                style={selectedRole === r.val ? {
+                  borderColor: 'rgba(151, 153, 237, 0.55)',
+                  background: isDark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.1)',
+                  color: roleActiveText,
+                } : {
+                  borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(99,102,241,0.14)',
+                  background: 'transparent',
+                  color: roleInactiveText,
+                }}>
+                {r.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Divider */}
         <div className="h-px w-full" style={{ background: dividerColor, marginBottom: '2.25rem' }} />
