@@ -4,6 +4,7 @@ import { AppContext } from "../Context/AppContext";
 import whiteLogo from '../assets/White_NestFinderLogo.png';
 import darkLogo from '../assets/Dark_NestFinderLogo.png';
 import { User, Lock, Mail, Phone, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { LoadingScreen } from '../components/LoadingScreen';
 
 // --- Animated Canvas Background ---
 const AnimatedBackground = ({ theme }) => {
@@ -54,14 +55,14 @@ const AnimatedBackground = ({ theme }) => {
 };
 
 // --- Input Field ---
-const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, right, isDark }) => (
+const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, right, isDark, disabled }) => (
   <div className="relative flex w-full items-center">
     <span className="pointer-events-none absolute top-0 left-0 flex h-full w-11 items-center justify-center">
       <Icon size={16} style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(79,70,229,0.6)' }} />
     </span>
     <input
       type={type} value={value} onChange={onChange}
-      placeholder={placeholder} required={required}
+      placeholder={placeholder} required={required} disabled={disabled}
       style={{
         background: isDark ? 'rgba(255,255,255,0.055)' : 'rgba(99,102,241,0.05)',
         border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.10)' : 'rgba(99,102,241,0.18)'}`,
@@ -70,7 +71,7 @@ const InputField = ({ icon: Icon, type, value, onChange, placeholder, required, 
         paddingRight: '2.75rem',
         textAlign: 'left',
       }}
-      className="h-13.5 w-full rounded-xl text-[0.9rem] transition-all duration-200 outline-none focus:ring-2 focus:ring-indigo-500/25"
+      className="h-13.5 w-full rounded-xl text-[0.9rem] transition-all duration-200 outline-none focus:ring-2 focus:ring-indigo-500/25 disabled:cursor-not-allowed disabled:opacity-50"
     />
     {right && <div className="absolute right-4 flex items-center">{right}</div>}
   </div>
@@ -90,6 +91,7 @@ export const Auth = () => {
   const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formMsg, setFormMsg] = useState({ text: '', type: '' });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -107,17 +109,27 @@ export const Auth = () => {
         setFormMsg({ text: 'Please fill in email and password.', type: 'error' });
         return;
       }
-      const result = await loginUser(email, password);
-      if (result && !result.success) {
-        setFormMsg({ text: result.message, type: 'error' });
+      setSubmitting(true);
+      try {
+        const result = await loginUser(email, password);
+        if (result && !result.success) {
+          setFormMsg({ text: result.message, type: 'error' });
+        }
+      } finally {
+        setSubmitting(false);
       }
     } else {
       if (!name || !email || !password || !phone) {
         setFormMsg({ text: 'Please fill all signup fields.', type: 'error' });
         return;
       }
-      const result = await signupUser(email, password, name, phone, selectedRole);
-      setFormMsg({ text: result.message, type: result.success ? 'success' : 'error' });
+      setSubmitting(true);
+      try {
+        const result = await signupUser(email, password, name, phone, selectedRole);
+        setFormMsg({ text: result.message, type: result.success ? 'success' : 'error' });
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -193,8 +205,9 @@ export const Auth = () => {
         {/* Tabs */}
         <div className="flex rounded-xl p-1.25" style={{ background: tabBarBg, marginBottom: '1.75rem' }}>
           {['login', 'signup'].map(tab => (
-            <button key={tab} type="button" onClick={() => { setActiveTab(tab); setFormMsg({ text: '', type: '' }); }}
-              className={`flex-1 cursor-pointer rounded-[9px] border-none py-3 text-[0.85rem] font-bold transition-all duration-200 ${activeTab === tab
+            <button key={tab} type="button" disabled={submitting}
+              onClick={() => { setActiveTab(tab); setFormMsg({ text: '', type: '' }); }}
+              className={`flex-1 cursor-pointer rounded-[9px] border-none py-3 text-[0.85rem] font-bold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${activeTab === tab
                 ? 'bg-linear-to-r from-indigo-500 to-indigo-600 text-white shadow-[0_2px_14px_rgba(99,102,241,0.38)]'
                 : 'bg-transparent hover:opacity-70'
                 }`}
@@ -207,8 +220,8 @@ export const Auth = () => {
         {/* Role selector */}
         <div className="flex gap-2.5" style={{ marginBottom: '2.25rem' }}>
           {roles.map(r => (
-            <button key={r.val} type="button" onClick={() => setSelectedRole(r.val)}
-              className="flex-1 cursor-pointer rounded-xl border px-1 py-3 text-[0.82rem] font-semibold transition-all duration-200"
+            <button key={r.val} type="button" disabled={submitting} onClick={() => setSelectedRole(r.val)}
+              className="flex-1 cursor-pointer rounded-xl border px-1 py-3 text-[0.82rem] font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60"
               style={selectedRole === r.val ? {
                 borderColor: 'rgba(151, 153, 237, 0.55)',
                 background: isDark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.1)',
@@ -230,22 +243,22 @@ export const Auth = () => {
         <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: '1.5rem' }}>
 
           {activeTab === 'signup' && (
-            <InputField isDark={isDark} icon={User} type="text" value={name}
+            <InputField isDark={isDark} icon={User} type="text" value={name} disabled={submitting}
               onChange={e => setName(e.target.value)} placeholder="Full name" required />
           )}
 
-          <InputField isDark={isDark} icon={Mail} type="email" value={email}
+          <InputField isDark={isDark} icon={Mail} type="email" value={email} disabled={submitting}
             onChange={e => setEmail(e.target.value)} placeholder="Email address" required />
 
           {activeTab === 'signup' && (
-            <InputField isDark={isDark} icon={Phone} type="tel" value={phone}
+            <InputField isDark={isDark} icon={Phone} type="tel" value={phone} disabled={submitting}
               onChange={e => setPhone(e.target.value)} placeholder="Phone: 98XXXXXXXX" required />
           )}
 
           <InputField isDark={isDark} icon={Lock}
             type={showPassword ? 'text' : 'password'}
             value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="Password" required
+            placeholder="Password" required disabled={submitting}
             right={
               <button type="button" onClick={() => setShowPassword(p => !p)}
                 className="cursor-pointer border-none bg-transparent p-0 transition-opacity hover:opacity-60"
@@ -275,9 +288,9 @@ export const Auth = () => {
           )}
 
           {/* Submit */}
-          <button type="submit"
+          <button type="submit" disabled={submitting}
             style={{ marginTop: '0.5rem' }}
-            className="flex h-13.5 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-linear-to-r from-indigo-500 to-emerald-500 text-[0.93rem] font-bold text-white shadow-[0_4px_22px_rgba(99,102,241,0.32)] transition-all duration-200 hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)]">
+            className="flex h-13.5 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-linear-to-r from-indigo-500 to-emerald-500 text-[0.93rem] font-bold text-white shadow-[0_4px_22px_rgba(99,102,241,0.32)] transition-all duration-200 hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)] disabled:cursor-not-allowed disabled:opacity-60">
             {activeTab === 'login' ? 'Sign In' : 'Create Account'}
             <ChevronRight size={17} />
           </button>
@@ -301,6 +314,15 @@ export const Auth = () => {
         </p>
 
       </div>
+
+      {submitting && (
+        <div className="modal-overlay">
+          <LoadingScreen
+            fullScreen={false}
+            label={activeTab === 'login' ? 'Signing you in...' : 'Creating your account...'}
+          />
+        </div>
+      )}
     </div>
   );
 };
