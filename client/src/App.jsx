@@ -4,6 +4,7 @@ import { AppContextProvider } from "./Context/AppContext";
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { RequireAuth } from './components/RequireAuth';
+import { ScrollToTop } from './components/ScrollToTop';
 import { AllRooms } from './Pages/AllRooms';
 
 // Pages
@@ -27,6 +28,8 @@ function App() {
   return (
     <AppContextProvider>
       <Router>
+        <ScrollToTop />
+
         {/* Sticky Header */}
         <Navbar />
 
