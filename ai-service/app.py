@@ -5,6 +5,7 @@
 
 import os
 import math
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -60,12 +61,20 @@ def get_listing_embeddings(listings):
     return np.array([embedding_cache[l["id"]][1] for l in listings])
 
 
+# A verified listing only stays recommendable for this many days after
+# verification — mirrors client/src/utils/listingLifecycle.js.
+LISTING_VISIBILITY_DAYS = 7
+
+
 def fetch_verified_listings():
-    """Pull verified listings, same source of truth as the React app."""
+    """Pull listings that are verified AND still within their 7-day
+    visibility window, same source of truth as the React app."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=LISTING_VISIBILITY_DAYS)).isoformat()
     response = (
         supabase.table("listings_with_rating")
         .select("*")
         .eq("status", "verified")
+        .gte("verified_at", cutoff)
         .execute()
     )
     return response.data or []

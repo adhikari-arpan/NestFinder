@@ -25,14 +25,15 @@ import {
   Building,
   MessageSquare,
   Plus,
-  Eye,
   CheckCircle,
   Clock,
   AlertTriangle,
   Send,
   MapPin,
   FileText,
+  CalendarClock,
 } from 'lucide-react';
+import { LISTING_VISIBILITY_DAYS, daysRemaining } from '../../utils/listingLifecycle';
 
 export const LandlordDashboard = () => {
   const {
@@ -409,7 +410,7 @@ export const LandlordDashboard = () => {
                   <tr style={{ backgroundColor: 'var(--bg-app)', borderBottom: '1px solid var(--border-color)', textAlign: 'left' }}>
                     <th style={{ padding: '1rem' }}>Preview Details</th>
                     <th style={{ padding: '1rem' }}>Pricing</th>
-                    <th style={{ padding: '1rem' }}>Views</th>
+                    <th style={{ padding: '1rem' }}>Days Remaining</th>
                     <th style={{ padding: '1rem' }}>Verification Status</th>
                     <th style={{ padding: '1rem' }}>Actions</th>
                   </tr>
@@ -429,7 +430,12 @@ export const LandlordDashboard = () => {
                       </td>
                       <td style={{ padding: '1rem', color: 'var(--text-light)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <Eye size={14} /> {item.views} views
+                          <CalendarClock size={14} />
+                          {(() => {
+                            const days = daysRemaining(item);
+                            if (days === null) return '—';
+                            return days > 0 ? `${days} day${days === 1 ? '' : 's'} left` : 'Expires today';
+                          })()}
                         </div>
                       </td>
                       <td style={{ padding: '1rem' }}>
@@ -591,6 +597,27 @@ export const LandlordDashboard = () => {
                     : 'Provide specifications. Newly listed rentals start as pending for admin checks.'}
                 </p>
               </div>
+            </div>
+
+            {/* Visibility window notice */}
+            <div
+              className="card"
+              style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '1rem 1.25rem',
+                marginBottom: '1.5rem',
+                backgroundColor: 'var(--accent-light)',
+                borderColor: 'var(--accent)',
+              }}
+            >
+              <CalendarClock size={18} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: '0.1rem' }} />
+              <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                <strong style={{ color: 'var(--text-main)' }}>Listings are visible to tenants for {LISTING_VISIBILITY_DAYS} days.</strong>{' '}
+                Once admin verifies your listing, it stays live in search results for {LISTING_VISIBILITY_DAYS} days from that
+                point. After that it's automatically removed — check the "Days Remaining" column on your listings table.
+              </p>
             </div>
 
             {/* Form */}

@@ -45,6 +45,7 @@ function mapListingRow(row) {
     featured: row.featured,
     views: row.views,
     createdAt: row.created_at,
+    verifiedAt: row.verified_at,
   };
 }
 
@@ -205,7 +206,13 @@ export async function updateListing(id, formData) {
 // Moderation (admin dashboard)
 // ------------------------------------------------------------
 export async function updateListingStatus(id, newStatus) {
-  const { error } = await supabase.from('listings').update({ status: newStatus }).eq('id', id);
+  // Re-stamping verified_at every time a listing (re-)becomes verified
+  // restarts its 7-day tenant-visibility window — see listingLifecycle.js.
+  const updates = { status: newStatus };
+  if (newStatus === 'verified') {
+    updates.verified_at = new Date().toISOString();
+  }
+  const { error } = await supabase.from('listings').update(updates).eq('id', id);
   if (error) throw error;
 }
 

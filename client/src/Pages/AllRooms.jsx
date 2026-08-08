@@ -8,6 +8,7 @@ import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, ShieldAlert } from 'luc
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import { MapContainer as SelectableMap } from '../components/MapContainer';
 import { haversineDistance } from '../utils/geo';
+import { isListingLive } from '../utils/listingLifecycle';
 import { RADIUS_OPTIONS } from '../utils/paymentUtils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -58,12 +59,13 @@ export const AllRooms = () => {
   );
   const [showRadiusPicker, setShowRadiusPicker] = useState(false);
 
-  // Filter rooms strictly by user's paid distance radius
-  let verifiedRooms = listings;
+  // Only show listings still within their 7-day post-verification window,
+  // then further filter by the user's paid distance radius if applicable.
+  let verifiedRooms = listings.filter(isListingLive);
   if (isAccessPaid && paidRadiusAccess?.location) {
     const loc = paidRadiusAccess.location;
     const rad = paidRadiusAccess.activeRadius;
-    verifiedRooms = listings.filter((room) => {
+    verifiedRooms = verifiedRooms.filter((room) => {
       if (!room.latitude || !room.longitude) return false;
       const dist = haversineDistance(
         loc.lat,

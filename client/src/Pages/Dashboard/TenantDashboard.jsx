@@ -7,6 +7,7 @@ import { DashboardHeader } from '../../components/DashboardHeader';
 import whiteLogo from '../../assets/White_NestFinderLogo.png';
 import darkLogo from '../../assets/Dark_NestFinderLogo.png';
 import { haversineDistance } from '../../utils/geo';
+import { isListingLive } from '../../utils/listingLifecycle';
 import {
   Heart, Sparkles, MessageSquare, Clock, ArrowRight, Lock
 } from 'lucide-react';
@@ -139,6 +140,7 @@ export const TenantDashboard = () => {
 
   const visibleListings = isAccessPaid
     ? listings.filter((l) => {
+        if (!isListingLive(l)) return false;
         if (!l.latitude || !l.longitude) return false;
         const dist = haversineDistance(
           paidRadiusAccess.location.lat,
@@ -320,7 +322,7 @@ export const TenantDashboard = () => {
         <div className="carousel-section" style={{ marginTop: 0 }}>
           <div className="carousel-container">
             <div className="flex-1">
-              <RoomCarousel listings={isAccessPaid ? visibleListings : listings} locked={!isAccessPaid} />
+              <RoomCarousel listings={isAccessPaid ? visibleListings : listings.filter(isListingLive)} locked={!isAccessPaid} />
             </div>
             <div className="glowing-arrow" onClick={() => navigate('/rooms')}>
               <ArrowRight size={24} />

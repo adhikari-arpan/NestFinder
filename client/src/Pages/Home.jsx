@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { RoomCard } from '../components/RoomCard';
 import { MapContainer } from '../components/MapContainer';
+import { isListingLive } from '../utils/listingLifecycle';
 
 // ─── Animated Canvas ──────────────────────────────────────────────────────────
 const NetworkBackground = ({ theme }) => {
@@ -107,7 +108,7 @@ export const Home = () => {
   };
 
   const scoredListings = listings
-    .filter(l => l.status === 'verified' &&
+    .filter(l => isListingLive(l) &&
       (searchQuery === '' || l.title.toLowerCase().includes(searchQuery.toLowerCase()) || l.location.toLowerCase().includes(searchQuery.toLowerCase())) &&
       (selectedType === 'all' || l.type === selectedType) &&
       l.price <= maxBudget &&

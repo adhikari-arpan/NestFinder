@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { MapContainer } from '../components/MapContainer';
 import { RoomCard } from '../components/RoomCard';
+import { isListingLive } from '../utils/listingLifecycle';
 import {
   MapPin,
   Heart,
@@ -87,7 +88,7 @@ export const RoomDetails = () => {
   };
 
   const similarRooms = listings
-    .filter(l => l.id !== room.id && l.status === 'verified')
+    .filter(l => l.id !== room.id && isListingLive(l))
     .map(l => ({
       ...l,
       similarityScore: calculateRecommendationScore(l, {

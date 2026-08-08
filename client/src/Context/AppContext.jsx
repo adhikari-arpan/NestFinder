@@ -341,7 +341,15 @@ export const AppContextProvider = ({ children }) => {
     try {
       await api.updateListingStatus(id, newStatus);
       setListings((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)),
+        prev.map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                status: newStatus,
+                ...(newStatus === 'verified' ? { verifiedAt: new Date().toISOString() } : {}),
+              }
+            : l,
+        ),
       );
       if (currentUser) {
         pushNotification(
