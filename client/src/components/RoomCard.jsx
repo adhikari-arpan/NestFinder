@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { MapPin, Heart, Wifi, Car, Sofa, Flame, CheckCircle, Sparkles } from 'lucide-react';

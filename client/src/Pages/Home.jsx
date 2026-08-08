@@ -1,13 +1,10 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import {
   Sparkles, Shield, ArrowRight,
-  Map, Filter, Check, Search, ChevronDown
+  Map, ChevronDown
 } from 'lucide-react';
-import { RoomCard } from '../components/RoomCard';
-import { MapContainer } from '../components/MapContainer';
-import { isListingLive } from '../utils/listingLifecycle';
 
 // ─── Animated Canvas ──────────────────────────────────────────────────────────
 const NetworkBackground = ({ theme }) => {
@@ -84,14 +81,7 @@ const NetworkBackground = ({ theme }) => {
 // ─── Main Component ───────────────────────────────────────────────────────────
 export const Home = () => {
   const navigate = useNavigate();
-  const { currentUser, listings, calculateRecommendationScore, theme } = useContext(AppContext);
-
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState('all');
-  const [maxBudget, setMaxBudget] = useState(25000);
-  const [selectedAmenities, setSelectedAmenities] = useState(['WiFi', 'Hot Water']);
-  const [activeListingId, setActiveListingId] = useState(null);
-  const [highlightListingId, setHighlightListingId] = useState(null);
+  const { currentUser, theme } = useContext(AppContext);
 
   useEffect(() => {
     if (currentUser?.role === 'tenant') navigate('/dashboard/tenant');
@@ -99,29 +89,11 @@ export const Home = () => {
     else if (currentUser?.role === 'admin') navigate('/dashboard/admin');
   }, [currentUser, navigate]);
 
-  const handleAmenityToggle = (a) =>
-    setSelectedAmenities(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
-
-  const handleMarkerClick = (id) => {
-    setActiveListingId(id);
-    document.getElementById(`room-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  };
-
-  const scoredListings = listings
-    .filter(l => isListingLive(l) &&
-      (searchQuery === '' || l.title.toLowerCase().includes(searchQuery.toLowerCase()) || l.location.toLowerCase().includes(searchQuery.toLowerCase())) &&
-      (selectedType === 'all' || l.type === selectedType) &&
-      l.price <= maxBudget &&
-      selectedAmenities.every(a => l.amenities.includes(a))
-    )
-    .map(l => ({ ...l, matchScore: calculateRecommendationScore(l, { budget: maxBudget, preferredCity: l.city, sharing: 'Single', roomType: selectedType === 'all' ? l.type : selectedType, essentialAmenities: selectedAmenities, poiLocation: null }) }))
-    .sort((a, b) => b.matchScore - a.matchScore);
-
   const isDark = theme === 'dark';
 
   // ── GUEST VIEW ──────────────────────────────────────────────────────────────
   if (!currentUser) return (
-    <div className="flex flex-col text-[var(--text-main)]">
+    <div className="flex flex-col text-(--text-main)">
 
       {/* ── HERO SECTION ── */}
       <section className={[
@@ -135,13 +107,13 @@ export const Home = () => {
         <NetworkBackground theme={theme} />
 
         {/* Ambient orbs */}
-        <div className="pointer-events-none absolute top-[15%] left-[8%] z-[1] size-[400px] rounded-full"
+        <div className="pointer-events-none absolute top-[15%] left-[8%] z-1 size-100 rounded-full"
           style={{ background: isDark ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.06)', filter: 'blur(100px)' }} />
-        <div className="pointer-events-none absolute right-[8%] bottom-[20%] z-[1] size-[320px] rounded-full"
+        <div className="pointer-events-none absolute right-[8%] bottom-[20%] z-1 size-80 rounded-full"
           style={{ background: isDark ? 'rgba(16,185,129,0.08)' : 'rgba(16,185,129,0.05)', filter: 'blur(90px)' }} />
 
         {/* Hero content */}
-        <div className="animate-fade-in relative z-[5] flex max-w-[740px] flex-col items-center gap-7">
+        <div className="animate-fade-in relative z-5 flex max-w-185 flex-col items-center gap-7">
 
           <span className="hero-badge">🏠 Nepal's Rental Network</span>
 
@@ -184,7 +156,7 @@ export const Home = () => {
         </div>
 
         {/* Stats bar */}
-        <div className="relative z-[5] container mt-14 w-full" style={{ marginBottom: '40px' }}>
+        <div className="relative z-5 container mt-14 w-full" style={{ marginBottom: '40px' }}>
           <div className="stats-row">
             <div className="stat-item"><div className="stat-number">10+</div><div className="stat-label">Active Listings</div></div>
             <div className="stat-divider" />
@@ -209,19 +181,19 @@ export const Home = () => {
         }}
       >
         {/* Orbs */}
-        <div className="pointer-events-none absolute -top-20 left-[10%] size-[380px] rounded-full"
+        <div className="pointer-events-none absolute -top-20 left-[10%] size-95 rounded-full"
           style={{ background: 'rgba(99,102,241,0.06)', filter: 'blur(90px)' }} />
-        <div className="pointer-events-none absolute right-[10%] -bottom-16 size-[320px] rounded-full"
+        <div className="pointer-events-none absolute right-[10%] -bottom-16 size-80 rounded-full"
           style={{ background: 'rgba(16,185,129,0.05)', filter: 'blur(80px)' }} />
 
-        <div className="relative z-[1] container" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+        <div className="relative z-1 container" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
 
           {/* Section header */}
           <div
             className="text-center"
             style={{ marginBottom: '60px', marginLeft: 'auto', marginRight: 'auto', maxWidth: '640px', width: '100%', textAlign: 'center' }}
           >
-            <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-[var(--primary)] uppercase">
+            <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-(--primary) uppercase">
               WHY NESTFINDER?
             </p>
             <h2
@@ -235,7 +207,7 @@ export const Home = () => {
               Everything you need to find<br />your ideal room
             </h2>
             <p
-              className="mx-auto max-w-[520px] text-center text-[1.05rem]"
+              className="mx-auto max-w-130 text-center text-[1.05rem]"
               style={{ color: isDark ? '#94a3b8' : '#475569', lineHeight: '1.9', marginTop: '0px' }}
             >
               NestFinder combines interactive maps, AI recommendations and verified listings so you can find your perfect place — efficiently and safely.

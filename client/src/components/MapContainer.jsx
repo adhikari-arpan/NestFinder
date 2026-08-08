@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import { AppContext } from "../Context/AppContext";
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 export const MapContainer = ({
@@ -19,8 +18,6 @@ export const MapContainer = ({
   const markersGroupRef = useRef(null);
   const clickCircleGroupRef = useRef(null);
   const selectionGroupRef = useRef(null);
-
-  const { theme } = useContext(AppContext);
 
   // Initialize Map
   useEffect(() => {

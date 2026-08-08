@@ -7,7 +7,7 @@
 //   <ImageUploader files={images} onChange={setImages} />
 //   ...later: createListing({ ...formData, images })
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILES = 6;

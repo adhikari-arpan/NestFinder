@@ -274,21 +274,7 @@ export const AllRooms = () => {
 
       {/* Loading state */}
       {listingsLoading ? (
-        <div className="card text-center" style={{ padding: "5rem 2rem" }}>
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              border: "3px solid var(--primary-light)",
-              borderTopColor: "var(--primary)",
-              animation: "spin 0.8s linear infinite",
-              margin: "0 auto 1rem",
-            }}
-          />
-          <p style={{ color: "var(--text-muted)" }}>Fetching rooms from database...</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
+        <LoadingScreen label="Fetching rooms from database..." fullScreen={false} />
       ) : !isAccessPaid ? null : verifiedRooms.length === 0 ? (
         /* Empty state within radius */
         <div className="card text-center" style={{ padding: "5rem 2rem" }}>
