@@ -104,18 +104,6 @@ export const RoomCard = ({ room, score }) => {
           <span>{room.location}</span>
         </div>
 
-        {/* Nearby POI */}
-        {room.nearbyPOIs && room.nearbyPOIs[0] && (
-          <div className="flex items-center justify-between rounded-sm)] bg-(--bg-app) px-2.5 py-1.5 text-[0.8rem] text-(--text-muted)">
-            <span className="max-w-[80%] truncate">🎓 {room.nearbyPOIs[0].name}</span>
-            <strong className="text-[0.75rem] text-(--primary)">
-              {room.nearbyPOIs[0].distance >= 1000
-                ? `${(room.nearbyPOIs[0].distance / 1000).toFixed(1)}km`
-                : `${room.nearbyPOIs[0].distance}m`}
-            </strong>
-          </div>
-        )}
-
         {/* Amenities & CTA */}
         <div className="mt-1 flex items-center justify-between border-t border-(--border-color) pt-3">
           <div className="flex gap-2 text-(--text-light)">

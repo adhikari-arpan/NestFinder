@@ -886,7 +886,7 @@ export const LandlordDashboard = () => {
       )}
 
       <style>{`
-        .listing-table tr:hover, .poi-table tr:hover {
+        .listing-table tr:hover {
           background-color: var(--primary-light);
         }
         .landlord-add-btn:hover {

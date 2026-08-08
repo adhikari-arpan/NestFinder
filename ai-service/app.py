@@ -61,11 +61,10 @@ def get_listing_embeddings(listings):
 
 
 def fetch_verified_listings():
-    """Pull verified listings plus their nearby POIs, same source of
-    truth as the React app."""
+    """Pull verified listings, same source of truth as the React app."""
     response = (
         supabase.table("listings_with_rating")
-        .select("*, listing_pois(name, type, distance_meters)")
+        .select("*")
         .eq("status", "verified")
         .execute()
     )
@@ -76,13 +75,12 @@ def listing_to_document(listing):
     """Turn a listing row into a natural-language string for embedding.
     The richer and more natural this text is, the better the semantic
     matches — this is the single highest-leverage thing to tune here."""
-    poi_names = ", ".join(p["name"] for p in listing.get("listing_pois", []))
     amenities = ", ".join(listing.get("amenities", []))
     return (
         f"{listing['type']} in {listing['city']}, {listing['location']}. "
         f"{listing['sharing']} sharing. Rent {listing['price']} rupees per month. "
         f"{listing['title']}. {listing.get('description', '')}. "
-        f"Amenities: {amenities}. Nearby: {poi_names}."
+        f"Amenities: {amenities}."
     )
 
 

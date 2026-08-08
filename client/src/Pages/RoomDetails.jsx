@@ -213,33 +213,6 @@ export const RoomDetails = () => {
             </div>
           </div>
 
-          {/* Nearby POIs Table
-          <div className="flex flex-col gap-3">
-            <h3 className={sectionHeadingClass}>Nearby Points of Interest (Walk Distance)</h3>
-            <div className="card overflow-hidden border border-(--border-color) p-0">
-              <table className="poi-table w-full border-collapse text-[0.9rem]">
-                <thead>
-                  <tr className="border-b border-(--border-color) bg-(--bg-app) text-left">
-                    <th className="px-4 py-3">POI Name</th>
-                    <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3 text-right">Distance</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {room.nearbyPOIs.map((poi, idx) => (
-                    <tr key={idx} className={idx !== room.nearbyPOIs.length - 1 ? 'border-b border-(--border-color)' : ''}>
-                      <td className="px-4 py-3 font-semibold">{poi.name}</td>
-                      <td className="px-4 py-3 text-(--text-light)">
-                        {poi.type === 'College' ? '🎓 College' : poi.type === 'Hospital' ? '🏥 Hospital' : poi.type === 'Market' ? '🛍️ Market' : '🚌 Transit stop'}
-                      </td>
-                      <td className="px-4 py-3 text-right font-bold text-(--primary)">{poi.distance} meters</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div> */}
-
         </div>
 
         {/* Right Sidebar */}
@@ -308,14 +281,13 @@ export const RoomDetails = () => {
           {/* Mini Map */}
           <div className="card h-70 overflow-hidden border border-(--border-color) p-0">
             <div className="flex h-8.75 items-center justify-between border-b border-(--border-color) bg-(--bg-app) px-4 text-[0.8rem] font-bold">
-              <span>📍 Location POI Radius Map</span>
+              <span>📍 Property Location</span>
               <span className="badge badge-primary text-[0.65rem]">OSM Leaflet</span>
             </div>
             <div className="h-61.25">
               <MapContainer
                 listings={[room]}
                 activeListingId={room.id}
-                showPOIRadius={true}
                 currentCenter={[room.latitude, room.longitude]}
               />
             </div>
@@ -338,12 +310,6 @@ export const RoomDetails = () => {
           </div>
         </section>
       )}
-
-      <style>{`
-        .poi-table tr:hover {
-          background-color: var(--primary-light);
-        }
-      `}</style>
     </div>
   );
 };
