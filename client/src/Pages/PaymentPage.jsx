@@ -1,16 +1,16 @@
 // src/payment/PaymentPage.jsx
 // Main reusable Payment Page container orchestrating QR payment, screenshot proof submission, and success screens
 
-import React, { useState, useContext } from "react";
+import { useState, useContext } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { AppContext } from "../../Context/AppContext";
-import { PaymentQR } from "./PaymentQR";
-import { PaymentForm } from "./PaymentForm";
-import { PaymentSuccess } from "./PaymentSuccess";
-import { PaymentFailed } from "./PaymentFailed";
-import { submitPaymentProof } from "../../api/paymentAPI";
-import { getDistancePrice } from "../../utils/paymentUtils";
-import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
+import { AppContext } from "../Context/AppContext";
+import { PaymentQR } from "../components/payment/PaymentQR";
+import { PaymentForm } from "../components/payment/PaymentForm";
+import { PaymentSuccess } from "../components/payment/PaymentSuccess";
+import { PaymentFailed } from "../components/payment/PaymentFailed";
+import { submitPaymentProof } from "../api/paymentAPI";
+import { getDistancePrice } from "../utils/paymentUtils";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 export const PaymentPage = () => {
   const [searchParams] = useSearchParams();
@@ -89,7 +89,7 @@ export const PaymentPage = () => {
           </div>
           <div>
             <h1 style={{ fontSize: "1.8rem", fontWeight: 800, margin: 0, color: "var(--primary)" }}>
-              NestFinder Secure Payment Portal
+              NestFinder Payment Portal
             </h1>
             <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-muted)" }}>
               Complete your transfer via eSewa / Fonepay QR code and submit your receipt screenshot.

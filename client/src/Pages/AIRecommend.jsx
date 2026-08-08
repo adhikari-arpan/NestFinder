@@ -78,24 +78,6 @@ export const AIRecommend = () => {
     }
   };
 
-  const handlePaymentSuccess = () => {
-    const price = getDistancePrice(radius);
-    grantRadiusAccess(location, radius, price);
-    setShowPaymentModal(false);
-    const tier=getTier(radius);
-
-    const prefs = {
-      budget,
-      preferredCity: city,
-      sharing,
-      roomType,
-      essentialAmenities: amenities,
-      poiLocation: location,
-      radius,
-    };
-    executeRecommendationFlow(prefs);
-  };
-
   useEffect(() => {
     if (step === 5) {
       const timer1 = setTimeout(

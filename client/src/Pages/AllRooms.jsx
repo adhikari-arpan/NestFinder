@@ -1,10 +1,9 @@
-import React, { useContext, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../Context/AppContext';
 import { RoomCard } from '../components/RoomCard';
-import { PaymentModal } from '../components/PaymentModal';
 import { LoadingScreen } from '../components/LoadingScreen';
-import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock } from 'lucide-react';
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
 import { LocationRadiusPicker } from '../components/LocationRadiusPicker';
 import { PRESET_LOCATIONS } from '../utils/presetLocations';

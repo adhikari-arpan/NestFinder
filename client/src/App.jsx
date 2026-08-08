@@ -14,7 +14,7 @@ import { AIRecommend } from './Pages/AIRecommend';
 import { Auth } from './Pages/Auth';
 import { NotFound } from './Pages/NotFound';
 import { KycVerification } from './Pages/KycVerification';
-import { PaymentPage } from './components/payment/PaymentPage';
+import { PaymentPage } from './Pages/PaymentPage';
 import { About } from './Pages/About/About';
 import { AboutPayment } from './Pages/About/AboutPayment';
 
