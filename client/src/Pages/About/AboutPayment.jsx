@@ -9,6 +9,7 @@ import {
   getListingFee,
   formatNPR,
 } from '../../utils/paymentUtils';
+import { LISTING_VISIBILITY_DAYS } from '../../utils/listingLifecycle';
 
 const LISTING_FEE_EXAMPLES = [4000, 25000, 50000];
 
@@ -49,6 +50,12 @@ export const AboutPayment = () => {
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
           Posting a new room or flat listing requires a one-time listing fee, charged as a percentage of the
           monthly rent you set. This fee doesn't apply when editing an existing listing.
+        </p>
+
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.7 }}>
+          Once an admin verifies your listing, it stays visible to tenants in search for{' '}
+          <strong>{LISTING_VISIBILITY_DAYS} days</strong> from the moment it's verified — after that it's automatically
+          removed from search results.
         </p>
 
         <div
