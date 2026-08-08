@@ -6,10 +6,10 @@ import { PaymentModal } from '../components/PaymentModal';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock, ShieldAlert } from 'lucide-react';
 import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
-import { MapContainer as SelectableMap } from '../components/MapContainer';
+import { LocationRadiusPicker } from '../components/LocationRadiusPicker';
+import { PRESET_LOCATIONS } from '../utils/presetLocations';
 import { haversineDistance } from '../utils/geo';
 import { isListingLive } from '../utils/listingLifecycle';
-import { RADIUS_OPTIONS } from '../utils/paymentUtils';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Settings2 } from "lucide-react";
@@ -21,17 +21,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
-
-const PRESET_LOCATIONS = [
-  { name: "NCIT College", lat: 27.6644, lng: 85.3188 },
-  { name: "Kathford College", lat: 27.6636, lng: 85.3195 },
-  { name: "Tribhuvan University", lat: 27.68, lng: 85.2895 },
-  { name: "Pulchowk Campus", lat: 27.6798, lng: 85.3163 },
-  { name: "St. Xavier's College Maitighar", lat: 27.6939, lng: 85.3206 },
-  { name: "Apex College Baneshwor", lat: 27.6893, lng: 85.3355 },
-  { name: "United Academy Kumaripati", lat: 27.6789, lng: 85.3212 },
-  { name: "Kathmandu University", lat: 27.6206, lng: 85.556 },
-];
 
 export const AllRooms = () => {
   const {
@@ -250,73 +239,13 @@ export const AllRooms = () => {
             </p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "1.5rem" }}>
-            <div>
-              <label style={{ display: "block", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.4rem" }}>
-                1. Target Location (College / Workplace):
-              </label>
-              <select
-                value={selectedLocation.name || ""}
-                onChange={(e) => {
-                  const found = PRESET_LOCATIONS.find((p) => p.name === e.target.value);
-                  if (found) setSelectedLocation(found);
-                }}
-                className="form-input"
-                style={{ width: "100%", padding: "0.75rem" }}
-              >
-                {PRESET_LOCATIONS.map((preset) => (
-                  <option key={preset.name} value={preset.name}>
-                    🎓 {preset.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontWeight: 700, fontSize: "0.82rem", marginBottom: "0.3rem", color: "var(--text-muted)" }}>
-                Or select point on map:
-              </label>
-              <div style={{ height: "200px", borderRadius: "10px", overflow: "hidden", border: "1px solid var(--border-color)" }}>
-                <SelectableMap
-                  selectable
-                  onLocationSelect={(lat, lng) => setSelectedLocation({ name: "Custom Pin", lat, lng })}
-                  selectedLocation={selectedLocation ? { lat: selectedLocation.lat, lng: selectedLocation.lng } : null}
-                  selectionRadius={selectedRadius}
-                  currentCenter={[selectedLocation.lat, selectedLocation.lng]}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <label style={{ fontWeight: 700, fontSize: "0.85rem" }}>2. Distance Radius Tier:</label>
-                <span style={{ fontWeight: 800, color: "var(--primary)", fontSize: "1.1rem" }}>
-                  Rs. {getDistancePrice(selectedRadius)}
-                </span>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem" }}>
-                {RADIUS_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.val}
-                    type="button"
-                    onClick={() => setSelectedRadius(opt.val)}
-                    style={{
-                      padding: "0.65rem 0.4rem",
-                      borderRadius: "8px",
-                      border: selectedRadius === opt.val ? "2px solid var(--primary)" : "1px solid var(--border-color)",
-                      backgroundColor: selectedRadius === opt.val ? "color-mix(in srgb, var(--primary) 12%, transparent)" : "transparent",
-                      fontWeight: selectedRadius === opt.val ? 700 : 500,
-                      cursor: "pointer",
-                      fontSize: "0.8rem",
-                      color: "var(--text-main)",
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div style={{ marginBottom: "1.5rem" }}>
+            <LocationRadiusPicker
+              location={selectedLocation}
+              onLocationChange={(loc) => setSelectedLocation(loc || PRESET_LOCATIONS[0])}
+              radius={selectedRadius}
+              onRadiusChange={setSelectedRadius}
+            />
           </div>
 
           <button
