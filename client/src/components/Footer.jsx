@@ -45,7 +45,7 @@ export const Footer = () => {
             </h4>
             <div className="flex flex-col gap-2.5">
               <Link to="/" className={linkClass}>Home</Link>
-              {(!role || role === 'tenant') && (
+              {role === 'tenant' && (
                 <>
                   <Link to="/rooms" className={linkClass}>Browse Rooms</Link>
                   <Link to="/ai-recommend" className={linkClass}>AI Recommend</Link>

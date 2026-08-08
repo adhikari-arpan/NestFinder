@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppContextProvider } from "./Context/AppContext";
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { RequireAuth } from './components/RequireAuth';
+import { ScrollToTop } from './components/ScrollToTop';
 import { AllRooms } from './Pages/AllRooms';
 
 // Pages
@@ -26,6 +28,8 @@ function App() {
   return (
     <AppContextProvider>
       <Router>
+        <ScrollToTop />
+
         {/* Sticky Header */}
         <Navbar />
 
@@ -35,8 +39,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/room/:id" element={<RoomDetails />} />
-            <Route path="/ai-recommend" element={<AIRecommend />} />
-            <Route path="/rooms" element={<AllRooms />} />
+            <Route path="/ai-recommend" element={<RequireAuth><AIRecommend /></RequireAuth>} />
+            <Route path="/rooms" element={<RequireAuth><AllRooms /></RequireAuth>} />
             <Route path="/kyc" element={<KycVerification />} />
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/about" element={<About />} />

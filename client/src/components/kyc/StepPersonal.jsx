@@ -1,5 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { stepNavClass } from "./kycStepStyles";
+import { CountryCodeSelect } from "../CountryCodeSelect";
+import { validatePhoneNumber } from "../../utils/countryCodes";
 
 export const StepPersonal = ({
   firstName,
@@ -9,9 +11,12 @@ export const StepPersonal = ({
   email,
   phone,
   setPhone,
+  countryDial,
+  setCountryDial,
   onNext,
 }) => {
-  const canProceed = firstName.trim() && lastName.trim() && phone.trim();
+  const phoneError = phone.trim() ? validatePhoneNumber(countryDial, phone) : null;
+  const canProceed = firstName.trim() && lastName.trim() && phone.trim() && !phoneError;
 
   return (
     <div className="card animate-fade-in flex flex-col gap-10 rounded-lg border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
@@ -59,13 +64,21 @@ export const StepPersonal = ({
 
         <div className="form-group">
           <label className="form-label">Phone Number *</label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="98XXXXXXXX"
-            className="form-input"
-          />
+          <div className="flex w-full items-stretch gap-2">
+            <CountryCodeSelect value={countryDial} onChange={setCountryDial} />
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+              placeholder={countryDial === "977" ? "98XXXXXXXX" : "Phone number"}
+              className="form-input flex-1"
+            />
+          </div>
+          {phoneError && (
+            <p className="text-[0.78rem]" style={{ color: "var(--danger, #dc2626)" }}>
+              {phoneError}
+            </p>
+          )}
         </div>
       </div>
 

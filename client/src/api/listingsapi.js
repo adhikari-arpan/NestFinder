@@ -365,8 +365,21 @@ export async function notifyAdmins(title, message, type = 'info') {
 export async function fetchAllUsers() {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, role, name, phone, email, is_verified, kyc_status')
+    .select('id, role, name, phone, email, is_verified, kyc_status, is_suspended')
     .order('name', { ascending: true });
   if (error) throw error;
   return data;
+}
+
+// Goes through the admin_set_user_suspended RPC (SECURITY DEFINER) rather
+// than a plain table update — profiles' RLS only allows a user to edit
+// their own row, so a direct update to someone else's row would silently
+// affect zero rows instead of erroring. See
+// supabase/migrations/20260804_admin_set_user_suspended_rpc.sql.
+export async function setUserSuspended(userId, suspended) {
+  const { error } = await supabase.rpc('admin_set_user_suspended', {
+    target_user_id: userId,
+    suspended,
+  });
+  if (error) throw error;
 }

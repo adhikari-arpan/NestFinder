@@ -10,6 +10,7 @@ import { StepDocuments } from "../components/kyc/StepDocuments";
 import { StepReview } from "../components/kyc/StepReview";
 import { LoadingScreen } from "../components/LoadingScreen";
 import { IdCard } from "lucide-react";
+import { splitPhoneNumber } from "../utils/countryCodes";
 
 export const KycVerification = () => {
   const { currentUser, authLoading, refreshCurrentUser } = useContext(AppContext);
@@ -22,6 +23,7 @@ export const KycVerification = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryDial, setCountryDial] = useState("977");
 
   const [province, setProvince] = useState("");
   const [district, setDistrict] = useState("");
@@ -60,13 +62,17 @@ export const KycVerification = () => {
           const [first, ...rest] = (currentUser.name || "").trim().split(/\s+/);
           setFirstName(first || "");
           setLastName(rest.join(" "));
-          setPhone(currentUser.phone || "");
+          const { dial, number } = splitPhoneNumber(currentUser.phone);
+          setCountryDial(dial);
+          setPhone(number);
           return;
         }
         setExisting(row);
         setFirstName(row.first_name);
         setLastName(row.last_name);
-        setPhone(row.phone);
+        const { dial, number } = splitPhoneNumber(row.phone);
+        setCountryDial(dial);
+        setPhone(number);
         setProvince(row.province);
         setDistrict(row.district);
         setMunicipality(row.municipality);
@@ -106,7 +112,7 @@ export const KycVerification = () => {
           district,
           municipality,
           tole,
-          phone,
+          phone: `+${countryDial}${phone}`,
           latitude: Number(latitude),
           longitude: Number(longitude),
           document_type: documentType,
@@ -161,6 +167,8 @@ export const KycVerification = () => {
           email={currentUser.email}
           phone={phone}
           setPhone={setPhone}
+          countryDial={countryDial}
+          setCountryDial={setCountryDial}
           onNext={nextStep}
         />
       )}
@@ -218,7 +226,7 @@ export const KycVerification = () => {
             firstName,
             lastName,
             email: currentUser.email,
-            phone,
+            phone: `+${countryDial}${phone}`,
             province,
             district,
             municipality,
