@@ -11,7 +11,7 @@ import {
   Heart, Sparkles, MessageSquare, Clock, ArrowRight, Lock
 } from 'lucide-react';
 
-const RoomCarousel = ({ listings }) => {
+const RoomCarousel = ({ listings, locked = false }) => {
   const [current, setCurrent] = useState(0);
 
   const images = listings
@@ -55,19 +55,27 @@ const RoomCarousel = ({ listings }) => {
         color: 'white',
         display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
       }}>
-        <div>
+        {locked ? (
           <p style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
-            {img.title}
+            Complete payment to view rooms
           </p>
-          <p style={{ fontSize: '0.75rem', margin: 0, opacity: 0.85 }}>📍 {img.location}</p>
-        </div>
-        <span style={{
-          fontSize: '0.8rem', fontWeight: 800,
-          background: 'rgba(99,102,241,0.9)',
-          padding: '0.2rem 0.6rem', borderRadius: '6px',
-        }}>
-          Rs. {img.price?.toLocaleString()}/mo
-        </span>
+        ) : (
+          <>
+            <div>
+              <p style={{ fontSize: '0.85rem', fontWeight: 700, margin: 0, textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                {img.title}
+              </p>
+              <p style={{ fontSize: '0.75rem', margin: 0, opacity: 0.85 }}>📍 {img.location}</p>
+            </div>
+            <span style={{
+              fontSize: '0.8rem', fontWeight: 800,
+              background: 'rgba(99,102,241,0.9)',
+              padding: '0.2rem 0.6rem', borderRadius: '6px',
+            }}>
+              Rs. {img.price?.toLocaleString()}/mo
+            </span>
+          </>
+        )}
       </div>
 
       <div style={{
@@ -312,7 +320,7 @@ export const TenantDashboard = () => {
         <div className="carousel-section" style={{ marginTop: 0 }}>
           <div className="carousel-container">
             <div className="flex-1">
-              <RoomCarousel listings={isAccessPaid ? visibleListings : listings} />
+              <RoomCarousel listings={isAccessPaid ? visibleListings : listings} locked={!isAccessPaid} />
             </div>
             <div className="glowing-arrow" onClick={() => navigate('/rooms')}>
               <ArrowRight size={24} />
