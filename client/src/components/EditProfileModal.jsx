@@ -2,6 +2,8 @@ import { useState, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppContext } from "../Context/AppContext";
 import { LoadingScreen } from "./LoadingScreen";
+import { CountryCodeSelect } from "./CountryCodeSelect";
+import { splitPhoneNumber, validatePhoneNumber } from "../utils/countryCodes";
 import { User, X, Save } from "lucide-react";
 
 // Lets a signed-in user change their own display name and phone number.
@@ -10,7 +12,9 @@ import { User, X, Save } from "lucide-react";
 export const EditProfileModal = ({ onClose }) => {
   const { currentUser, updateOwnProfile } = useContext(AppContext);
   const [name, setName] = useState(currentUser?.name || "");
-  const [phone, setPhone] = useState(currentUser?.phone || "");
+  const initialPhone = splitPhoneNumber(currentUser?.phone);
+  const [countryDial, setCountryDial] = useState(initialPhone.dial);
+  const [phone, setPhone] = useState(initialPhone.number);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,20 +31,31 @@ export const EditProfileModal = ({ onClose }) => {
       setError("Display name is required.");
       return;
     }
-    if (!phone.trim()) {
-      setError("Phone number is required.");
+    const phoneError = validatePhoneNumber(countryDial, phone);
+    if (phoneError) {
+      setError(phoneError);
       return;
     }
 
     setError("");
     setSubmitting(true);
     try {
-      await updateOwnProfile({ name: name.trim(), phone: phone.trim() });
+      await updateOwnProfile({
+        name: name.trim(),
+        phone: `+${countryDial}${phone.trim()}`,
+      });
       onClose();
     } catch (err) {
       console.error("Failed to update profile:", err.message);
+      // Postgres unique_violation on the phone column (see the SQL migration
+      // for profiles.phone) — give a message that names the actual problem
+      // instead of a raw constraint-name error.
+      const isDuplicatePhone =
+        err.code === "23505" || /duplicate key.*phone/i.test(err.message || "");
       setError(
-        err.message || "Could not update your profile. Please try again.",
+        isDuplicatePhone
+          ? "That phone number is already registered to another account."
+          : err.message || "Could not update your profile. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -131,13 +146,16 @@ export const EditProfileModal = ({ onClose }) => {
 
             <div className="form-group">
               <label className="form-label">Phone Number</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+977 98XXXXXXXX"
-                className="form-input w-full"
-              />
+              <div className="flex w-full items-start gap-2">
+                <CountryCodeSelect value={countryDial} onChange={setCountryDial} />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                  placeholder={countryDial === "977" ? "98XXXXXXXX" : "Phone number"}
+                  className="form-input w-full"
+                />
+              </div>
             </div>
 
             <div className="mt-2 flex gap-3">
