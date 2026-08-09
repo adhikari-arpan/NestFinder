@@ -10,7 +10,9 @@ export const KycStatusBanner = ({ kycStatus, rejectionReason }) => {
     return (
       <div className="mb-6 flex items-center gap-3 rounded-md border border-(--accent) bg-(--accent-light) px-4 py-3 text-[0.88rem] text-(--text-main)">
         <Clock size={20} className="shrink-0 text-(--accent)" />
-        <span>Your KYC is under review. We'll notify you once it's decided.</span>
+        <span>
+          Your KYC is under review. We'll notify you once it's decided.
+        </span>
       </div>
     );
   }
@@ -22,7 +24,8 @@ export const KycStatusBanner = ({ kycStatus, rejectionReason }) => {
           <XCircle size={20} className="mt-0.5 shrink-0 text-(--danger)" />
           <span>
             Your KYC submission was rejected
-            {rejectionReason ? `: "${rejectionReason}"` : "."} Please correct and resubmit.
+            {rejectionReason ? `: "${rejectionReason}"` : "."} Please correct
+            and resubmit.
           </span>
         </div>
         <Link to="/kyc" className="btn btn-primary btn-sm w-fit shrink-0">
@@ -38,7 +41,8 @@ export const KycStatusBanner = ({ kycStatus, rejectionReason }) => {
       <div className="flex items-start gap-3">
         <AlertTriangle size={20} className="mt-0.5 shrink-0 text-(--accent)" />
         <span>
-          Complete KYC verification to post rooms and unlock full NestFinder functionality.
+          Complete KYC verification to post rooms and unlock full NestFinder
+          functionality.
         </span>
       </div>
       <Link to="/kyc" className="btn btn-primary btn-sm w-fit shrink-0">

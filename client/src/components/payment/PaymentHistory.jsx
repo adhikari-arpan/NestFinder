@@ -1,10 +1,10 @@
 // src/payment/PaymentHistory.jsx
 // User's payment history list showing status, target radius, screenshot proof, and approval date
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchUserPayments } from "../../api/paymentAPI";
 import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
-import { Clock, CheckCircle, AlertCircle, Image as ImageIcon, Loader2 } from "lucide-react";
+import { Clock, Image as ImageIcon, Loader2 } from "lucide-react";
 
 export const PaymentHistory = ({ userId }) => {
   const [payments, setPayments] = useState([]);
@@ -20,8 +20,14 @@ export const PaymentHistory = ({ userId }) => {
 
   if (loading) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center", color: "var(--text-muted)" }}>
-        <Loader2 size={24} className="animate-spin mx-auto mb-2" />
+      <div
+        style={{
+          padding: "2rem",
+          textAlign: "center",
+          color: "var(--text-muted)",
+        }}
+      >
+        <Loader2 size={24} className="mx-auto mb-2 animate-spin" />
         Loading payment history...
       </div>
     );
@@ -74,7 +80,9 @@ export const PaymentHistory = ({ userId }) => {
               gap: "1rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+            >
               {p.proof_image_url ? (
                 <img
                   src={p.proof_image_url}
@@ -106,26 +114,52 @@ export const PaymentHistory = ({ userId }) => {
               )}
 
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
                   <strong style={{ fontSize: "0.95rem" }}>
-                    {isListingFee ? "Room Listing Fee" : `${radiusLabel} Radius Access`}
+                    {isListingFee
+                      ? "Room Listing Fee"
+                      : `${radiusLabel} Radius Access`}
                   </strong>
-                  <span className={badge.className} style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem" }}>
+                  <span
+                    className={badge.className}
+                    style={{ fontSize: "0.7rem", padding: "0.15rem 0.5rem" }}
+                  >
                     {badge.label}
                   </span>
                 </div>
-                <div style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
-                  {isListingFee ? "Listing" : "Location"}: {locationName} • {new Date(p.created_at).toLocaleDateString()}
+                <div
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--text-muted)",
+                    marginTop: "0.2rem",
+                  }}
+                >
+                  {isListingFee ? "Listing" : "Location"}: {locationName} •{" "}
+                  {new Date(p.created_at).toLocaleDateString()}
                 </div>
               </div>
             </div>
 
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--primary)" }}>
+              <div
+                style={{
+                  fontSize: "1.1rem",
+                  fontWeight: 800,
+                  color: "var(--primary)",
+                }}
+              >
                 {formatNPR(p.amount)}
               </div>
               {p.transaction_code && (
-                <div style={{ fontSize: "0.72rem", color: "var(--text-light)" }}>
+                <div
+                  style={{ fontSize: "0.72rem", color: "var(--text-light)" }}
+                >
                   Ref: {p.transaction_code}
                 </div>
               )}
@@ -152,7 +186,11 @@ export const PaymentHistory = ({ userId }) => {
           <img
             src={previewImage}
             alt="Payment receipt proof"
-            style={{ maxHeight: "85vh", maxWidth: "90vw", borderRadius: "12px" }}
+            style={{
+              maxHeight: "85vh",
+              maxWidth: "90vw",
+              borderRadius: "12px",
+            }}
           />
         </div>
       )}
