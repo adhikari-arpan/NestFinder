@@ -1,24 +1,30 @@
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AppContext } from '../Context/AppContext';
-import { RoomCard } from '../components/RoomCard';
-import { LoadingScreen } from '../components/LoadingScreen';
-import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock } from 'lucide-react';
-import { MapContainer as LeafletMap, TileLayer, Marker, Popup } from 'react-leaflet';
-import { LocationRadiusPicker } from '../components/LocationRadiusPicker';
-import { PRESET_LOCATIONS } from '../utils/presetLocations';
-import { haversineDistance } from '../utils/geo';
-import { isListingLive } from '../utils/listingLifecycle';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
+import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { AppContext } from "../Context/AppContext";
+import { RoomCard } from "../components/RoomCard";
+import { LoadingScreen } from "../components/LoadingScreen";
+import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock } from "lucide-react";
+import {
+  MapContainer as LeafletMap,
+  TileLayer,
+  Marker,
+  Popup,
+} from "react-leaflet";
+import { LocationRadiusPicker } from "../components/LocationRadiusPicker";
+import { PRESET_LOCATIONS } from "../utils/presetLocations";
+import { haversineDistance } from "../utils/geo";
+import { isListingLive } from "../utils/listingLifecycle";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 import { Settings2 } from "lucide-react";
 
 // Fix Leaflet's default marker icon
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 export const AllRooms = () => {
@@ -28,22 +34,22 @@ export const AllRooms = () => {
     currentUser,
     paidRadiusAccess,
     getDistancePrice,
-    checkDistanceAccess,
   } = useContext(AppContext);
 
   const navigate = useNavigate();
+  const [now] = useState(() => Date.now());
 
   const isAccessPaid =
     paidRadiusAccess &&
     paidRadiusAccess.userId === currentUser?.id &&
-    paidRadiusAccess.paidUntil > Date.now() &&
+    paidRadiusAccess.paidUntil > now &&
     paidRadiusAccess.location;
 
   const [selectedLocation, setSelectedLocation] = useState(
-    paidRadiusAccess?.location || PRESET_LOCATIONS[0]
+    paidRadiusAccess?.location || PRESET_LOCATIONS[0],
   );
   const [selectedRadius, setSelectedRadius] = useState(
-    paidRadiusAccess?.activeRadius || 1000
+    paidRadiusAccess?.activeRadius || 1000,
   );
   const [showRadiusPicker, setShowRadiusPicker] = useState(false);
 
@@ -59,7 +65,7 @@ export const AllRooms = () => {
         loc.lat,
         loc.lng,
         Number(room.latitude),
-        Number(room.longitude)
+        Number(room.longitude),
       );
       return dist <= rad;
     });
@@ -77,15 +83,20 @@ export const AllRooms = () => {
   const handleUnlockPayment = () => {
     const latStr = selectedLocation?.lat || 27.6644;
     const lngStr = selectedLocation?.lng || 85.3188;
-    const nameStr = encodeURIComponent(selectedLocation?.name || "Selected Point");
+    const nameStr = encodeURIComponent(
+      selectedLocation?.name || "Selected Point",
+    );
     const price = getDistancePrice(selectedRadius);
     navigate(
-      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`
+      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`,
     );
   };
 
   const remainingHours = isAccessPaid
-    ? Math.max(0, Math.ceil((paidRadiusAccess.paidUntil - Date.now()) / (1000 * 60 * 60)))
+    ? Math.max(
+        0,
+        Math.ceil((paidRadiusAccess.paidUntil - now) / (1000 * 60 * 60)),
+      )
     : 0;
 
   return (
@@ -132,12 +143,13 @@ export const AllRooms = () => {
               {listingsLoading
                 ? "Loading listings..."
                 : isAccessPaid
-                ? `Showing ${verifiedRooms.length} listings within ${
-                    paidRadiusAccess.activeRadius >= 1000
-                      ? (paidRadiusAccess.activeRadius / 1000).toFixed(1) + "km"
-                      : paidRadiusAccess.activeRadius + "m"
-                  } of ${paidRadiusAccess.location.name || "selected location"}`
-                : "Distance tier payment required to view rooms for your account"}
+                  ? `Showing ${verifiedRooms.length} listings within ${
+                      paidRadiusAccess.activeRadius >= 1000
+                        ? (paidRadiusAccess.activeRadius / 1000).toFixed(1) +
+                          "km"
+                        : paidRadiusAccess.activeRadius + "m"
+                    } of ${paidRadiusAccess.location.name || "selected location"}`
+                  : "Distance tier payment required to view rooms for your account"}
             </p>
           </div>
         </div>
@@ -158,7 +170,9 @@ export const AllRooms = () => {
               gap: "0.75rem",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            <div
+              style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}
+            >
               <Clock size={20} style={{ color: "#10b981" }} />
               <div>
                 <span
@@ -168,7 +182,8 @@ export const AllRooms = () => {
                     fontSize: "0.95rem",
                   }}
                 >
-                  Active Paid Radius Access Unlocked ({remainingHours}h remaining)
+                  Active Paid Radius Access Unlocked ({remainingHours}h
+                  remaining)
                 </span>
                 <p
                   style={{
@@ -177,8 +192,13 @@ export const AllRooms = () => {
                     margin: "0.1rem 0 0",
                   }}
                 >
-                  Account: <strong>{currentUser?.name || currentUser?.email}</strong> • Location:{" "}
-                  <strong>{paidRadiusAccess.location.name || "Custom Point"}</strong> • Radius:{" "}
+                  Account:{" "}
+                  <strong>{currentUser?.name || currentUser?.email}</strong> •
+                  Location:{" "}
+                  <strong>
+                    {paidRadiusAccess.location.name || "Custom Point"}
+                  </strong>{" "}
+                  • Radius:{" "}
                   <strong>
                     {paidRadiusAccess.activeRadius >= 1000
                       ? (paidRadiusAccess.activeRadius / 1000).toFixed(1) + "km"
@@ -191,9 +211,17 @@ export const AllRooms = () => {
             <button
               onClick={() => setShowRadiusPicker((prev) => !prev)}
               className="btn btn-outline btn-sm"
-              style={{ fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.4rem" }}
+              style={{
+                fontSize: "0.8rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+              }}
             >
-              <Settings2 size={14} /> {showRadiusPicker ? "Close Picker" : "Change Radius Tier / Location"}
+              <Settings2 size={14} />{" "}
+              {showRadiusPicker
+                ? "Close Picker"
+                : "Change Radius Tier / Location"}
             </button>
           </div>
         )}
@@ -202,7 +230,7 @@ export const AllRooms = () => {
       {/* Inline Radius Picker Modal / Card when toggled or unpaid */}
       {(showRadiusPicker || !isAccessPaid) && (
         <div
-          className="card shadow-lg animate-fade-in"
+          className="card animate-fade-in shadow-lg"
           style={{
             padding: "2rem 1.5rem",
             maxWidth: "720px",
@@ -218,7 +246,8 @@ export const AllRooms = () => {
                 width: "56px",
                 height: "56px",
                 borderRadius: "50%",
-                backgroundColor: "color-mix(in srgb, var(--primary) 12%, transparent)",
+                backgroundColor:
+                  "color-mix(in srgb, var(--primary) 12%, transparent)",
                 color: "var(--primary)",
                 display: "flex",
                 alignItems: "center",
@@ -228,10 +257,24 @@ export const AllRooms = () => {
             >
               {isAccessPaid ? <Settings2 size={28} /> : <Lock size={28} />}
             </div>
-            <h3 style={{ fontSize: "1.4rem", fontWeight: 800, margin: "0 0 0.4rem" }}>
-              {isAccessPaid ? "Change Target Radius Tier & Location" : "Select Distance Tier to Unlock Rooms"}
+            <h3
+              style={{
+                fontSize: "1.4rem",
+                fontWeight: 800,
+                margin: "0 0 0.4rem",
+              }}
+            >
+              {isAccessPaid
+                ? "Change Target Radius Tier & Location"
+                : "Select Distance Tier to Unlock Rooms"}
             </h3>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: 0 }}>
+            <p
+              style={{
+                color: "var(--text-muted)",
+                fontSize: "0.9rem",
+                margin: 0,
+              }}
+            >
               {isAccessPaid
                 ? "Selecting a new location or tighter radius tier requires a new verification payment."
                 : "Room access is strictly user-specific and locked per distance radius tier."}
@@ -241,7 +284,9 @@ export const AllRooms = () => {
           <div style={{ marginBottom: "1.5rem" }}>
             <LocationRadiusPicker
               location={selectedLocation}
-              onLocationChange={(loc) => setSelectedLocation(loc || PRESET_LOCATIONS[0])}
+              onLocationChange={(loc) =>
+                setSelectedLocation(loc || PRESET_LOCATIONS[0])
+              }
               radius={selectedRadius}
               onRadiusChange={setSelectedRadius}
             />
@@ -254,7 +299,8 @@ export const AllRooms = () => {
               padding: "0.9rem",
               borderRadius: "10px",
               border: "none",
-              background: "linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)",
+              background:
+                "linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)",
               color: "white",
               fontWeight: 800,
               fontSize: "1rem",
@@ -274,11 +320,17 @@ export const AllRooms = () => {
 
       {/* Loading state */}
       {listingsLoading ? (
-        <LoadingScreen label="Fetching rooms from database..." fullScreen={false} />
+        <LoadingScreen
+          label="Fetching rooms from database..."
+          fullScreen={false}
+        />
       ) : !isAccessPaid ? null : verifiedRooms.length === 0 ? (
         /* Empty state within radius */
         <div className="card text-center" style={{ padding: "5rem 2rem" }}>
-          <Home size={48} style={{ color: "var(--text-light)", margin: "0 auto 1rem" }} />
+          <Home
+            size={48}
+            style={{ color: "var(--text-light)", margin: "0 auto 1rem" }}
+          />
           <h3 style={{ marginBottom: "0.5rem" }}>
             No Rooms Available within{" "}
             {paidRadiusAccess.activeRadius >= 1000

@@ -20,7 +20,10 @@
   padding: 2.5rem 1.5rem 5rem;
 }
 
-.about-page, .about-page * { box-sizing: border-box; }
+.about-page,
+.about-page * {
+  box-sizing: border-box;
+}
 
 /* ---------- Hero ---------- */
 .about-hero {
@@ -34,15 +37,21 @@
   margin-bottom: 3.5rem;
 }
 .about-hero::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background:
     radial-gradient(ellipse 55% 75% at 12% 0%, var(--ab-soft), transparent 65%),
-    radial-gradient(ellipse 55% 75% at 88% 100%, var(--ab-soft), transparent 65%);
+    radial-gradient(
+      ellipse 55% 75% at 88% 100%,
+      var(--ab-soft),
+      transparent 65%
+    );
   pointer-events: none;
 }
-.about-hero > * { position: relative; }
+.about-hero > * {
+  position: relative;
+}
 .about-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -81,7 +90,9 @@
 }
 
 /* ---------- Sections ---------- */
-.about-section { margin-bottom: 3.5rem; }
+.about-section {
+  margin-bottom: 3.5rem;
+}
 .about-section-head {
   display: flex;
   align-items: center;
@@ -99,9 +110,15 @@
   background: var(--ab-soft);
   border: 1px solid var(--ab-border);
 }
-.ico-primary { color: var(--ab-primary); }
-.ico-secondary { color: var(--ab-secondary); }
-.ico-accent { color: var(--ab-accent); }
+.ico-primary {
+  color: var(--ab-primary);
+}
+.ico-secondary {
+  color: var(--ab-secondary);
+}
+.ico-accent {
+  color: var(--ab-accent);
+}
 
 .about-section-head h2 {
   font-size: 1.45rem;
@@ -118,7 +135,9 @@
   hyphens: auto;
   margin: 0 0 0.9rem;
 }
-.about-lead:last-child { margin-bottom: 0; }
+.about-lead:last-child {
+  margin-bottom: 0;
+}
 
 /* ---------- Feature grid ---------- */
 .about-feature-grid {
@@ -132,7 +151,9 @@
   border: 1px solid var(--ab-border);
   border-radius: 16px;
   padding: 1.4rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .about-feature:hover {
   transform: translateY(-3px);
@@ -150,8 +171,12 @@
   border: 1px solid var(--ab-border);
 }
 /* Alternate tile accent color by position instead of inline styles */
-.about-feature:nth-child(odd) .tile { color: var(--ab-primary); }
-.about-feature:nth-child(even) .tile { color: var(--ab-secondary); }
+.about-feature:nth-child(odd) .tile {
+  color: var(--ab-primary);
+}
+.about-feature:nth-child(even) .tile {
+  color: var(--ab-secondary);
+}
 
 .about-feature h3 {
   font-size: 1rem;
@@ -183,8 +208,12 @@
   padding: 1.5rem;
 }
 /* Each column carries its own accent, so children can just use --how-accent */
-.about-how-col.accent-primary { --how-accent: var(--ab-primary); }
-.about-how-col.accent-secondary { --how-accent: var(--ab-secondary); }
+.about-how-col.accent-primary {
+  --how-accent: var(--ab-primary);
+}
+.about-how-col.accent-secondary {
+  --how-accent: var(--ab-secondary);
+}
 
 .about-how-col > .col-head {
   display: flex;
@@ -195,7 +224,9 @@
   color: var(--ab-text);
   margin-bottom: 1.1rem;
 }
-.about-how-col > .col-head svg { color: var(--how-accent); }
+.about-how-col > .col-head svg {
+  color: var(--how-accent);
+}
 
 .about-step {
   display: flex;
@@ -203,9 +234,11 @@
   position: relative;
   padding-bottom: 1.1rem;
 }
-.about-step:last-child { padding-bottom: 0; }
+.about-step:last-child {
+  padding-bottom: 0;
+}
 .about-step::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 13px;
   top: 30px;
@@ -213,7 +246,9 @@
   width: 2px;
   background: var(--ab-border);
 }
-.about-step:last-child::before { display: none; }
+.about-step:last-child::before {
+  display: none;
+}
 .about-step .num {
   width: 28px;
   height: 28px;
@@ -286,7 +321,9 @@
   border-radius: 18px;
   overflow: hidden;
   text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 .about-team-card:hover,
 .about-team-card:focus-within {
@@ -330,7 +367,12 @@
   justify-content: center;
   gap: 0.6rem;
   padding-bottom: 1.1rem;
-  background: linear-gradient(to top, rgba(10, 12, 20, 0.82) 0%, rgba(10, 12, 20, 0.35) 45%, transparent 75%);
+  background: linear-gradient(
+    to top,
+    rgba(10, 12, 20, 0.82) 0%,
+    rgba(10, 12, 20, 0.35) 45%,
+    transparent 75%
+  );
   opacity: 0;
   transition: opacity 0.25s ease;
 }
@@ -350,7 +392,9 @@
   color: #ffffff;
   backdrop-filter: blur(6px);
   transform: translateY(8px);
-  transition: transform 0.25s ease, background 0.2s ease;
+  transition:
+    transform 0.25s ease,
+    background 0.2s ease;
 }
 .about-team-card:hover .about-socials a,
 .about-team-card:focus-within .about-socials a {
@@ -362,10 +406,18 @@
   border-color: var(--ab-primary);
   outline: none;
 }
-.about-socials a:nth-child(2) { transition-delay: 0.04s; }
-.about-socials a:nth-child(3) { transition-delay: 0.08s; }
-.about-socials a:nth-child(4) { transition-delay: 0.12s; }
-.about-socials a:nth-child(5) { transition-delay: 0.16s; }
+.about-socials a:nth-child(2) {
+  transition-delay: 0.04s;
+}
+.about-socials a:nth-child(3) {
+  transition-delay: 0.08s;
+}
+.about-socials a:nth-child(4) {
+  transition-delay: 0.12s;
+}
+.about-socials a:nth-child(5) {
+  transition-delay: 0.16s;
+}
 .about-team-name {
   padding: 1rem 1rem 1.1rem;
 }
@@ -405,7 +457,10 @@
   text-align: justify;
   text-justify: inter-word;
 }
-.about-institute strong { color: var(--ab-text); font-weight: 700; }
+.about-institute strong {
+  color: var(--ab-text);
+  font-weight: 700;
+}
 
 /* ---------- CTA ---------- */
 .about-cta {
@@ -422,19 +477,23 @@
   overflow: hidden;
 }
 .about-cta::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   background: linear-gradient(120deg, var(--ab-soft), transparent 60%);
   pointer-events: none;
 }
-.about-cta > * { position: relative; }
+.about-cta > * {
+  position: relative;
+}
 .about-cta-info {
   display: flex;
   align-items: center;
   gap: 0.85rem;
 }
-.about-cta-icon { color: var(--ab-primary); }
+.about-cta-icon {
+  color: var(--ab-primary);
+}
 .about-cta-title {
   font-weight: 700;
   margin: 0;
@@ -452,7 +511,15 @@
 }
 
 @media (max-width: 560px) {
-  .about-hero { padding: 2.5rem 1.1rem; }
-  .about-cta { justify-content: center; text-align: center; }
-  .about-lead, .about-feature p { text-align: left; }
+  .about-hero {
+    padding: 2.5rem 1.1rem;
+  }
+  .about-cta {
+    justify-content: center;
+    text-align: center;
+  }
+  .about-lead,
+  .about-feature p {
+    text-align: left;
+  }
 }

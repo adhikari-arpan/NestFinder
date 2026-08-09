@@ -2,7 +2,10 @@ import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
-import { fetchAllPayments, updatePaymentStatus as apiUpdatePaymentStatus } from "../../api/paymentAPI";
+import {
+  fetchAllPayments,
+  updatePaymentStatus as apiUpdatePaymentStatus,
+} from "../../api/paymentAPI";
 import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
 import whiteLogo from "../../assets/White_NestFinderLogo.png";
 import darkLogo from "../../assets/Dark_NestFinderLogo.png";
@@ -45,8 +48,15 @@ const KYC_BADGE = {
 };
 
 export const AdminDashboard = () => {
-  const { listings, updateListingStatus, currentUser, authLoading, grantRadiusAccess, theme } = useContext(AppContext);
-  const logo = theme === 'dark' ? darkLogo : whiteLogo;
+  const {
+    listings,
+    updateListingStatus,
+    currentUser,
+    authLoading,
+    grantRadiusAccess,
+    theme,
+  } = useContext(AppContext);
+  const logo = theme === "dark" ? darkLogo : whiteLogo;
 
   const navigate = useNavigate();
 
@@ -158,13 +168,18 @@ export const AdminDashboard = () => {
     try {
       const updated = await apiUpdatePaymentStatus(paymentId, decision);
       setPayments((prev) =>
-        prev.map((p) => (p.id === paymentId ? { ...p, status: decision } : p))
+        prev.map((p) => (p.id === paymentId ? { ...p, status: decision } : p)),
       );
 
       if (decision === "approved" && updated) {
         const isListingFee = updated.payment_type === "landlord_listing";
         if (!isListingFee && updated.target_location && updated.target_radius) {
-          grantRadiusAccess(updated.target_location, updated.target_radius, updated.amount, updated.user_id);
+          grantRadiusAccess(
+            updated.target_location,
+            updated.target_radius,
+            updated.amount,
+            updated.user_id,
+          );
         }
         setActionMessage({
           text: isListingFee
@@ -330,7 +345,8 @@ export const AdminDashboard = () => {
             onClick={() => setActiveTab("payments")}
             className={tabClass("payments")}
           >
-            <CreditCard size={16} /> Payment Verifications ({payments.filter((p) => p.status === "pending").length})
+            <CreditCard size={16} /> Payment Verifications (
+            {payments.filter((p) => p.status === "pending").length})
           </button>
           <button
             onClick={() => setActiveTab("pending")}
@@ -357,11 +373,17 @@ export const AdminDashboard = () => {
           <div className="flex flex-col gap-4">
             {paymentsLoading ? (
               <div className="card p-6">
-                <LoadingScreen label="Loading payment verifications..." fullScreen={false} />
+                <LoadingScreen
+                  label="Loading payment verifications..."
+                  fullScreen={false}
+                />
               </div>
             ) : payments.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
-                <CreditCard size={40} className="mx-auto mb-2 text-(--secondary)" />
+                <CreditCard
+                  size={40}
+                  className="mx-auto mb-2 text-(--secondary)"
+                />
                 <p>No payment proof submissions in queue.</p>
               </div>
             ) : (
@@ -382,7 +404,10 @@ export const AdminDashboard = () => {
                     {/* Left: User & Payment Details */}
                     <div className="flex items-start gap-4 text-left">
                       {p.proof_image_url ? (
-                        <div className="group relative cursor-pointer" onClick={() => setPreviewProof(p.proof_image_url)}>
+                        <div
+                          className="group relative cursor-pointer"
+                          onClick={() => setPreviewProof(p.proof_image_url)}
+                        >
                           <img
                             src={p.proof_image_url}
                             className="h-20 w-24 rounded-md border border-(--border-color) object-cover"
@@ -394,7 +419,10 @@ export const AdminDashboard = () => {
                         </div>
                       ) : (
                         <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-(--border-color)">
-                          <ImageIcon size={24} className="text-(--text-muted)" />
+                          <ImageIcon
+                            size={24}
+                            className="text-(--text-muted)"
+                          />
                         </div>
                       )}
 
@@ -407,17 +435,25 @@ export const AdminDashboard = () => {
                         </div>
 
                         <h3 className="mt-1 mb-0.5 text-[1.05rem] font-bold">
-                          {isListingFee ? "Room Listing Fee" : `${radiusLabel} Distance Tier Access`}
+                          {isListingFee
+                            ? "Room Listing Fee"
+                            : `${radiusLabel} Distance Tier Access`}
                         </h3>
                         <div className="text-[0.8rem] text-(--text-muted)">
-                          {isListingFee ? "Listing" : "Target Area"}: <strong>{locationName}</strong> • Submitted: {new Date(p.created_at).toLocaleString()}
+                          {isListingFee ? "Listing" : "Target Area"}:{" "}
+                          <strong>{locationName}</strong> • Submitted:{" "}
+                          {new Date(p.created_at).toLocaleString()}
                         </div>
                         <div className="mt-2 text-[0.8rem] text-(--text-light)">
-                          User: <strong>{p.user_name}</strong> ({p.user_email || p.user_phone || "No contact info"})
+                          User: <strong>{p.user_name}</strong> (
+                          {p.user_email || p.user_phone || "No contact info"})
                         </div>
                         {p.transaction_code && (
                           <div className="mt-1 text-[0.75rem] text-(--text-muted)">
-                            Ref/Txn Code: <code className="rounded bg-(--bg-app) px-1.5 py-0.5 font-mono">{p.transaction_code}</code>
+                            Ref/Txn Code:{" "}
+                            <code className="rounded bg-(--bg-app) px-1.5 py-0.5 font-mono">
+                              {p.transaction_code}
+                            </code>
                           </div>
                         )}
                       </div>
@@ -428,13 +464,20 @@ export const AdminDashboard = () => {
                       {p.status === "pending" ? (
                         <>
                           <button
-                            onClick={() => handlePaymentVerification(p.id, "approved")}
+                            onClick={() =>
+                              handlePaymentVerification(p.id, "approved")
+                            }
                             className="btn btn-secondary btn-sm flex w-full gap-1 sm:w-auto"
                           >
-                            <Check size={16} /> {isListingFee ? "Approve Payment" : "Approve & Grant Access"}
+                            <Check size={16} />{" "}
+                            {isListingFee
+                              ? "Approve Payment"
+                              : "Approve & Grant Access"}
                           </button>
                           <button
-                            onClick={() => handlePaymentVerification(p.id, "rejected")}
+                            onClick={() =>
+                              handlePaymentVerification(p.id, "rejected")
+                            }
                             className="btn btn-outline btn-sm flex w-full gap-1 text-(--danger) sm:w-auto"
                           >
                             <XCircle size={16} /> Reject
@@ -443,7 +486,9 @@ export const AdminDashboard = () => {
                       ) : (
                         <span className="text-[0.8rem] font-semibold text-(--text-muted)">
                           {p.status === "approved"
-                            ? (isListingFee ? "✓ Payment Approved" : "✓ Granted 48h Access")
+                            ? isListingFee
+                              ? "✓ Payment Approved"
+                              : "✓ Granted 48h Access"
                             : "✕ Rejected"}
                         </span>
                       )}
@@ -615,7 +660,10 @@ export const AdminDashboard = () => {
 
             {usersLoading ? (
               <div className="card p-6">
-                <LoadingScreen label="Loading platform users..." fullScreen={false} />
+                <LoadingScreen
+                  label="Loading platform users..."
+                  fullScreen={false}
+                />
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
@@ -747,7 +795,13 @@ export const AdminDashboard = () => {
             padding: "1rem",
           }}
         >
-          <div style={{ position: "relative", maxWidth: "90vw", maxHeight: "90vh" }}>
+          <div
+            style={{
+              position: "relative",
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+            }}
+          >
             <button
               onClick={() => setPreviewProof(null)}
               style={{
@@ -773,7 +827,11 @@ export const AdminDashboard = () => {
             <img
               src={previewProof}
               alt="Payment screenshot proof"
-              style={{ maxHeight: "85vh", maxWidth: "85vw", borderRadius: "12px" }}
+              style={{
+                maxHeight: "85vh",
+                maxWidth: "85vw",
+                borderRadius: "12px",
+              }}
             />
           </div>
         </div>

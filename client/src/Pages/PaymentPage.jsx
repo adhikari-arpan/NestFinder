@@ -25,7 +25,9 @@ export const PaymentPage = () => {
   const locationName = searchParams.get("name") || "NCIT College";
 
   const targetLocation = { name: locationName, lat, lng };
-  const amount = searchParams.get("amount") ? Number(searchParams.get("amount")) : getDistancePrice(radius);
+  const amount = searchParams.get("amount")
+    ? Number(searchParams.get("amount"))
+    : getDistancePrice(radius);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedPayment, setSubmittedPayment] = useState(null);
@@ -51,7 +53,10 @@ export const PaymentPage = () => {
       setSubmittedPayment(result);
     } catch (err) {
       console.error("Failed to submit payment proof:", err);
-      setErrorMsg(err.message || "Could not upload payment proof. Please check your internet connection.");
+      setErrorMsg(
+        err.message ||
+          "Could not upload payment proof. Please check your internet connection.",
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -60,14 +65,23 @@ export const PaymentPage = () => {
   return (
     <div
       className="animate-fade-in container"
-      style={{ padding: "2.5rem 1.5rem 5rem", maxWidth: "1100px", margin: "0 auto" }}
+      style={{
+        padding: "2.5rem 1.5rem 5rem",
+        maxWidth: "1100px",
+        margin: "0 auto",
+      }}
     >
       {/* Top Header Navigation */}
       <div style={{ marginBottom: "2rem" }}>
         <button
           onClick={() => navigate(-1)}
           className="btn btn-outline btn-sm"
-          style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "1rem" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            marginBottom: "1rem",
+          }}
         >
           <ArrowLeft size={16} /> Back
         </button>
@@ -78,7 +92,8 @@ export const PaymentPage = () => {
               width: "48px",
               height: "48px",
               borderRadius: "12px",
-              background: "linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)",
+              background:
+                "linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)",
               color: "white",
               display: "flex",
               alignItems: "center",
@@ -88,11 +103,25 @@ export const PaymentPage = () => {
             <Sparkles size={26} style={{ fill: "white" }} />
           </div>
           <div>
-            <h1 style={{ fontSize: "1.8rem", fontWeight: 800, margin: 0, color: "var(--primary)" }}>
+            <h1
+              style={{
+                fontSize: "1.8rem",
+                fontWeight: 800,
+                margin: 0,
+                color: "var(--primary)",
+              }}
+            >
               NestFinder Payment Portal
             </h1>
-            <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--text-muted)" }}>
-              Complete your transfer via eSewa / Fonepay QR code and submit your receipt screenshot.
+            <p
+              style={{
+                margin: 0,
+                fontSize: "0.9rem",
+                color: "var(--text-muted)",
+              }}
+            >
+              Complete your transfer via eSewa / Fonepay QR code and submit your
+              receipt screenshot.
             </p>
           </div>
         </div>
@@ -113,13 +142,15 @@ export const PaymentPage = () => {
           }}
         >
           {/* Left Column: eSewa / Fonepay QR Card & Info */}
-          <PaymentQR amount={amount} targetLocation={targetLocation} radius={radius} paymentType={paymentType} />
-
-          {/* Right Column: Screenshot Proof Upload Form */}
-          <PaymentForm
+          <PaymentQR
             amount={amount}
             targetLocation={targetLocation}
             radius={radius}
+            paymentType={paymentType}
+          />
+
+          {/* Right Column: Screenshot Proof Upload Form */}
+          <PaymentForm
             onSubmit={handleFormSubmit}
             isSubmitting={isSubmitting}
           />
