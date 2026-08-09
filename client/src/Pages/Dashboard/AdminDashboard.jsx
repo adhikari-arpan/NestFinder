@@ -34,6 +34,8 @@ import {
   Check,
   XCircle,
   X,
+  Clock,
+  TrendingUp,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -68,6 +70,8 @@ export const AdminDashboard = () => {
 
   const [payments, setPayments] = useState([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [paymentsError, setPaymentsError] = useState(null);
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("pending");
   const [previewProof, setPreviewProof] = useState(null);
 
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
@@ -154,24 +158,31 @@ export const AdminDashboard = () => {
   // need to (and shouldn't) set it synchronously — only the fetch's own
   // async callbacks touch state.
   const loadPayments = () => {
+    setPaymentsError(null);
     fetchAllPayments()
       .then(setPayments)
-      .catch((err) => console.error("Failed to load payments:", err))
+      .catch((err) => {
+        console.error("Failed to load payments:", err);
+        setPaymentsError(
+          err.message ||
+            "Could not load payments. Check your connection or Supabase permissions.",
+        );
+      })
       .finally(() => setPaymentsLoading(false));
   };
 
   useEffect(() => {
-    loadPayments();
+    Promise.resolve().then(() => loadPayments());
   }, []);
 
   const handlePaymentVerification = async (paymentId, decision) => {
     try {
       const updated = await apiUpdatePaymentStatus(paymentId, decision);
       setPayments((prev) =>
-        prev.map((p) => (p.id === paymentId ? { ...p, status: decision } : p)),
+        prev.map((p) => (p.id === paymentId ? updated : p)),
       );
 
-      if (decision === "approved" && updated) {
+      if (decision === "approved") {
         const isListingFee = updated.payment_type === "landlord_listing";
         if (!isListingFee && updated.target_location && updated.target_radius) {
           grantRadiusAccess(
@@ -195,6 +206,10 @@ export const AdminDashboard = () => {
       }
     } catch (err) {
       console.error("Payment status update failed:", err);
+      setActionMessage({
+        text: err.message || "Couldn't update this payment. Please try again.",
+        type: "error",
+      });
     }
   };
 
@@ -224,6 +239,48 @@ export const AdminDashboard = () => {
     { label: "Pending", value: pendingCount, colorVar: "--accent" },
     { label: "Flagged", value: flaggedCount, colorVar: "--danger" },
   ];
+
+  // ------------------------------------------------------------
+  // Revenue analytics (approved payments only — pending/rejected amounts
+  // aren't real revenue yet)
+  // ------------------------------------------------------------
+  const approvedPayments = payments.filter((p) => p.status === "approved");
+  const pendingPayments = payments.filter((p) => p.status === "pending");
+  const rejectedPayments = payments.filter((p) => p.status === "rejected");
+  const sumAmount = (list) =>
+    list.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+  const totalRevenue = sumAmount(approvedPayments);
+  const pendingRevenue = sumAmount(pendingPayments);
+  const radiusRevenue = sumAmount(
+    approvedPayments.filter((p) => p.payment_type !== "landlord_listing"),
+  );
+  const listingRevenue = sumAmount(
+    approvedPayments.filter((p) => p.payment_type === "landlord_listing"),
+  );
+
+  const revenueByTypeChartData = [
+    {
+      label: `Distance Radius Access (${formatNPR(radiusRevenue)})`,
+      value: radiusRevenue,
+      colorVar: "--primary",
+    },
+    {
+      label: `Landlord Listing Fees (${formatNPR(listingRevenue)})`,
+      value: listingRevenue,
+      colorVar: "--secondary",
+    },
+  ];
+
+  const PAYMENT_FILTERS = [
+    { key: "pending", label: "Pending Review", list: pendingPayments },
+    { key: "approved", label: "Approved History", list: approvedPayments },
+    { key: "rejected", label: "Rejected", list: rejectedPayments },
+    { key: "all", label: "All", list: payments },
+  ];
+  const filteredPayments =
+    PAYMENT_FILTERS.find((f) => f.key === paymentStatusFilter)?.list ||
+    payments;
 
   const roleChartData = [
     {
@@ -322,7 +379,33 @@ export const AdminDashboard = () => {
       {/* Analytics */}
       <section className="border-b border-(--border-color) py-6">
         <SectionHeading>Analytics</SectionHeading>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile
+            label="Total Revenue"
+            value={paymentsLoading ? "—" : formatNPR(totalRevenue)}
+            colorVar="--secondary"
+            icon={TrendingUp}
+          />
+          <StatTile
+            label="Pending Verification"
+            value={paymentsLoading ? "—" : formatNPR(pendingRevenue)}
+            colorVar="--accent"
+            icon={Clock}
+          />
+          <StatTile
+            label="Approved Payments"
+            value={paymentsLoading ? "—" : approvedPayments.length}
+            colorVar="--primary"
+          />
+          <StatTile
+            label="Rejected Payments"
+            value={paymentsLoading ? "—" : rejectedPayments.length}
+            colorVar="--danger"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <BarChartPanel
             title="Listings by Status"
             icon={ShieldAlert}
@@ -334,19 +417,42 @@ export const AdminDashboard = () => {
             data={roleChartData}
             emptyLabel={usersLoading ? "Loading users..." : "No users yet."}
           />
+          <BarChartPanel
+            title="Revenue by Payment Type"
+            icon={CreditCard}
+            data={revenueByTypeChartData}
+            emptyLabel={
+              paymentsLoading ? "Loading payments..." : "No approved payments yet."
+            }
+          />
         </div>
       </section>
 
       {/* Management */}
       <section className="pt-6">
         <SectionHeading>Management</SectionHeading>
+
+        {actionMessage && (
+          <div
+            className={`mb-4 rounded-md border px-4 py-3 text-[0.85rem] font-medium ${
+              actionMessage.type === "success"
+                ? "border-(--secondary) bg-(--secondary-light) text-(--secondary)"
+                : actionMessage.type === "error"
+                  ? "border-(--danger) bg-(--danger-light) text-(--danger)"
+                  : "border-(--border-color) bg-(--bg-app) text-(--text-muted)"
+            }`}
+          >
+            {actionMessage.text}
+          </div>
+        )}
+
         <div className="mb-8 flex flex-wrap gap-6 border-b border-(--border-color)">
           <button
             onClick={() => setActiveTab("payments")}
             className={tabClass("payments")}
           >
             <CreditCard size={16} /> Payment Verifications (
-            {payments.filter((p) => p.status === "pending").length})
+            {pendingPayments.length})
           </button>
           <button
             onClick={() => setActiveTab("pending")}
@@ -371,6 +477,33 @@ export const AdminDashboard = () => {
         {/* 0. Payment Verifications Queue */}
         {activeTab === "payments" && (
           <div className="flex flex-col gap-4">
+            {/* Status filter chips */}
+            <div className="flex flex-wrap gap-2">
+              {PAYMENT_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setPaymentStatusFilter(f.key)}
+                  className="cursor-pointer rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold transition-colors"
+                  style={
+                    paymentStatusFilter === f.key
+                      ? {
+                          background: "var(--primary)",
+                          color: "white",
+                          border: "1px solid var(--primary)",
+                        }
+                      : {
+                          background: "transparent",
+                          color: "var(--text-muted)",
+                          border: "1px solid var(--border-color)",
+                        }
+                  }
+                >
+                  {f.label} ({f.list.length})
+                </button>
+              ))}
+            </div>
+
             {paymentsLoading ? (
               <div className="card p-6">
                 <LoadingScreen
@@ -378,16 +511,31 @@ export const AdminDashboard = () => {
                   fullScreen={false}
                 />
               </div>
-            ) : payments.length === 0 ? (
+            ) : paymentsError ? (
+              <div className="card border-(--danger) p-12 text-center text-(--danger)">
+                <ShieldAlert size={40} className="mx-auto mb-2" />
+                <p className="font-semibold">{paymentsError}</p>
+                <button
+                  onClick={loadPayments}
+                  className="btn btn-outline btn-sm mt-4"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : filteredPayments.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
                 <CreditCard
                   size={40}
                   className="mx-auto mb-2 text-(--secondary)"
                 />
-                <p>No payment proof submissions in queue.</p>
+                <p>
+                  {paymentStatusFilter === "pending"
+                    ? "No payment proof submissions in queue."
+                    : `No ${paymentStatusFilter} payments yet.`}
+                </p>
               </div>
             ) : (
-              payments.map((p) => {
+              filteredPayments.map((p) => {
                 const badge = getStatusBadge(p.status);
                 const isListingFee = p.payment_type === "landlord_listing";
                 const radiusLabel =
@@ -629,19 +777,6 @@ export const AdminDashboard = () => {
         {/* 3. Platform Users */}
         {activeTab === "users" && (
           <div className="flex flex-col gap-4">
-            {actionMessage && (
-              <div
-                className={`rounded-md border px-4 py-3 text-[0.85rem] font-medium ${
-                  actionMessage.type === "success"
-                    ? "border-(--secondary) bg-(--secondary-light) text-(--secondary)"
-                    : actionMessage.type === "error"
-                      ? "border-(--danger) bg-(--danger-light) text-(--danger)"
-                      : "border-(--border-color) bg-(--bg-app) text-(--text-muted)"
-                }`}
-              >
-                {actionMessage.text}
-              </div>
-            )}
 
             <div className="relative">
               <Search

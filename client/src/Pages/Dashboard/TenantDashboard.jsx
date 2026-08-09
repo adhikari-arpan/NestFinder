@@ -8,6 +8,7 @@ import whiteLogo from "../../assets/White_NestFinderLogo.png";
 import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { haversineDistance } from "../../utils/geo";
 import { isListingLive } from "../../utils/listingLifecycle";
+import { formatDuration } from "../../utils/paymentUtils";
 import {
   Heart,
   Sparkles,
@@ -167,6 +168,7 @@ export const TenantDashboard = () => {
     tenantPreferences,
     calculateRecommendationScore,
     paidRadiusAccess,
+    now: currentTime,
     theme,
   } = useContext(AppContext);
   const logo = theme === "dark" ? darkLogo : whiteLogo;
@@ -175,7 +177,6 @@ export const TenantDashboard = () => {
 
   const [activeListingId, setActiveListingId] = useState(null);
   const [highlightListingId] = useState(null);
-  const [currentTime] = useState(() => Date.now());
 
   useEffect(() => {
     if (!currentUser) {
@@ -190,6 +191,10 @@ export const TenantDashboard = () => {
     paidRadiusAccess.userId === currentUser?.id &&
     paidRadiusAccess.paidUntil > currentTime &&
     paidRadiusAccess.location;
+
+  const accessRemainingLabel = isAccessPaid
+    ? formatDuration(paidRadiusAccess.paidUntil - currentTime)
+    : null;
 
   const visibleListings = isAccessPaid
     ? listings.filter((l) => {
@@ -343,14 +348,28 @@ export const TenantDashboard = () => {
           <h3 className="flex items-center gap-2 text-[1.4rem] font-bold">
             🗺️ Unlocked Rooms in Map View
           </h3>
-          <span
-            className="badge badge-secondary"
-            style={{ textTransform: "none" }}
-          >
-            {isAccessPaid
-              ? `Showing ${visibleListings.length} rooms in radius`
-              : "Radius Access Locked"}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="badge badge-secondary"
+              style={{ textTransform: "none" }}
+            >
+              {isAccessPaid
+                ? `Showing ${visibleListings.length} rooms in radius`
+                : "Radius Access Locked"}
+            </span>
+            {isAccessPaid && (
+              <span
+                className="badge flex items-center gap-1"
+                style={{
+                  textTransform: "none",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  color: "#10b981",
+                }}
+              >
+                <Clock size={12} /> {accessRemainingLabel} remaining
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="map-section-full relative">

@@ -14,6 +14,7 @@ import { LocationRadiusPicker } from "../components/LocationRadiusPicker";
 import { PRESET_LOCATIONS } from "../utils/presetLocations";
 import { haversineDistance } from "../utils/geo";
 import { isListingLive } from "../utils/listingLifecycle";
+import { formatDuration } from "../utils/paymentUtils";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Settings2 } from "lucide-react";
@@ -33,11 +34,11 @@ export const AllRooms = () => {
     listingsLoading,
     currentUser,
     paidRadiusAccess,
+    now,
     getDistancePrice,
   } = useContext(AppContext);
 
   const navigate = useNavigate();
-  const now = useState(() => Date.now());
 
   const isAccessPaid =
     paidRadiusAccess &&
@@ -92,12 +93,9 @@ export const AllRooms = () => {
     );
   };
 
-  const remainingHours = isAccessPaid
-    ? Math.max(
-        0,
-        Math.ceil((paidRadiusAccess.paidUntil - now) / (1000 * 60 * 60)),
-      )
-    : 0;
+  const remainingLabel = isAccessPaid
+    ? formatDuration(paidRadiusAccess.paidUntil - now)
+    : null;
 
   return (
     <div
@@ -182,7 +180,7 @@ export const AllRooms = () => {
                     fontSize: "0.95rem",
                   }}
                 >
-                  Active Paid Radius Access Unlocked ({remainingHours}h
+                  Active Paid Radius Access Unlocked ({remainingLabel}{" "}
                   remaining)
                 </span>
                 <p

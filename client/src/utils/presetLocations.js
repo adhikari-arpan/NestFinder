@@ -1,9 +1,6 @@
-// Approximate coordinates — fine-tune by clicking the exact spot on the map.
-// Shared by LocationRadiusPicker and anywhere that needs a sane default
-// target location (e.g. AllRooms' initial radius-picker state).
 export const PRESET_LOCATIONS = [
-  { name: "NCIT College", lat: 27.6644, lng: 85.3188 },
-  { name: "Kathford College", lat: 27.6636, lng: 85.3195 },
+  { name: "NCIT College", lat: 27.6714, lng: 85.3390 },
+  { name: "Kathford College", lat: 27.6708, lng: 85.3401 },
   { name: "Tribhuvan University", lat: 27.68, lng: 85.2895 },
   { name: "Pulchowk Campus", lat: 27.6798, lng: 85.3163 },
   { name: "St. Xavier's College Maitighar", lat: 27.6939, lng: 85.3206 },

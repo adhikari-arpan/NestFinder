@@ -3,12 +3,35 @@
 
 import { useState } from "react";
 import { Upload, X, Send, ShieldAlert } from "lucide-react";
+import { LoadingScreen } from "../LoadingScreen";
+
+const CARD_STYLE = {
+  backgroundColor: "var(--bg-card, #ffffff)",
+  border: "1px solid var(--border-color, #e2e8f0)",
+  borderRadius: "16px",
+  padding: "1.5rem",
+  boxShadow: "var(--shadow-md, 0 10px 25px -5px rgba(0,0,0,0.05))",
+  display: "flex",
+  flexDirection: "column",
+  gap: "1.25rem",
+};
 
 export const PaymentForm = ({ onSubmit, isSubmitting }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [transactionCode, setTransactionCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  if (isSubmitting) {
+    return (
+      <div style={CARD_STYLE}>
+        <LoadingScreen
+          label="Uploading your payment proof and submitting for verification..."
+          fullScreen={false}
+        />
+      </div>
+    );
+  }
 
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];
@@ -48,19 +71,7 @@ export const PaymentForm = ({ onSubmit, isSubmitting }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        backgroundColor: "var(--bg-card, #ffffff)",
-        border: "1px solid var(--border-color, #e2e8f0)",
-        borderRadius: "16px",
-        padding: "1.5rem",
-        boxShadow: "var(--shadow-md, 0 10px 25px -5px rgba(0,0,0,0.05))",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.25rem",
-      }}
-    >
+    <form onSubmit={handleSubmit} style={CARD_STYLE}>
       <div>
         <h3
           style={{ margin: "0 0 0.3rem", fontSize: "1.2rem", fontWeight: 700 }}
@@ -254,37 +265,27 @@ export const PaymentForm = ({ onSubmit, isSubmitting }) => {
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isSubmitting || !file}
+        disabled={!file}
         style={{
           width: "100%",
           padding: "1rem",
           borderRadius: "12px",
           border: "none",
-          background:
-            isSubmitting || !file
-              ? "var(--border-color, #cbd5e1)"
-              : "linear-gradient(135deg, var(--primary, #6366f1) 0%, #4f46e5 100%)",
+          background: !file
+            ? "var(--border-color, #cbd5e1)"
+            : "linear-gradient(135deg, var(--primary, #6366f1) 0%, #4f46e5 100%)",
           color: "white",
           fontWeight: 800,
           fontSize: "1rem",
-          cursor: isSubmitting || !file ? "not-allowed" : "pointer",
+          cursor: !file ? "not-allowed" : "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: "0.6rem",
-          boxShadow:
-            isSubmitting || !file
-              ? "none"
-              : "0 8px 20px rgba(99, 102, 241, 0.35)",
+          boxShadow: !file ? "none" : "0 8px 20px rgba(99, 102, 241, 0.35)",
         }}
       >
-        {isSubmitting ? (
-          <>Uploading & Submitting...</>
-        ) : (
-          <>
-            <Send size={18} /> Send Proof for Admin Verification
-          </>
-        )}
+        <Send size={18} /> Send Proof for Admin Verification
       </button>
     </form>
   );

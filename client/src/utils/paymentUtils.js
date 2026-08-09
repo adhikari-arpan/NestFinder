@@ -73,6 +73,17 @@ export function formatNPR(amount) {
   return `Rs. ${Number(amount || 0).toLocaleString()}`;
 }
 
+// Formats a millisecond duration as "Xh Ym" (or "Ym" once under an hour),
+// for the 48h paid-access countdown. Returns "Expired" for zero/negative input.
+export function formatDuration(ms) {
+  if (ms <= 0) return "Expired";
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${minutes}m`;
+  return `${hours}h ${minutes}m`;
+}
+
 export function getStatusBadge(status) {
   switch (status) {
     case "approved":

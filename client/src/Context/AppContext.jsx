@@ -31,6 +31,15 @@ export const AppContextProvider = ({ children }) => {
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
+  // Ticks on an interval so paid-radius-access countdowns (AllRooms,
+  // TenantDashboard) unlock/expire live instead of freezing at whatever
+  // Date.now() was on mount, without every consumer running its own timer.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
+
   const refreshUserPaidAccess = useCallback(async (user) => {
     if (!user) {
       setPaidRadiusAccess(null);
@@ -664,6 +673,7 @@ export const AppContextProvider = ({ children }) => {
         aiError,
         calculateRecommendationScore,
         paidRadiusAccess,
+        now,
         getDistancePrice,
         checkDistanceAccess,
         grantRadiusAccess,
