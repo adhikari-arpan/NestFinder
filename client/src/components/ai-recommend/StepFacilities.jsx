@@ -11,9 +11,14 @@ const ALL_FACILITIES = [
   "Backup Electricity",
 ];
 
-export const StepFacilities = ({ amenities, toggleAmenity, onNext, onBack }) => {
+export const StepFacilities = ({
+  amenities,
+  toggleAmenity,
+  onNext,
+  onBack,
+}) => {
   return (
-    <div className="card animate-fade-in flex flex-col gap-10 rounded-lg) border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
+    <div className="card animate-fade-in rounded-lg) flex flex-col gap-10 border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
       <div>
         <h2 className="mb-2 text-[1.4rem]">Step 3: Essential Facilities</h2>
         <p className="text-[0.9rem] text-(--text-muted)">
@@ -31,7 +36,7 @@ export const StepFacilities = ({ amenities, toggleAmenity, onNext, onBack }) => 
               <div
                 key={idx}
                 onClick={() => toggleAmenity(fac)}
-                className={`flex cursor-pointer items-center gap-3 rounded-md)] border px-4 py-3 transition-all ${
+                className={`rounded-md)] flex cursor-pointer items-center gap-3 border px-4 py-3 transition-all ${
                   isSelected
                     ? "border-(--secondary) bg-(--secondary-light)"
                     : "border-(--border-color) bg-transparent"

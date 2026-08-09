@@ -53,7 +53,9 @@ const DocPreview = ({ label, path, signedUrl }) => {
         <div className="text-[0.7rem] font-semibold tracking-wide text-(--text-light) uppercase">
           {label}
         </div>
-        <div className="mt-1 text-[0.85rem] text-(--text-light) italic">Not provided</div>
+        <div className="mt-1 text-[0.85rem] text-(--text-light) italic">
+          Not provided
+        </div>
       </div>
     );
   }
@@ -129,7 +131,9 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
       await kycApi.reviewKYC(kyc.id, decision, reason.trim(), currentUser.id);
       await pushNotification(
         userId,
-        decision === "approved" ? "KYC Verification Approved" : "KYC Verification Rejected",
+        decision === "approved"
+          ? "KYC Verification Approved"
+          : "KYC Verification Rejected",
         decision === "approved"
           ? "Your KYC submission has been approved. You can now post room listings."
           : `Your KYC submission was rejected: "${reason.trim()}". Please update and resubmit.`,
@@ -150,7 +154,13 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
     <>
       <div
         onClick={onClose}
-        style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)" }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 2000,
+          background: "rgba(0,0,0,0.5)",
+          backdropFilter: "blur(2px)",
+        }}
       />
       <div
         style={{
@@ -178,8 +188,16 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
             <p className="mt-1 text-[0.9rem] text-(--text-light)">{userName}</p>
           </div>
           <div className="flex items-center gap-3">
-            {statusBadge && <span className={`${statusBadge.className} text-[0.75rem]`}>{statusBadge.label}</span>}
-            <button onClick={onClose} className="btn btn-outline btn-sm" aria-label="Close">
+            {statusBadge && (
+              <span className={`${statusBadge.className} text-[0.75rem]`}>
+                {statusBadge.label}
+              </span>
+            )}
+            <button
+              onClick={onClose}
+              className="btn btn-outline btn-sm"
+              aria-label="Close"
+            >
               <X size={16} />
             </button>
           </div>
@@ -190,7 +208,9 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
         ) : loadError ? (
           <p style={{ color: "var(--danger, #dc2626)" }}>{loadError}</p>
         ) : !kyc ? (
-          <p style={{ color: "var(--text-light)" }}>This user hasn't submitted a KYC form yet.</p>
+          <p style={{ color: "var(--text-light)" }}>
+            This user hasn't submitted a KYC form yet.
+          </p>
         ) : (
           <div className="flex flex-col gap-7">
             <Section icon={User} title="Personal Information">
@@ -209,7 +229,14 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
                 <Field label="Local Level" value={kyc.municipality} />
                 <Field label="Tole / Street" value={kyc.tole} />
               </div>
-              <div style={{ height: "240px", borderRadius: "var(--radius-md)", overflow: "hidden", border: "1px solid var(--border-color)" }}>
+              <div
+                style={{
+                  height: "240px",
+                  borderRadius: "var(--radius-md)",
+                  overflow: "hidden",
+                  border: "1px solid var(--border-color)",
+                }}
+              >
                 <LeafletMap
                   center={[kyc.latitude, kyc.longitude]}
                   zoom={14}
@@ -219,12 +246,16 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
                   doubleClickZoom={false}
                   zoomControl={false}
                 >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; OpenStreetMap contributors"
+                  />
                   <Marker position={[kyc.latitude, kyc.longitude]} />
                 </LeafletMap>
               </div>
               <p className="mt-2 text-[0.78rem] text-(--text-light)">
-                Pin: {kyc.latitude}, {kyc.longitude} &middot; Posting radius: {kyc.allowed_radius_meters}m
+                Pin: {kyc.latitude}, {kyc.longitude} &middot; Posting radius:{" "}
+                {kyc.allowed_radius_meters}m
               </p>
             </Section>
 
@@ -232,43 +263,83 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
               <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4">
                 <Field
                   label="Document Type"
-                  value={kyc.document_type === "citizenship" ? "Citizenship Certificate" : "National ID (NID)"}
+                  value={
+                    kyc.document_type === "citizenship"
+                      ? "Citizenship Certificate"
+                      : "National ID (NID)"
+                  }
                 />
                 <Field label="Document Number" value={kyc.document_number} />
               </div>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <DocPreview label="Front Side" path={kyc.document_front_url} signedUrl={kyc.document_front_signed_url} />
+                <DocPreview
+                  label="Front Side"
+                  path={kyc.document_front_url}
+                  signedUrl={kyc.document_front_signed_url}
+                />
                 {kyc.document_type === "citizenship" && (
-                  <DocPreview label="Back Side" path={kyc.document_back_url} signedUrl={kyc.document_back_signed_url} />
+                  <DocPreview
+                    label="Back Side"
+                    path={kyc.document_back_url}
+                    signedUrl={kyc.document_back_signed_url}
+                  />
                 )}
               </div>
             </Section>
 
             <Section icon={FileText} title="Utility Bill">
               <div className="mb-5">
-                <Field label="Bill Type" value={kyc.utility_bill_type === "electricity" ? "Electricity" : "Water"} />
+                <Field
+                  label="Bill Type"
+                  value={
+                    kyc.utility_bill_type === "electricity"
+                      ? "Electricity"
+                      : "Water"
+                  }
+                />
               </div>
               <div className="max-w-sm">
-                <DocPreview label="Uploaded Bill" path={kyc.utility_bill_url} signedUrl={kyc.utility_bill_signed_url} />
+                <DocPreview
+                  label="Uploaded Bill"
+                  path={kyc.utility_bill_url}
+                  signedUrl={kyc.utility_bill_signed_url}
+                />
               </div>
             </Section>
 
             {kyc.selfie_signed_url && (
               <Section icon={Camera} title="Selfie Verification">
                 <div className="max-w-sm">
-                  <DocPreview label="Selfie Holding Document" path={kyc.selfie_url} signedUrl={kyc.selfie_signed_url} />
+                  <DocPreview
+                    label="Selfie Holding Document"
+                    path={kyc.selfie_url}
+                    signedUrl={kyc.selfie_signed_url}
+                  />
                 </div>
               </Section>
             )}
 
             <Section icon={History} title="Submission History">
               <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
-                <Field label="Submitted" value={new Date(kyc.submitted_at).toLocaleString()} />
-                {kyc.reviewed_at && <Field label="Last Reviewed" value={new Date(kyc.reviewed_at).toLocaleString()} />}
-                {statusBadge && <Field label="Current Status" value={statusBadge.label} />}
+                <Field
+                  label="Submitted"
+                  value={new Date(kyc.submitted_at).toLocaleString()}
+                />
+                {kyc.reviewed_at && (
+                  <Field
+                    label="Last Reviewed"
+                    value={new Date(kyc.reviewed_at).toLocaleString()}
+                  />
+                )}
+                {statusBadge && (
+                  <Field label="Current Status" value={statusBadge.label} />
+                )}
               </div>
               {kyc.rejection_reason && (
-                <p className="mt-4 text-[0.85rem]" style={{ color: "var(--danger, #dc2626)" }}>
+                <p
+                  className="mt-4 text-[0.85rem]"
+                  style={{ color: "var(--danger, #dc2626)" }}
+                >
                   Rejection reason: "{kyc.rejection_reason}"
                 </p>
               )}
@@ -278,7 +349,8 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
               <>
                 <Section icon={MessageSquare} title="Rejection Remarks">
                   <p className="mb-3 text-[0.82rem] text-(--text-light)">
-                    Only required if you're rejecting this submission — the landlord sees this exact text.
+                    Only required if you're rejecting this submission — the
+                    landlord sees this exact text.
                   </p>
                   <textarea
                     value={reason}
@@ -291,7 +363,14 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
                 </Section>
 
                 {submitError && (
-                  <p style={{ color: "var(--danger, #dc2626)", fontSize: "0.85rem" }}>{submitError}</p>
+                  <p
+                    style={{
+                      color: "var(--danger, #dc2626)",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    {submitError}
+                  </p>
                 )}
 
                 <div className="flex justify-end gap-2 border-t border-(--border-color) pt-6">
@@ -299,7 +378,10 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
                     onClick={() => decide("rejected")}
                     disabled={submitting || !reason.trim()}
                     className="btn btn-outline btn-sm flex gap-1"
-                    style={{ color: "var(--danger, #dc2626)", borderColor: "var(--danger, #dc2626)" }}
+                    style={{
+                      color: "var(--danger, #dc2626)",
+                      borderColor: "var(--danger, #dc2626)",
+                    }}
                   >
                     <XCircle size={14} /> Reject
                   </button>

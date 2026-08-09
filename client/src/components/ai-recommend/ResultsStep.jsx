@@ -6,7 +6,10 @@ const poiNameShort = (name) => {
   return name.slice(0, 16) + "...";
 };
 
-const generateMatchExplanations = (room, { budget, city, amenities, location }) => {
+const generateMatchExplanations = (
+  room,
+  { budget, city, amenities, location },
+) => {
   const reasons = [];
   if (room.price <= budget) {
     reasons.push({
@@ -84,7 +87,7 @@ export const ResultsStep = ({
   return (
     <div className="animate-fade-in flex flex-col gap-8">
       {/* Results Header */}
-      <div className="glass flex flex-wrap items-center justify-between gap-4 rounded-lg) p-6">
+      <div className="glass rounded-lg) flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <h2 className="flex items-center gap-2 text-[1.35rem]">
             <Sparkles
@@ -94,8 +97,8 @@ export const ResultsStep = ({
             AI Match Score Report
           </h2>
           <p className="text-[0.85rem] text-(--text-muted)">
-            Preferences: Rs. {budget.toLocaleString()} • {roomType} •{" "}
-            {sharing} sharing •{" "}
+            Preferences: Rs. {budget.toLocaleString()} • {roomType} • {sharing}{" "}
+            sharing •{" "}
             {location
               ? location.name
                 ? poiNameShort(location.name)

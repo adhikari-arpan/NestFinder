@@ -16,7 +16,8 @@ export const StepLocation = ({
         <h2 className="mb-2 text-[1.4rem]">Step 4: Location & Distance Tier</h2>
         <p className="text-[0.9rem] text-(--text-muted)">
           Select your central point of interest and desired search radius tier.
-          Each distance tier carries a personalized recommendation fee valid for 48 hours.
+          Each distance tier carries a personalized recommendation fee valid for
+          48 hours.
         </p>
       </div>
 

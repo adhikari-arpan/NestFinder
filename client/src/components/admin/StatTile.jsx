@@ -3,12 +3,12 @@ export const StatTile = ({ label, value, colorVar, icon: Icon }) => {
   const accent = colorVar ? `var(${colorVar})` : "var(--primary)";
   return (
     <div
-      className="card relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
+      className="card relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
       style={{ padding: "0.875rem 1rem" }}
     >
       {/* Accent strip along the top */}
       <div
-        className="absolute inset-x-0 top-0 h-[3px]"
+        className="absolute inset-x-0 top-0 h-0.75"
         style={{ background: accent }}
       />
 
@@ -22,7 +22,7 @@ export const StatTile = ({ label, value, colorVar, icon: Icon }) => {
               className="shrink-0 opacity-70"
             />
           )}
-          <span className="block truncate text-[0.65rem] font-bold tracking-wider uppercase text-(--text-light)">
+          <span className="block truncate text-[0.65rem] font-bold tracking-wider text-(--text-light) uppercase">
             {label}
           </span>
         </div>

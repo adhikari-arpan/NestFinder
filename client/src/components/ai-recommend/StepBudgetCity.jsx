@@ -2,13 +2,17 @@ import { ChevronRight } from "lucide-react";
 
 const CITIES = ["Kathmandu", "Lalitpur", "Bhaktapur"];
 
-export const StepBudgetCity = ({ city, setCity, budget, setBudget, onNext }) => {
+export const StepBudgetCity = ({
+  city,
+  setCity,
+  budget,
+  setBudget,
+  onNext,
+}) => {
   return (
-    <div className="card animate-fade-in flex flex-col gap-10 rounded-lg) border border-(--border-color)] bg-(--bg-card)] p-8 shadow-lg sm:p-12">
+    <div className="card animate-fade-in rounded-lg) border-(--border-color)] bg-(--bg-card)] flex flex-col gap-10 border p-8 shadow-lg sm:p-12">
       <div>
-        <h2 className="mb-2 text-[1.4rem]">
-          Step 1: Budget Boundaries & City
-        </h2>
+        <h2 className="mb-2 text-[1.4rem]">Step 1: Budget Boundaries & City</h2>
         <p className="text-[0.9rem] text-(--text-muted)">
           Set your maximum budget constraints and search zone in Kathmandu
           Valley.

@@ -2,7 +2,7 @@ import { Cpu } from "lucide-react";
 
 export const LoadingStep = ({ loadingText }) => {
   return (
-    <div className="card animate-fade-in flex flex-col items-center gap-10 rounded-lg) border border-(--border-color) bg-(--bg-card) px-10 py-20 text-center shadow-lg">
+    <div className="card animate-fade-in rounded-lg) flex flex-col items-center gap-10 border border-(--border-color) bg-(--bg-card) px-10 py-20 text-center shadow-lg">
       <div className="relative size-20">
         <div className="size-full animate-spin rounded-full border-4 border-(--primary-light) border-t-(--primary)" />
         <Cpu
