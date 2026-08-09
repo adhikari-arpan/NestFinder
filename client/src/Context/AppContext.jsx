@@ -184,6 +184,14 @@ export const AppContextProvider = ({ children }) => {
     if (profile) setCurrentUser((prev) => ({ ...prev, ...profile }));
   };
 
+  // Self-service "Edit Profile" — name/phone only, see api.updateOwnProfile.
+  const updateOwnProfile = async ({ name, phone }) => {
+    if (!currentUser) throw new Error("You must be logged in.");
+    const updated = await api.updateOwnProfile(currentUser.id, { name, phone });
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    return updated;
+  };
+
   const signupUser = async (email, password, name, phone, role) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -661,6 +669,7 @@ export const AppContextProvider = ({ children }) => {
         logoutUser,
         signupUser,
         refreshCurrentUser,
+        updateOwnProfile,
         theme,
         toggleTheme,
         createListing,

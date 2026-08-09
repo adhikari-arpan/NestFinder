@@ -11,6 +11,7 @@ import {
   IdCard,
 } from "lucide-react";
 import { VerifiedBadge } from "./VerifiedBadge";
+import { EditProfileModal } from "./EditProfileModal";
 
 // Shared dashboard header: renders whatever left-side content is passed as
 // children, plus the profile trigger, profile overlay menu, and logout
@@ -21,6 +22,7 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
 
   const handleLogout = () => setShowLogoutConfirm(true);
 
@@ -83,7 +85,10 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
             <div className="mb-8 flex flex-col gap-3">
               <div
                 className="profile-menu-item"
-                onClick={() => alert("Edit Profile functionality coming soon!")}
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  setEditProfileOpen(true);
+                }}
               >
                 <User size={18} /> Edit Profile
               </div>
@@ -127,6 +132,10 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
           </div>
         </>,
         document.body,
+      )}
+
+      {editProfileOpen && (
+        <EditProfileModal onClose={() => setEditProfileOpen(false)} />
       )}
 
       {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}

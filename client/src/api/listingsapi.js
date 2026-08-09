@@ -370,3 +370,20 @@ export async function setUserSuspended(userId, suspended) {
   });
   if (error) throw error;
 }
+
+// ------------------------------------------------------------
+// Self-service profile edit — a plain update (not an RPC) is fine here
+// since profiles' RLS already allows a user to edit their own row.
+// Deliberately only accepts name/phone: role, is_verified, kyc_status, and
+// is_suspended must stay admin/server-controlled.
+// ------------------------------------------------------------
+export async function updateOwnProfile(userId, { name, phone }) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ name, phone })
+    .eq('id', userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
