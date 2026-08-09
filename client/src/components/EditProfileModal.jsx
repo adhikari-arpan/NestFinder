@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppContext } from "../Context/AppContext";
 import { LoadingScreen } from "./LoadingScreen";
@@ -13,6 +13,13 @@ export const EditProfileModal = ({ onClose }) => {
   const [phone, setPhone] = useState(currentUser?.phone || "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,6 +103,20 @@ export const EditProfileModal = ({ onClose }) => {
                 {error}
               </p>
             )}
+
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                type="email"
+                value={currentUser?.email || ""}
+                readOnly
+                disabled
+                className="form-input w-full cursor-not-allowed opacity-60"
+              />
+              <span className="mt-1 block text-[0.75rem] text-(--text-light)">
+                Your email is tied to your account and can't be changed here.
+              </span>
+            </div>
 
             <div className="form-group">
               <label className="form-label">Display Name</label>
