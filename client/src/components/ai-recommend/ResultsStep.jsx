@@ -87,7 +87,7 @@ export const ResultsStep = ({
   return (
     <div className="animate-fade-in flex flex-col gap-8">
       {/* Results Header */}
-      <div className="glass rounded-lg) flex flex-wrap items-center justify-between gap-4 p-6">
+      <div className="glass rounded-lg flex flex-wrap items-center justify-between gap-4 p-6">
         <div>
           <h2 className="flex items-center gap-2 text-[1.35rem]">
             <Sparkles
