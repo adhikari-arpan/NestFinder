@@ -1,12 +1,17 @@
 // src/payment/PaymentSuccess.jsx
 // Rendered after tenant submits payment proof screenshot, displaying pending admin review status
 
-import React from "react";
-import { CheckCircle2, Clock, ArrowRight, ShieldCheck, Home } from "lucide-react";
+import {
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  ShieldCheck,
+  Home,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
 
-export const PaymentSuccess = ({ paymentDetails, onReset }) => {
+export const PaymentSuccess = ({ paymentDetails }) => {
   const navigate = useNavigate();
   const isListingFee = paymentDetails?.payment_type === "landlord_listing";
 
@@ -52,51 +57,114 @@ export const PaymentSuccess = ({ paymentDetails, onReset }) => {
         <CheckCircle2 size={44} />
       </div>
 
-      <h2 style={{ fontSize: "1.75rem", fontWeight: 800, margin: "0 0 0.5rem" }}>
+      <h2
+        style={{ fontSize: "1.75rem", fontWeight: 800, margin: "0 0 0.5rem" }}
+      >
         Payment Proof Submitted!
       </h2>
-      <p style={{ color: "var(--text-muted, #64748b)", fontSize: "0.95rem", margin: "0 0 1.5rem" }}>
-        Your payment screenshot and details have been received and sent to the administrator for verification.
+      <p
+        style={{
+          color: "var(--text-muted, #64748b)",
+          fontSize: "0.95rem",
+          margin: "0 0 1.5rem",
+        }}
+      >
+        Your payment screenshot and details have been received and sent to the
+        administrator for verification.
       </p>
 
       {/* Status Box */}
       <div
         style={{
-          backgroundColor: "color-mix(in srgb, var(--primary, #6366f1) 6%, transparent)",
-          border: "1px solid color-mix(in srgb, var(--primary, #6366f1) 20%, transparent)",
+          backgroundColor:
+            "color-mix(in srgb, var(--primary, #6366f1) 6%, transparent)",
+          border:
+            "1px solid color-mix(in srgb, var(--primary, #6366f1) 20%, transparent)",
           borderRadius: "14px",
           padding: "1.25rem",
           marginBottom: "2rem",
           textAlign: "left",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--text-muted)" }}>Status:</span>
-          <span className={badge.className} style={{ fontSize: "0.8rem", padding: "0.3rem 0.75rem" }}>
-            <Clock size={12} style={{ marginRight: "4px", display: "inline" }} />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "var(--text-muted)",
+            }}
+          >
+            Status:
+          </span>
+          <span
+            className={badge.className}
+            style={{ fontSize: "0.8rem", padding: "0.3rem 0.75rem" }}
+          >
+            <Clock
+              size={12}
+              style={{ marginRight: "4px", display: "inline" }}
+            />
             {badge.label}
           </span>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
-          <span style={{ color: "var(--text-muted)" }}>{isListingFee ? "Listing:" : "Target Location:"}</span>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "0.5rem",
+            fontSize: "0.9rem",
+          }}
+        >
+          <span style={{ color: "var(--text-muted)" }}>
+            {isListingFee ? "Listing:" : "Target Location:"}
+          </span>
           <strong>{locationName}</strong>
         </div>
 
         {!isListingFee && (
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: "0.5rem",
+              fontSize: "0.9rem",
+            }}
+          >
             <span style={{ color: "var(--text-muted)" }}>Unlocked Radius:</span>
             <strong>{radiusLabel}</strong>
           </div>
         )}
 
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.9rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "0.5rem",
+            fontSize: "0.9rem",
+          }}
+        >
           <span style={{ color: "var(--text-muted)" }}>Amount Paid:</span>
-          <strong style={{ color: "var(--primary)" }}>{formatNPR(paymentDetails?.amount)}</strong>
+          <strong style={{ color: "var(--primary)" }}>
+            {formatNPR(paymentDetails?.amount)}
+          </strong>
         </div>
 
         {paymentDetails?.transaction_code && (
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: "0.9rem",
+            }}
+          >
             <span style={{ color: "var(--text-muted)" }}>Reference Code:</span>
             <code>{paymentDetails.transaction_code}</code>
           </div>
@@ -129,7 +197,13 @@ export const PaymentSuccess = ({ paymentDetails, onReset }) => {
           <button
             onClick={() => navigate("/dashboard/landlord")}
             className="btn btn-primary"
-            style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+            }}
           >
             <Home size={16} /> Back to Dashboard
           </button>
@@ -138,14 +212,26 @@ export const PaymentSuccess = ({ paymentDetails, onReset }) => {
             <button
               onClick={() => navigate("/rooms")}
               className="btn btn-outline"
-              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+              }}
             >
               <Home size={16} /> View Rooms
             </button>
             <button
               onClick={() => navigate("/ai-recommend")}
               className="btn btn-secondary"
-              style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.5rem",
+              }}
             >
               AI Recommend <ArrowRight size={16} />
             </button>

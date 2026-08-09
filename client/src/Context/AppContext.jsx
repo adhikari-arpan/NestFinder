@@ -6,6 +6,7 @@ import { fetchUserApprovedAccess } from "../api/paymentAPI";
 import { getDistancePrice } from "../utils/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AppContext = createContext();
 
 export const AppContextProvider = ({ children }) => {
@@ -45,18 +46,36 @@ export const AppContextProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    refreshUserPaidAccess(currentUser);
+    Promise.resolve().then(() => refreshUserPaidAccess(currentUser));
   }, [currentUser, refreshUserPaidAccess]);
+
+  // Treats two points as "the same location" if they're within ~11m of each
+  // other, which absorbs float round-tripping through JSON/the DB without
+  // letting a genuinely different point pass as paid-for.
+  const SAME_LOCATION_EPSILON_DEG = 0.0001;
+  const isSameLocation = (a, b) =>
+    !!a &&
+    !!b &&
+    Math.abs(a.lat - b.lat) < SAME_LOCATION_EPSILON_DEG &&
+    Math.abs(a.lng - b.lng) < SAME_LOCATION_EPSILON_DEG;
 
   const checkDistanceAccess = (location, radius) => {
     if (!currentUser || !paidRadiusAccess) return false;
-    if (paidRadiusAccess.userId && paidRadiusAccess.userId !== currentUser.id) return false;
-    if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now()) return false;
+    if (paidRadiusAccess.userId && paidRadiusAccess.userId !== currentUser.id)
+      return false;
+    if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now())
+      return false;
+    if (!isSameLocation(location, paidRadiusAccess.location)) return false;
     if (radius > paidRadiusAccess.activeRadius) return false;
     return true;
   };
 
-  const grantRadiusAccess = (location, radius, pricePaid, targetUserId = null) => {
+  const grantRadiusAccess = (
+    location,
+    radius,
+    pricePaid,
+    targetUserId = null,
+  ) => {
     const userId = targetUserId || currentUser?.id;
     const paidUntil = Date.now() + 48 * 60 * 60 * 1000;
     const accessData = {
@@ -72,14 +91,16 @@ export const AppContextProvider = ({ children }) => {
       setPaidRadiusAccess(accessData);
     }
     if (userId) {
-      localStorage.setItem(`nestfinder_paid_access_${userId}`, JSON.stringify(accessData));
+      localStorage.setItem(
+        `nestfinder_paid_access_${userId}`,
+        JSON.stringify(accessData),
+      );
     }
   };
 
-
   const [authLoading, setAuthLoading] = useState(true);
   const [theme, setTheme] = useState(
-    () => localStorage.getItem("theme") || "light"
+    () => localStorage.getItem("theme") || "light",
   );
 
   useEffect(() => {
@@ -103,7 +124,7 @@ export const AppContextProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    refreshListings();
+    Promise.resolve().then(() => refreshListings());
   }, [refreshListings]);
 
   // ------------------------------------------------------------
@@ -200,8 +221,10 @@ export const AppContextProvider = ({ children }) => {
   // Load saved listings + notifications once we know who's logged in
   useEffect(() => {
     if (!currentUser) {
-      setSavedListings([]);
-      setNotifications([]);
+      Promise.resolve().then(() => {
+        setSavedListings([]);
+        setNotifications([]);
+      });
       return;
     }
     api
@@ -341,7 +364,17 @@ export const AppContextProvider = ({ children }) => {
     try {
       await api.updateListingStatus(id, newStatus);
       setListings((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)),
+        prev.map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                status: newStatus,
+                ...(newStatus === "verified"
+                  ? { verifiedAt: new Date().toISOString() }
+                  : {}),
+              }
+            : l,
+        ),
       );
       if (currentUser) {
         pushNotification(
@@ -420,7 +453,7 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
-  const loadLandlordInquiries = async () => {
+  const loadLandlordInquiries = useCallback(async () => {
     if (!currentUser) return;
     try {
       const data = await api.fetchInquiriesForLandlord(currentUser.id);
@@ -428,13 +461,13 @@ export const AppContextProvider = ({ children }) => {
     } catch (err) {
       console.error("Failed to load inquiries:", err.message);
     }
-  };
+  }, [currentUser]);
 
   useEffect(() => {
-  if (currentUser?.role === 'landlord') {
-    loadLandlordInquiries();
-  }
-}, [currentUser]);
+    if (currentUser?.role === "landlord") {
+      Promise.resolve().then(() => loadLandlordInquiries());
+    }
+  }, [currentUser, loadLandlordInquiries]);
 
   // ------------------------------------------------------------
   // Recommendation scoring — unchanged, runs client-side on

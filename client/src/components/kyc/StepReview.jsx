@@ -4,11 +4,19 @@ import { stepNavClass } from "./kycStepStyles";
 const Row = ({ label, value }) => (
   <div className="flex justify-between gap-4 border-b border-(--border-color) py-2 text-[0.88rem]">
     <span className="text-(--text-light)">{label}</span>
-    <span className="text-right font-medium text-(--text-main)">{value || "—"}</span>
+    <span className="text-right font-medium text-(--text-main)">
+      {value || "—"}
+    </span>
   </div>
 );
 
-export const StepReview = ({ data, onSubmit, onBack, isSubmitting, submitError }) => {
+export const StepReview = ({
+  data,
+  onSubmit,
+  onBack,
+  isSubmitting,
+  submitError,
+}) => {
   return (
     <div className="card animate-fade-in flex flex-col gap-8 rounded-lg border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
       <div>
@@ -31,17 +39,25 @@ export const StepReview = ({ data, onSubmit, onBack, isSubmitting, submitError }
         <Row label="Map Pin" value={`${data.latitude}, ${data.longitude}`} />
         <Row
           label="Document Type"
-          value={data.documentType === "citizenship" ? "Citizenship Certificate" : "National ID (NID)"}
+          value={
+            data.documentType === "citizenship"
+              ? "Citizenship Certificate"
+              : "National ID (NID)"
+          }
         />
         <Row label="Document Number" value={data.documentNumber} />
         <Row
           label="Document Front"
-          value={data.documentFrontFile ? data.documentFrontFile.name : "On file"}
+          value={
+            data.documentFrontFile ? data.documentFrontFile.name : "On file"
+          }
         />
         {data.documentType === "citizenship" && (
           <Row
             label="Document Back"
-            value={data.documentBackFile ? data.documentBackFile.name : "On file"}
+            value={
+              data.documentBackFile ? data.documentBackFile.name : "On file"
+            }
           />
         )}
         <Row
@@ -50,15 +66,30 @@ export const StepReview = ({ data, onSubmit, onBack, isSubmitting, submitError }
             data.utilityBillFile ? data.utilityBillFile.name : "On file"
           }`}
         />
-        <Row label="Selfie" value={data.selfieFile ? data.selfieFile.name : data.hasExistingSelfie ? "On file" : "Not provided"} />
+        <Row
+          label="Selfie"
+          value={
+            data.selfieFile
+              ? data.selfieFile.name
+              : data.hasExistingSelfie
+                ? "On file"
+                : "Not provided"
+          }
+        />
       </div>
 
       {submitError && (
-        <p className="text-right text-[0.85rem] text-(--danger)">{submitError}</p>
+        <p className="text-right text-[0.85rem] text-(--danger)">
+          {submitError}
+        </p>
       )}
 
       <div className={stepNavClass}>
-        <button onClick={onBack} className="btn btn-outline flex gap-1" disabled={isSubmitting}>
+        <button
+          onClick={onBack}
+          className="btn btn-outline flex gap-1"
+          disabled={isSubmitting}
+        >
           <ChevronLeft size={18} /> Back
         </button>
         <button
@@ -66,7 +97,8 @@ export const StepReview = ({ data, onSubmit, onBack, isSubmitting, submitError }
           disabled={isSubmitting}
           className="btn btn-primary flex gap-1 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <CheckCircle size={18} /> {isSubmitting ? "Submitting…" : "Submit for Review"}
+          <CheckCircle size={18} />{" "}
+          {isSubmitting ? "Submitting…" : "Submit for Review"}
         </button>
       </div>
     </div>

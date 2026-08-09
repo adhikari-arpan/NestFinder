@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useContext } from 'react';
-import { AppContext } from "../Context/AppContext";
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 
 export const MapContainer = ({
@@ -7,7 +6,6 @@ export const MapContainer = ({
   activeListingId = null,
   highlightListingId = null,
   onMarkerClick = null,
-  showPOIRadius = false,
   currentCenter = null,
   previewRadius = null,
   selectable = false,
@@ -18,11 +16,8 @@ export const MapContainer = ({
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersGroupRef = useRef(null);
-  const circlesGroupRef = useRef(null);
   const clickCircleGroupRef = useRef(null);
   const selectionGroupRef = useRef(null);
-
-  const { theme } = useContext(AppContext);
 
   // Initialize Map
   useEffect(() => {
@@ -50,7 +45,6 @@ export const MapContainer = ({
 
     // Create Layer Groups for markers and radii
     markersGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
-    circlesGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
     clickCircleGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
     selectionGroupRef.current = L.layerGroup().addTo(mapInstanceRef.current);
 
@@ -150,11 +144,10 @@ export const MapContainer = ({
 
   // Update Markers when Listings or Active / Highlighted ID changes
   useEffect(() => {
-    if (!mapInstanceRef.current || !markersGroupRef.current || !circlesGroupRef.current || !clickCircleGroupRef.current) return;
+    if (!mapInstanceRef.current || !markersGroupRef.current || !clickCircleGroupRef.current) return;
 
     // Clear existing markers & circles
     markersGroupRef.current.clearLayers();
-    circlesGroupRef.current.clearLayers();
 
     // Render Room Markers
     listings.forEach(listing => {
@@ -235,79 +228,7 @@ export const MapContainer = ({
         }, 100);
       }
     });
-
-    // Draw Circles for nearby POIs if in detailed view mode
-    if (showPOIRadius && activeListingId) {
-      const activeListing = listings.find(l => l.id === activeListingId);
-      if (activeListing) {
-        const centerCoords = [activeListing.latitude, activeListing.longitude];
-
-        // Draw 1km radius (College boundary)
-        L.circle(centerCoords, {
-          radius: 1000,
-          color: 'rgba(99, 102, 241, 0.4)',
-          fillColor: 'rgba(99, 102, 241, 0.1)',
-          fillOpacity: 0.3,
-          weight: 1.5,
-          dashArray: '5, 5'
-        }).bindTooltip("1.0 km radius (Colleges Proximity)", { permanent: false, direction: 'top' })
-          .addTo(circlesGroupRef.current);
-
-        // Draw 500m radius (Bus stops/markets)
-        L.circle(centerCoords, {
-          radius: 500,
-          color: 'rgba(16, 185, 129, 0.4)',
-          fillColor: 'rgba(16, 185, 129, 0.05)',
-          fillOpacity: 0.3,
-          weight: 1
-        }).bindTooltip("500m Walk radius", { permanent: false, direction: 'bottom' })
-          .addTo(circlesGroupRef.current);
-
-        // Add small POI Markers (Colleges, Hospitals)
-        activeListing.nearbyPOIs.forEach(poi => {
-          let poiColor = '#ef4444'; // Hospital red
-          let poiEmoji = '🏥';
-
-          if (poi.type === 'College') {
-            poiColor = '#f59e0b'; // College orange
-            poiEmoji = '🎓';
-          } else if (poi.type === 'Market') {
-            poiColor = '#10b981'; // Market green
-            poiEmoji = '🛍️';
-          } else if (poi.type === 'Bus Stop') {
-            poiColor = '#6366f1'; // Bus stop blue
-            poiEmoji = '🚌';
-          }
-
-          // Calculate approximate coordinate offsets for rendering on map based on distance
-          // In a real app we fetch their real coords. Here we simulate near center.
-          const angle = Math.random() * Math.PI * 2;
-          const latOffset = (poi.distance / 111000) * Math.sin(angle);
-          const lngOffset = (poi.distance / (111000 * Math.cos(activeListing.latitude * Math.PI / 180))) * Math.cos(angle);
-          const poiLat = activeListing.latitude + latOffset;
-          const poiLng = activeListing.longitude + lngOffset;
-
-          const poiHtml = `
-            <div class="bg-white border-2 rounded-full w-7 h-7 flex items-center justify-center shadow-(--shadow-md) text-[0.8rem]" style="border-color: ${poiColor};">
-              ${poiEmoji}
-            </div>
-          `;
-
-          const poiIcon = L.divIcon({
-            className: 'custom-div-icon',
-            html: poiHtml,
-            iconSize: [28, 28],
-            iconAnchor: [14, 14],
-            popupAnchor: [0, -14]
-          });
-
-          L.marker([poiLat, poiLng], { icon: poiIcon })
-            .bindPopup(`<strong style="color: ${poiColor}">${poi.type}:</strong> ${poi.name} (${poi.distance}m away)`)
-            .addTo(circlesGroupRef.current);
-        });
-      }
-    }
-  }, [listings, activeListingId, highlightListingId, showPOIRadius, previewRadius]);
+  }, [listings, activeListingId, highlightListingId, previewRadius]);
 
   // CSS injection for popups inside Leaflet Map
   return (

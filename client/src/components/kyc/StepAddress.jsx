@@ -1,6 +1,10 @@
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { stepNavClass } from "./kycStepStyles";
-import { NEPAL_PROVINCES, DISTRICTS_BY_PROVINCE, MUNICIPALITIES_BY_DISTRICT } from "../../utils/nepalLocations";
+import {
+  NEPAL_PROVINCES,
+  DISTRICTS_BY_PROVINCE,
+  MUNICIPALITIES_BY_DISTRICT,
+} from "../../utils/nepalLocations";
 
 export const StepAddress = ({
   province,
@@ -15,7 +19,9 @@ export const StepAddress = ({
   onBack,
 }) => {
   const districtOptions = province ? DISTRICTS_BY_PROVINCE[province] || [] : [];
-  const municipalityOptions = district ? MUNICIPALITIES_BY_DISTRICT[district] || [] : [];
+  const municipalityOptions = district
+    ? MUNICIPALITIES_BY_DISTRICT[district] || []
+    : [];
 
   const handleProvinceChange = (value) => {
     setProvince(value);
@@ -65,7 +71,9 @@ export const StepAddress = ({
               disabled={!province}
               className="form-input"
             >
-              <option value="">{province ? "Select district" : "Select province first"}</option>
+              <option value="">
+                {province ? "Select district" : "Select province first"}
+              </option>
               {districtOptions.map((d) => (
                 <option key={d} value={d}>
                   {d}
@@ -84,7 +92,9 @@ export const StepAddress = ({
               disabled={!district}
               className="form-input"
             >
-              <option value="">{district ? "Select local level" : "Select district first"}</option>
+              <option value="">
+                {district ? "Select local level" : "Select district first"}
+              </option>
               {municipalityOptions.map((m) => (
                 <option key={m} value={m}>
                   {m}

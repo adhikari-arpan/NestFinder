@@ -5,6 +5,7 @@
 
 import os
 import math
+from datetime import datetime, timedelta, timezone
 import numpy as np
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify
@@ -60,13 +61,20 @@ def get_listing_embeddings(listings):
     return np.array([embedding_cache[l["id"]][1] for l in listings])
 
 
+# A verified listing only stays recommendable for this many days after
+# verification — mirrors client/src/utils/listingLifecycle.js.
+LISTING_VISIBILITY_DAYS = 7
+
+
 def fetch_verified_listings():
-    """Pull verified listings plus their nearby POIs, same source of
-    truth as the React app."""
+    """Pull listings that are verified AND still within their 7-day
+    visibility window, same source of truth as the React app."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=LISTING_VISIBILITY_DAYS)).isoformat()
     response = (
         supabase.table("listings_with_rating")
-        .select("*, listing_pois(name, type, distance_meters)")
+        .select("*")
         .eq("status", "verified")
+        .gte("verified_at", cutoff)
         .execute()
     )
     return response.data or []
@@ -76,13 +84,12 @@ def listing_to_document(listing):
     """Turn a listing row into a natural-language string for embedding.
     The richer and more natural this text is, the better the semantic
     matches — this is the single highest-leverage thing to tune here."""
-    poi_names = ", ".join(p["name"] for p in listing.get("listing_pois", []))
     amenities = ", ".join(listing.get("amenities", []))
     return (
         f"{listing['type']} in {listing['city']}, {listing['location']}. "
         f"{listing['sharing']} sharing. Rent {listing['price']} rupees per month. "
         f"{listing['title']}. {listing.get('description', '')}. "
-        f"Amenities: {amenities}. Nearby: {poi_names}."
+        f"Amenities: {amenities}."
     )
 
 

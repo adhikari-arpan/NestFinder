@@ -1,21 +1,26 @@
-import React, { useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Home, ArrowLeft } from 'lucide-react';
-import { AppContext } from '../Context/AppContext';
-import whiteLogo from '../assets/White_NestFinderLogo.png';
-import darkLogo from '../assets/Dark_NestFinderLogo.png';
+import { useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Home, ArrowLeft } from "lucide-react";
+import { AppContext } from "../Context/AppContext";
+import whiteLogo from "../assets/White_NestFinderLogo.png";
+import darkLogo from "../assets/Dark_NestFinderLogo.png";
 
 export const NotFound = () => {
-    const navigate = useNavigate();
-    const { theme } = useContext(AppContext);
-    const logo = theme === 'dark' ? darkLogo : whiteLogo;
+  const navigate = useNavigate();
+  const { theme } = useContext(AppContext);
+  const logo = theme === "dark" ? darkLogo : whiteLogo;
 
-    return (
-        <div
-            className="animate-fade-in container flex flex-col items-center justify-center text-center"
-            style={{ minHeight: '70vh', padding: '3rem 1.5rem', position: 'relative', overflow: 'hidden' }}
-        >
-            <style>{`
+  return (
+    <div
+      className="animate-fade-in container flex flex-col items-center justify-center text-center"
+      style={{
+        minHeight: "70vh",
+        padding: "3rem 1.5rem",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0) rotate(-2deg); }
           50% { transform: translateY(-14px) rotate(2deg); }
@@ -77,52 +82,90 @@ export const NotFound = () => {
         }
       `}</style>
 
-            <img src={logo} alt="NestFinder" style={{ height: '60px', width: 'auto', marginBottom: '2rem' }} />
+      <img
+        src={logo}
+        alt="NestFinder"
+        style={{ height: "60px", width: "auto", marginBottom: "2rem" }}
+      />
 
-            <div className="nf-house-wrap">
-                <span className="nf-ping" />
-                <span className="nf-ping nf-ping-delay" />
-                <div className="nf-house-circle">
-                    <Home size={40} strokeWidth={1.8} style={{ color: 'var(--primary)' }} />
-                </div>
-                <span className="nf-cloud" style={{ top: -6, left: -18, fontSize: '1.1rem' }}>💭</span>
-            </div>
-            <h4 className="nf-title" style={{ fontSize: '1.95rem', fontWeight: 800, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-                404
-            </h4>
-            <h2 className="nf-title" style={{ fontSize: '2.5rem', fontWeight: 800, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-                PAGE NOT FOUND
-            </h2>
-            <p
-                style={{
-                    color: 'var(--text-light)',
-                    fontSize: '0.95rem',
-                    maxWidth: '420px',
-                    marginTop: '0.75rem',
-                    marginBottom: '2rem',
-                    lineHeight: 1.6,
-                }}
-            >
-                This one packed up and left no forwarding address. The page you're
-                looking for doesn't exist, was moved, or the link's just broken.
-            </p>
-
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-                <button
-                    onClick={() => navigate(-1)}
-                    className="btn btn-outline btn-sm"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                >
-                    <ArrowLeft size={16} /> Go Back
-                </button>
-                <Link
-                    to="/"
-                    className="btn btn-primary btn-sm"
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                >
-                    <Home size={16} /> Back to Home
-                </Link>
-            </div>
+      <div className="nf-house-wrap">
+        <span className="nf-ping" />
+        <span className="nf-ping nf-ping-delay" />
+        <div className="nf-house-circle">
+          <Home
+            size={40}
+            strokeWidth={1.8}
+            style={{ color: "var(--primary)" }}
+          />
         </div>
-    );
+        <span
+          className="nf-cloud"
+          style={{ top: -6, left: -18, fontSize: "1.1rem" }}
+        >
+          💭
+        </span>
+      </div>
+      <h4
+        className="nf-title"
+        style={{
+          fontSize: "1.95rem",
+          fontWeight: 800,
+          margin: 0,
+          color: "var(--text-main)",
+          letterSpacing: "-0.02em",
+        }}
+      >
+        404
+      </h4>
+      <h2
+        className="nf-title"
+        style={{
+          fontSize: "2.5rem",
+          fontWeight: 800,
+          margin: 0,
+          color: "var(--text-main)",
+          letterSpacing: "-0.02em",
+        }}
+      >
+        PAGE NOT FOUND
+      </h2>
+      <p
+        style={{
+          color: "var(--text-light)",
+          fontSize: "0.95rem",
+          maxWidth: "420px",
+          marginTop: "0.75rem",
+          marginBottom: "2rem",
+          lineHeight: 1.6,
+        }}
+      >
+        This one packed up and left no forwarding address. The page you're
+        looking for doesn't exist, was moved, or the link's just broken.
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "0.75rem",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
+        <button
+          onClick={() => navigate(-1)}
+          className="btn btn-outline btn-sm"
+          style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}
+        >
+          <ArrowLeft size={16} /> Go Back
+        </button>
+        <Link
+          to="/"
+          className="btn btn-primary btn-sm"
+          style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}
+        >
+          <Home size={16} /> Back to Home
+        </Link>
+      </div>
+    </div>
+  );
 };

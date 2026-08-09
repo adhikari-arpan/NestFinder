@@ -1,5 +1,11 @@
 import { useRef, useState } from "react";
-import { ChevronRight, ChevronLeft, Upload, CheckCircle, X } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronLeft,
+  Upload,
+  CheckCircle,
+  X,
+} from "lucide-react";
 import { stepNavClass } from "./kycStepStyles";
 import { validateKycFile } from "../../api/kycApi";
 
@@ -42,7 +48,9 @@ const FileField = ({ label, file, existingUrl, onChange, required }) => {
           ) : (
             <>
               <Upload size={16} className="text-(--text-light)" />
-              <span className="text-(--text-muted)">Click to upload (JPG, PNG, or PDF, max 5MB)</span>
+              <span className="text-(--text-muted)">
+                Click to upload (JPG, PNG, or PDF, max 5MB)
+              </span>
             </>
           )}
         </div>

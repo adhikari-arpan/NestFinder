@@ -1,17 +1,10 @@
 // src/payment/PaymentForm.jsx
 // Form to upload payment proof screenshot, enter transaction code, and submit for admin verification
 
-import React, { useState } from "react";
-import { Upload, Image as ImageIcon, X, Send, ShieldAlert, CheckCircle2 } from "lucide-react";
-import { formatNPR } from "../../utils/paymentUtils";
+import { useState } from "react";
+import { Upload, X, Send, ShieldAlert } from "lucide-react";
 
-export const PaymentForm = ({
-  amount,
-  targetLocation,
-  radius,
-  onSubmit,
-  isSubmitting,
-}) => {
+export const PaymentForm = ({ onSubmit, isSubmitting }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [transactionCode, setTransactionCode] = useState("");
@@ -69,11 +62,20 @@ export const PaymentForm = ({
       }}
     >
       <div>
-        <h3 style={{ margin: "0 0 0.3rem", fontSize: "1.2rem", fontWeight: 700 }}>
+        <h3
+          style={{ margin: "0 0 0.3rem", fontSize: "1.2rem", fontWeight: 700 }}
+        >
           Submit Payment Verification Proof
         </h3>
-        <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-muted, #64748b)" }}>
-          Upload a screenshot of your eSewa / Fonepay transaction receipt so our admin team can verify your payment.
+        <p
+          style={{
+            margin: 0,
+            fontSize: "0.85rem",
+            color: "var(--text-muted, #64748b)",
+          }}
+        >
+          Upload a screenshot of your eSewa / Fonepay transaction receipt so our
+          admin team can verify your payment.
         </p>
       </div>
 
@@ -117,7 +119,8 @@ export const PaymentForm = ({
               borderRadius: "12px",
               overflow: "hidden",
               border: "2px solid var(--primary, #6366f1)",
-              backgroundColor: "color-mix(in srgb, var(--primary) 5%, transparent)",
+              backgroundColor:
+                "color-mix(in srgb, var(--primary) 5%, transparent)",
               padding: "0.5rem",
               textAlign: "center",
             }}
@@ -153,7 +156,14 @@ export const PaymentForm = ({
             >
               <X size={16} />
             </button>
-            <div style={{ marginTop: "0.5rem", fontSize: "0.78rem", color: "#10b981", fontWeight: 600 }}>
+            <div
+              style={{
+                marginTop: "0.5rem",
+                fontSize: "0.78rem",
+                color: "#10b981",
+                fontWeight: 600,
+              }}
+            >
               ✓ Screenshot Attached ({file.name})
             </div>
           </div>
@@ -167,16 +177,35 @@ export const PaymentForm = ({
               padding: "2rem 1rem",
               borderRadius: "12px",
               border: "2px dashed var(--border-color, #cbd5e1)",
-              backgroundColor: "color-mix(in srgb, var(--bg-app, #f8fafc) 80%, transparent)",
+              backgroundColor:
+                "color-mix(in srgb, var(--bg-app, #f8fafc) 80%, transparent)",
               cursor: "pointer",
               transition: "all 0.2s ease",
             }}
           >
-            <Upload size={36} style={{ color: "var(--primary, #6366f1)", marginBottom: "0.5rem" }} />
-            <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "var(--text-main)" }}>
+            <Upload
+              size={36}
+              style={{
+                color: "var(--primary, #6366f1)",
+                marginBottom: "0.5rem",
+              }}
+            />
+            <span
+              style={{
+                fontSize: "0.9rem",
+                fontWeight: 700,
+                color: "var(--text-main)",
+              }}
+            >
               Click or drag to upload screenshot
             </span>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-muted, #64748b)", marginTop: "0.2rem" }}>
+            <span
+              style={{
+                fontSize: "0.78rem",
+                color: "var(--text-muted, #64748b)",
+                marginTop: "0.2rem",
+              }}
+            >
               PNG, JPG, WEBP up to 5MB
             </span>
             <input
@@ -210,7 +239,14 @@ export const PaymentForm = ({
           className="form-input"
           style={{ width: "100%", padding: "0.75rem" }}
         />
-        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.3rem", display: "block" }}>
+        <span
+          style={{
+            fontSize: "0.75rem",
+            color: "var(--text-muted)",
+            marginTop: "0.3rem",
+            display: "block",
+          }}
+        >
           Found in your eSewa statement description / reference code.
         </span>
       </div>
@@ -224,9 +260,10 @@ export const PaymentForm = ({
           padding: "1rem",
           borderRadius: "12px",
           border: "none",
-          background: isSubmitting || !file
-            ? "var(--border-color, #cbd5e1)"
-            : "linear-gradient(135deg, var(--primary, #6366f1) 0%, #4f46e5 100%)",
+          background:
+            isSubmitting || !file
+              ? "var(--border-color, #cbd5e1)"
+              : "linear-gradient(135deg, var(--primary, #6366f1) 0%, #4f46e5 100%)",
           color: "white",
           fontWeight: 800,
           fontSize: "1rem",
@@ -235,7 +272,10 @@ export const PaymentForm = ({
           alignItems: "center",
           justifyContent: "center",
           gap: "0.6rem",
-          boxShadow: isSubmitting || !file ? "none" : "0 8px 20px rgba(99, 102, 241, 0.35)",
+          boxShadow:
+            isSubmitting || !file
+              ? "none"
+              : "0 8px 20px rgba(99, 102, 241, 0.35)",
         }}
       >
         {isSubmitting ? (

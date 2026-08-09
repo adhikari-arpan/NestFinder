@@ -9,8 +9,6 @@ import { StepLocation } from "../components/ai-recommend/StepLocation";
 import { LoadingStep } from "../components/ai-recommend/LoadingStep";
 import { ResultsStep } from "../components/ai-recommend/ResultsStep";
 import { Brain } from "lucide-react";
-import{getDistancePrice} from "../utils/paymentUtils";
-import { getTier } from "../utils/paymentUtils";
 
 export const AIRecommend = () => {
   const navigate = useNavigate();
@@ -72,32 +70,18 @@ export const AIRecommend = () => {
       const latStr = location?.lat || 27.6644;
       const lngStr = location?.lng || 85.3188;
       const nameStr = encodeURIComponent(location?.name || "Selected Point");
-      navigate(`/payment?type=distance_radius&radius=${radius}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`);
+      navigate(
+        `/payment?type=distance_radius&radius=${radius}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`,
+      );
     } else {
       executeRecommendationFlow(prefs);
     }
   };
 
-  const handlePaymentSuccess = () => {
-    const price = getDistancePrice(radius);
-    grantRadiusAccess(location, radius, price);
-    setShowPaymentModal(false);
-    const tier=getTier(radius);
-
-    const prefs = {
-      budget,
-      preferredCity: city,
-      sharing,
-      roomType,
-      essentialAmenities: amenities,
-      poiLocation: location,
-      radius,
-    };
-    executeRecommendationFlow(prefs);
-  };
-
   useEffect(() => {
     if (step === 5) {
+      if (!activePreferences) return;
+
       const timer1 = setTimeout(
         () =>
           setAiLoadingText(
@@ -137,10 +121,8 @@ export const AIRecommend = () => {
         clearTimeout(timer2);
         clearTimeout(timer3);
       };
-    } else {
-      setAiLoadingText("Vectorizing preferences...");
     }
-  }, [step]);
+  }, [step, activePreferences, getAIRecommendedListings]);
 
   return (
     <div
@@ -149,7 +131,7 @@ export const AIRecommend = () => {
     >
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 style={{ marginBottom: '60px' }}>">
-        <div className="flex size-16 -rotate-6 transform items-center justify-center rounded-lg) bg-linear-to-br from-(--primary)] to-[#7c3aed] text-white shadow-lg">
+        <div className="flex size-16 -rotate-6 transform items-center justify-center rounded-lg bg-linear-to-br from-(--primary) to-[#7c3aed] text-white shadow-lg">
           <Brain size={42} />
         </div>
         <div>

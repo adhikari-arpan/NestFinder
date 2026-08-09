@@ -1,26 +1,33 @@
 // Minimal horizontal bar chart + donut for admin analytics — no charting
 // library, each bar is directly labeled so it never depends on color alone.
-export const BarChartPanel = ({ title, icon: Icon, data, emptyLabel = "No data yet." }) => {
+export const BarChartPanel = ({
+  title,
+  icon: Icon,
+  data,
+  emptyLabel = "No data yet.",
+}) => {
   const max = Math.max(1, ...data.map((d) => d.value));
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   // --- Donut geometry ---
-  const R = 40;                    // radius
-  const C = 2 * Math.PI * R;       // circumference
-  let offset = 0;                  // running start position for each segment
+  const R = 40; // radius
+  const C = 2 * Math.PI * R; // circumference
 
   const segments = data
     .filter((d) => d.value > 0)
-    .map((d) => {
+    .reduce((acc, d) => {
       const frac = total > 0 ? d.value / total : 0;
-      const seg = {
+      const offset =
+        acc.length > 0
+          ? acc[acc.length - 1].offset + acc[acc.length - 1].dash
+          : 0;
+      acc.push({
         ...d,
         dash: frac * C,
         offset: offset,
-      };
-      offset += frac * C;
-      return seg;
-    });
+      });
+      return acc;
+    }, []);
 
   return (
     <div className="card border border-white/10 p-6 transition-all duration-200 hover:shadow-md">
@@ -28,11 +35,13 @@ export const BarChartPanel = ({ title, icon: Icon, data, emptyLabel = "No data y
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {Icon && (
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-gradient-to-br from-[var(--primary)] to-[#7c3aed] text-white shadow-sm">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-(--primary) to-[#7c3aed] text-white shadow-sm">
               <Icon size={16} />
             </span>
           )}
-          <h3 className="text-[0.95rem] font-bold text-(--text-main)">{title}</h3>
+          <h3 className="text-[0.95rem] font-bold text-(--text-main)">
+            {title}
+          </h3>
         </div>
       </div>
 
@@ -83,7 +92,9 @@ export const BarChartPanel = ({ title, icon: Icon, data, emptyLabel = "No data y
             <svg width="120" height="120" viewBox="0 0 100 100">
               {/* Track ring */}
               <circle
-                cx="50" cy="50" r={R}
+                cx="50"
+                cy="50"
+                r={R}
                 fill="none"
                 stroke="rgba(255,255,255,0.06)"
                 strokeWidth="12"
@@ -92,7 +103,9 @@ export const BarChartPanel = ({ title, icon: Icon, data, emptyLabel = "No data y
               {segments.map((s) => (
                 <circle
                   key={s.label}
-                  cx="50" cy="50" r={R}
+                  cx="50"
+                  cy="50"
+                  r={R}
                   fill="none"
                   stroke={`var(${s.colorVar})`}
                   strokeWidth="12"
@@ -108,7 +121,7 @@ export const BarChartPanel = ({ title, icon: Icon, data, emptyLabel = "No data y
               <strong className="text-[1.35rem] leading-none font-extrabold text-(--text-main)">
                 {total}
               </strong>
-              <span className="mt-0.5 text-[0.6rem] font-bold tracking-wider uppercase text-(--text-light)">
+              <span className="mt-0.5 text-[0.6rem] font-bold tracking-wider text-(--text-light) uppercase">
                 Total
               </span>
             </div>

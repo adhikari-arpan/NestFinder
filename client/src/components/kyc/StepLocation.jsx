@@ -1,12 +1,18 @@
 import { ChevronRight, ChevronLeft, MapPin } from "lucide-react";
-import { MapContainer as LeafletMap, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import {
+  MapContainer as LeafletMap,
+  TileLayer,
+  Marker,
+  useMapEvents,
+} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { stepNavClass } from "./kycStepStyles";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
@@ -20,16 +26,24 @@ const LocationPicker = ({ onPick }) => {
   return null;
 };
 
-export const StepLocation = ({ latitude, longitude, onPick, onNext, onBack }) => {
+export const StepLocation = ({
+  latitude,
+  longitude,
+  onPick,
+  onNext,
+  onBack,
+}) => {
   const canProceed = latitude && longitude;
 
   return (
     <div className="card animate-fade-in flex flex-col gap-8 rounded-lg border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
       <div>
-        <h2 className="mb-2 text-[1.4rem]">Step 3: Pin Your Permanent Address</h2>
+        <h2 className="mb-2 text-[1.4rem]">
+          Step 3: Pin Your Permanent Address
+        </h2>
         <p className="text-[0.9rem] text-(--text-muted)">
-          This pin becomes your fixed posting location — every room you list will
-          show at this address. Click the map to drop or move the pin.
+          This pin becomes your fixed posting location — every room you list
+          will show at this address. Click the map to drop or move the pin.
         </p>
       </div>
 

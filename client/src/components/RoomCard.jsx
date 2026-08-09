@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AppContext } from "../Context/AppContext";
 import { MapPin, Heart, Wifi, Car, Sofa, Flame, CheckCircle, Sparkles } from 'lucide-react';
@@ -103,18 +103,6 @@ export const RoomCard = ({ room, score }) => {
           <MapPin size={14} className="text-(--primary)" />
           <span>{room.location}</span>
         </div>
-
-        {/* Nearby POI */}
-        {room.nearbyPOIs && room.nearbyPOIs[0] && (
-          <div className="flex items-center justify-between rounded-sm)] bg-(--bg-app) px-2.5 py-1.5 text-[0.8rem] text-(--text-muted)">
-            <span className="max-w-[80%] truncate">🎓 {room.nearbyPOIs[0].name}</span>
-            <strong className="text-[0.75rem] text-(--primary)">
-              {room.nearbyPOIs[0].distance >= 1000
-                ? `${(room.nearbyPOIs[0].distance / 1000).toFixed(1)}km`
-                : `${room.nearbyPOIs[0].distance}m`}
-            </strong>
-          </div>
-        )}
 
         {/* Amenities & CTA */}
         <div className="mt-1 flex items-center justify-between border-t border-(--border-color) pt-3">

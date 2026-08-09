@@ -35,11 +35,6 @@ function mapListingRow(row) {
         verified: row.profiles.is_verified,
       }
       : null,
-    nearbyPOIs: (row.listing_pois || []).map((p) => ({
-      name: p.name,
-      type: p.type,
-      distance: p.distance_meters,
-    })),
     rating: row.rating ?? 0,
     reviews: (row.reviews || []).map((r) => ({
       author: r.profiles?.name || 'Anonymous',
@@ -50,6 +45,7 @@ function mapListingRow(row) {
     featured: row.featured,
     views: row.views,
     createdAt: row.created_at,
+    verifiedAt: row.verified_at,
   };
 }
 
@@ -58,7 +54,7 @@ function mapListingRow(row) {
 // column. Simplest: store lat/long as plain columns too? -> see note below.
 
 // ------------------------------------------------------------
-// Fetch all listings (with images, POIs, landlord, reviews)
+// Fetch all listings (with images, landlord, reviews)
 // ------------------------------------------------------------
 export async function fetchListings() {
   const { data, error } = await supabase
@@ -66,7 +62,6 @@ export async function fetchListings() {
     .select(`
       *,
       listing_images ( url, sort_order ),
-      listing_pois ( name, type, distance_meters ),
       reviews ( rating, comment, profiles ( name ) ),
       profiles!listings_landlord_id_fkey ( name, phone, email, is_verified )
     `)
@@ -82,7 +77,6 @@ export async function fetchListingById(id) {
     .select(`
       *,
       listing_images ( url, sort_order ),
-      listing_pois ( name, type, distance_meters ),
       reviews ( rating, comment, profiles ( name ) ),
       profiles!listings_landlord_id_fkey ( name, phone, email, is_verified )
     `)
@@ -96,8 +90,7 @@ export async function fetchListingById(id) {
 // ------------------------------------------------------------
 // Create a listing (used by landlord dashboard "post room" form)
 // formData: { title, description, price, type, sharing, location, city,
-//             latitude, longitude, amenities: [], images: [File, ...],
-//             nearbyPOIs: [{name,type,distance}] }
+//             latitude, longitude, amenities: [], images: [File, ...] }
 // ------------------------------------------------------------
 export async function createListing(formData, landlordId) {
   // 1. Insert the listing row itself.
@@ -132,18 +125,6 @@ export async function createListing(formData, landlordId) {
     }));
     const { error: imgError } = await supabase.from('listing_images').insert(imageRows);
     if (imgError) throw imgError;
-  }
-
-  // 3. Insert nearby POIs, if provided.
-  if (formData.nearbyPOIs?.length) {
-    const poiRows = formData.nearbyPOIs.map((p) => ({
-      listing_id: listing.id,
-      name: p.name,
-      type: p.type,
-      distance_meters: p.distance,
-    }));
-    const { error: poiError } = await supabase.from('listing_pois').insert(poiRows);
-    if (poiError) throw poiError;
   }
 
   return fetchListingById(listing.id);
@@ -225,7 +206,13 @@ export async function updateListing(id, formData) {
 // Moderation (admin dashboard)
 // ------------------------------------------------------------
 export async function updateListingStatus(id, newStatus) {
-  const { error } = await supabase.from('listings').update({ status: newStatus }).eq('id', id);
+  // Re-stamping verified_at every time a listing (re-)becomes verified
+  // restarts its 7-day tenant-visibility window — see listingLifecycle.js.
+  const updates = { status: newStatus };
+  if (newStatus === 'verified') {
+    updates.verified_at = new Date().toISOString();
+  }
+  const { error } = await supabase.from('listings').update(updates).eq('id', id);
   if (error) throw error;
 }
 
@@ -240,8 +227,8 @@ export async function deleteListing(id) {
     console.warn('Could not clean up listing images from storage:', err.message);
   }
 
-  // listing_images, listing_pois, reviews, saved_listings, and inquiries
-  // all cascade-delete via the FK constraints in the schema.
+  // listing_images, reviews, saved_listings, and inquiries all
+  // cascade-delete via the FK constraints in the schema.
   const { error } = await supabase.from('listings').delete().eq('id', id);
   if (error) throw error;
 }

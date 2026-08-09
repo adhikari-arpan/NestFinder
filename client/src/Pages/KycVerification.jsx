@@ -13,7 +13,8 @@ import { IdCard } from "lucide-react";
 import { splitPhoneNumber } from "../utils/countryCodes";
 
 export const KycVerification = () => {
-  const { currentUser, authLoading, refreshCurrentUser } = useContext(AppContext);
+  const { currentUser, authLoading, refreshCurrentUser } =
+    useContext(AppContext);
   const navigate = useNavigate();
 
   const [step, setStep] = useState(1);
@@ -49,7 +50,7 @@ export const KycVerification = () => {
     if (!currentUser) {
       navigate("/auth");
     }
-  }, [currentUser, authLoading]);
+  }, [currentUser, authLoading, navigate]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -83,7 +84,9 @@ export const KycVerification = () => {
         setDocumentNumber(row.document_number);
         setUtilityBillType(row.utility_bill_type);
       })
-      .catch((err) => console.error("Failed to load existing KYC:", err.message))
+      .catch((err) =>
+        console.error("Failed to load existing KYC:", err.message),
+      )
       .finally(() => setLoadingExisting(false));
   }, [currentUser]);
 
@@ -121,7 +124,8 @@ export const KycVerification = () => {
         },
         {
           document_front: documentFrontFile,
-          document_back: documentType === "citizenship" ? documentBackFile : null,
+          document_back:
+            documentType === "citizenship" ? documentBackFile : null,
           utility_bill: utilityBillFile,
           selfie: selfieFile,
         },
