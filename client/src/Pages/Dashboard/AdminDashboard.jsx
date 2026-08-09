@@ -7,6 +7,7 @@ import {
   updatePaymentStatus as apiUpdatePaymentStatus,
 } from "../../api/paymentAPI";
 import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
+import { isListingLive, daysRemaining } from "../../utils/listingLifecycle";
 import whiteLogo from "../../assets/White_NestFinderLogo.png";
 import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { DashboardHeader } from "../../components/DashboardHeader";
@@ -72,6 +73,7 @@ export const AdminDashboard = () => {
   const [paymentsLoading, setPaymentsLoading] = useState(true);
   const [paymentsError, setPaymentsError] = useState(null);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState("pending");
+  const [listingStatusFilter, setListingStatusFilter] = useState("pending");
   const [previewProof, setPreviewProof] = useState(null);
 
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
@@ -229,6 +231,42 @@ export const AdminDashboard = () => {
 
   const pendingListings = listings.filter((l) => l.status === "pending");
   const flaggedListings = listings.filter((l) => l.status === "flagged");
+  // "Active" = verified and still within the 7-day post-verification
+  // visibility window; "Expired" = verified but that window has passed —
+  // the row/status is untouched, it's just dropped from tenant-facing
+  // search until re-verified (see utils/listingLifecycle.js).
+  const activeListings = listings.filter(
+    (l) => l.status === "verified" && isListingLive(l),
+  );
+  const expiredListings = listings.filter(
+    (l) => l.status === "verified" && !isListingLive(l),
+  );
+
+  const LISTING_FILTERS = [
+    { key: "pending", label: "Pending Review", list: pendingListings },
+    { key: "active", label: "Active", list: activeListings },
+    { key: "expired", label: "Expired", list: expiredListings },
+    { key: "flagged", label: "Flagged", list: flaggedListings },
+    { key: "all", label: "All", list: listings },
+  ];
+  const filteredListings =
+    LISTING_FILTERS.find((f) => f.key === listingStatusFilter)?.list ||
+    listings;
+
+  const listingBadge = (item) => {
+    if (item.status === "pending")
+      return { label: "PENDING REVIEW", className: "badge badge-accent" };
+    if (item.status === "flagged")
+      return { label: "FLAGGED", className: "badge badge-danger" };
+    if (item.status === "verified" && isListingLive(item))
+      return { label: "ACTIVE", className: "badge badge-secondary" };
+    if (item.status === "verified")
+      return { label: "EXPIRED", className: "badge badge-primary" };
+    return {
+      label: (item.status || "unknown").toUpperCase(),
+      className: "badge",
+    };
+  };
 
   const verifiedLandlordCount = users.filter(
     (u) => u.role === "landlord" && u.is_verified,
@@ -261,12 +299,12 @@ export const AdminDashboard = () => {
 
   const revenueByTypeChartData = [
     {
-      label: `Distance Radius Access (${formatNPR(radiusRevenue)})`,
+      label: `Tenant Fees (${formatNPR(radiusRevenue)})`,
       value: radiusRevenue,
       colorVar: "--primary",
     },
     {
-      label: `Landlord Listing Fees (${formatNPR(listingRevenue)})`,
+      label: `Landlord Fees (${formatNPR(listingRevenue)})`,
       value: listingRevenue,
       colorVar: "--secondary",
     },
@@ -422,7 +460,9 @@ export const AdminDashboard = () => {
             icon={CreditCard}
             data={revenueByTypeChartData}
             emptyLabel={
-              paymentsLoading ? "Loading payments..." : "No approved payments yet."
+              paymentsLoading
+                ? "Loading payments..."
+                : "No approved payments yet."
             }
           />
         </div>
@@ -458,7 +498,8 @@ export const AdminDashboard = () => {
             onClick={() => setActiveTab("pending")}
             className={tabClass("pending")}
           >
-            <CheckCircle size={16} /> Room Approvals ({pendingListings.length})
+            <CheckCircle size={16} /> Room Listings ({pendingListings.length}{" "}
+            pending)
           </button>
           <button
             onClick={() => setActiveTab("flagged")}
@@ -648,70 +689,164 @@ export const AdminDashboard = () => {
           </div>
         )}
 
-        {/* 1. Pending Approvals */}
+        {/* 1. Room Listings — every room that's ever been submitted, filterable
+            by pending / active / expired / flagged / all */}
         {activeTab === "pending" && (
           <div className="flex flex-col gap-4">
-            {pendingListings.length === 0 ? (
+            {/* Status filter chips */}
+            <div className="flex flex-wrap gap-2">
+              {LISTING_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setListingStatusFilter(f.key)}
+                  className="cursor-pointer rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold transition-colors"
+                  style={
+                    listingStatusFilter === f.key
+                      ? {
+                          background: "var(--primary)",
+                          color: "white",
+                          border: "1px solid var(--primary)",
+                        }
+                      : {
+                          background: "transparent",
+                          color: "var(--text-muted)",
+                          border: "1px solid var(--border-color)",
+                        }
+                  }
+                >
+                  {f.label} ({f.list.length})
+                </button>
+              ))}
+            </div>
+
+            {filteredListings.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
                 <CheckCircle
                   size={40}
                   className="mx-auto mb-2 text-(--secondary)"
                 />
-                <p>All room submissions have been reviewed. Clean queue!</p>
+                <p>
+                  {listingStatusFilter === "pending"
+                    ? "All room submissions have been reviewed. Clean queue!"
+                    : `No ${listingStatusFilter} listings.`}
+                </p>
               </div>
             ) : (
-              pendingListings.map((item) => (
-                <div
-                  key={item.id}
-                  className="card grid grid-cols-1 gap-8 p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
-                >
-                  {/* Details */}
-                  <div className="flex items-start gap-4 text-left">
-                    <img
-                      src={item.images[0]}
-                      className="h-15 w-20 rounded-sm object-cover"
-                      alt="preview"
-                    />
-                    <div>
-                      <span className="badge badge-accent text-[0.65rem]">
-                        PENDING REVIEW
-                      </span>
-                      <h3 className="mt-1 mb-0.5 text-[1.05rem]">
-                        <Link
-                          to={`/room/${item.id}`}
-                          className="text-(--text-main)"
-                        >
-                          {item.title}
-                        </Link>
-                      </h3>
-                      <div className="text-[0.8rem] text-(--text-muted)">
-                        📍 {item.location} • Rs. {item.price.toLocaleString()}{" "}
-                        /mo
-                      </div>
-                      <div className="mt-2 text-[0.78rem] text-(--text-light)">
-                        Landlord: <strong>{item.landlord.name}</strong> (
-                        {item.landlord.email})
+              filteredListings.map((item) => {
+                const badge = listingBadge(item);
+                const isLive =
+                  item.status === "verified" && isListingLive(item);
+                const isExpired = item.status === "verified" && !isLive;
+                const remaining = isLive ? daysRemaining(item) : null;
+                const expiredOn =
+                  isExpired && item.verifiedAt
+                    ? new Date(
+                        new Date(item.verifiedAt).getTime() +
+                          7 * 24 * 60 * 60 * 1000,
+                      ).toLocaleDateString()
+                    : null;
+
+                return (
+                  <div
+                    key={item.id}
+                    className="card grid grid-cols-1 gap-8 p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
+                  >
+                    {/* Details */}
+                    <div className="flex items-start gap-4 text-left">
+                      <img
+                        src={item.images[0]}
+                        className="h-15 w-20 rounded-sm object-cover"
+                        alt="preview"
+                      />
+                      <div>
+                        <span className={`${badge.className} text-[0.65rem]`}>
+                          {badge.label}
+                        </span>
+                        <h3 className="mt-1 mb-0.5 text-[1.05rem]">
+                          <Link
+                            to={`/room/${item.id}`}
+                            className="text-(--text-main)"
+                          >
+                            {item.title}
+                          </Link>
+                        </h3>
+                        <div className="text-[0.8rem] text-(--text-muted)">
+                          📍 {item.location} • Rs. {item.price.toLocaleString()}{" "}
+                          /mo
+                        </div>
+                        <div className="mt-2 text-[0.78rem] text-(--text-light)">
+                          Landlord: <strong>{item.landlord.name}</strong> (
+                          {item.landlord.email})
+                        </div>
+                        <div className="mt-1 text-[0.75rem] text-(--text-light)">
+                          {item.createdAt &&
+                            `Posted ${new Date(item.createdAt).toLocaleDateString()}`}
+                          {isLive &&
+                            remaining !== null &&
+                            ` • Expires in ${remaining} day${remaining === 1 ? "" : "s"}`}
+                          {isExpired &&
+                            expiredOn &&
+                            ` • Expired on ${expiredOn}`}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => updateListingStatus(item.id, "verified")}
-                      className="btn btn-secondary btn-sm flex gap-1"
-                    >
-                      <CheckCircle size={14} /> Approve listing
-                    </button>
-                    <button
-                      onClick={() => updateListingStatus(item.id, "flagged")}
-                      className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
-                    >
-                      <AlertTriangle size={14} /> Reject / Flag
-                    </button>
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2">
+                      {item.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() =>
+                              updateListingStatus(item.id, "verified")
+                            }
+                            className="btn btn-secondary btn-sm flex gap-1"
+                          >
+                            <CheckCircle size={14} /> Approve listing
+                          </button>
+                          <button
+                            onClick={() =>
+                              updateListingStatus(item.id, "flagged")
+                            }
+                            className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
+                          >
+                            <AlertTriangle size={14} /> Reject / Flag
+                          </button>
+                        </>
+                      )}
+                      {isLive && (
+                        <button
+                          onClick={() =>
+                            updateListingStatus(item.id, "flagged")
+                          }
+                          className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
+                        >
+                          <AlertTriangle size={14} /> Flag
+                        </button>
+                      )}
+                      {isExpired && (
+                        <button
+                          onClick={() =>
+                            updateListingStatus(item.id, "verified")
+                          }
+                          className="btn btn-secondary btn-sm flex gap-1"
+                          title="Re-verify to restart the 7-day visibility window"
+                        >
+                          <CheckCircle size={14} /> Renew Listing
+                        </button>
+                      )}
+                      {item.status === "flagged" && (
+                        <Link
+                          to={`/room/${item.id}`}
+                          className="btn btn-outline btn-sm flex gap-1"
+                        >
+                          <Eye size={14} /> View Listing
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -777,7 +912,6 @@ export const AdminDashboard = () => {
         {/* 3. Platform Users */}
         {activeTab === "users" && (
           <div className="flex flex-col gap-4">
-
             <div className="relative">
               <Search
                 size={16}
