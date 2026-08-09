@@ -37,7 +37,9 @@
     "vite": "^8.0.12"
   },
   "prettier": {
-    "plugins": ["prettier-plugin-tailwindcss"],
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ],
     "tailwindStylesheet": "./src/index.css"
   }
 }
