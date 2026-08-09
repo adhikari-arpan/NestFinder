@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
@@ -1097,81 +1098,90 @@ export const AdminDashboard = () => {
         />
       )}
 
-      {/* Blocking overlay for any in-flight admin action */}
-      {busyLabel && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 100000,
-            backgroundColor: "rgba(15, 23, 42, 0.35)",
-            backdropFilter: "blur(2px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <LoadingScreen label={busyLabel} fullScreen={false} />
-        </div>
-      )}
-
-      {/* Payment Proof Modal Preview */}
-      {previewProof && (
-        <div
-          onClick={() => setPreviewProof(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 99999,
-            backgroundColor: "rgba(15, 23, 42, 0.85)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-          }}
-        >
+      {/* Blocking overlay for any in-flight admin action — portaled to
+          document.body like KycReviewModal, since position: fixed inside
+          the page's .animate-fade-in container is broken by the transform
+          its fadeIn keyframes leave behind (translateY(0) still creates a
+          containing block), which otherwise traps "fixed" overlays inside
+          the page instead of covering the viewport. */}
+      {busyLabel &&
+        createPortal(
           <div
             style={{
-              position: "relative",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
+              position: "fixed",
+              inset: 0,
+              zIndex: 100000,
+              backgroundColor: "rgba(15, 23, 42, 0.35)",
+              backdropFilter: "blur(2px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <button
-              onClick={() => setPreviewProof(null)}
+            <LoadingScreen label={busyLabel} fullScreen={false} />
+          </div>,
+          document.body,
+        )}
+
+      {/* Payment Proof Modal Preview — also portaled, for the same reason */}
+      {previewProof &&
+        createPortal(
+          <div
+            onClick={() => setPreviewProof(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99999,
+              backgroundColor: "rgba(15, 23, 42, 0.85)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1rem",
+            }}
+          >
+            <div
               style={{
-                position: "absolute",
-                top: "-15px",
-                right: "-15px",
-                backgroundColor: "white",
-                color: "black",
-                border: "none",
-                borderRadius: "50%",
-                width: "32px",
-                height: "32px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: "bold",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                position: "relative",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
               }}
             >
-              <X size={18} />
-            </button>
-            <img
-              src={previewProof}
-              alt="Payment screenshot proof"
-              style={{
-                maxHeight: "85vh",
-                maxWidth: "85vw",
-                borderRadius: "12px",
-              }}
-            />
-          </div>
-        </div>
-      )}
+              <button
+                onClick={() => setPreviewProof(null)}
+                style={{
+                  position: "absolute",
+                  top: "-15px",
+                  right: "-15px",
+                  backgroundColor: "white",
+                  color: "black",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "32px",
+                  height: "32px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                }}
+              >
+                <X size={18} />
+              </button>
+              <img
+                src={previewProof}
+                alt="Payment screenshot proof"
+                style={{
+                  maxHeight: "85vh",
+                  maxWidth: "85vw",
+                  borderRadius: "12px",
+                }}
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
