@@ -15,8 +15,11 @@ export const StepPersonal = ({
   setCountryDial,
   onNext,
 }) => {
-  const phoneError = phone.trim() ? validatePhoneNumber(countryDial, phone) : null;
-  const canProceed = firstName.trim() && lastName.trim() && phone.trim() && !phoneError;
+  const phoneError = phone.trim()
+    ? validatePhoneNumber(countryDial, phone)
+    : null;
+  const canProceed =
+    firstName.trim() && lastName.trim() && phone.trim() && !phoneError;
 
   return (
     <div className="card animate-fade-in flex flex-col gap-10 rounded-lg border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
@@ -70,12 +73,17 @@ export const StepPersonal = ({
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
-              placeholder={countryDial === "977" ? "98XXXXXXXX" : "Phone number"}
+              placeholder={
+                countryDial === "977" ? "98XXXXXXXX" : "Phone number"
+              }
               className="form-input flex-1"
             />
           </div>
           {phoneError && (
-            <p className="text-[0.78rem]" style={{ color: "var(--danger, #dc2626)" }}>
+            <p
+              className="text-[0.78rem]"
+              style={{ color: "var(--danger, #dc2626)" }}
+            >
               {phoneError}
             </p>
           )}
