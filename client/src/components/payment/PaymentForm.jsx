@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { Upload, X, Send, ShieldAlert } from "lucide-react";
-import { LoadingScreen } from "../LoadingScreen";
 
 const CARD_STYLE = {
   backgroundColor: "var(--bg-card, #ffffff)",
@@ -16,22 +15,11 @@ const CARD_STYLE = {
   gap: "1.25rem",
 };
 
-export const PaymentForm = ({ onSubmit, isSubmitting }) => {
+export const PaymentForm = ({ onSubmit }) => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [transactionCode, setTransactionCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-
-  if (isSubmitting) {
-    return (
-      <div style={CARD_STYLE}>
-        <LoadingScreen
-          label="Uploading your payment proof and submitting for verification..."
-          fullScreen={false}
-        />
-      </div>
-    );
-  }
 
   const handleFileChange = (e) => {
     const selected = e.target.files?.[0];

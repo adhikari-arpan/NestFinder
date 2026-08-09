@@ -79,6 +79,20 @@ export const AdminDashboard = () => {
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
   const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
   const [suspendingId, setSuspendingId] = useState(null);
+  // Shown as a blocking overlay for any admin action that waits on a
+  // network round-trip (listing status changes, payment verification, user
+  // suspension) — previously these buttons gave zero visual feedback while
+  // in flight, which read as the page having frozen.
+  const [busyLabel, setBusyLabel] = useState(null);
+
+  const handleListingAction = async (id, status, label) => {
+    setBusyLabel(label);
+    try {
+      await updateListingStatus(id, status);
+    } finally {
+      setBusyLabel(null);
+    }
+  };
 
   const handleKycReviewed = (userId, decision) => {
     setUsers((prev) =>
@@ -108,6 +122,7 @@ export const AdminDashboard = () => {
     if (!confirmed) return;
 
     setSuspendingId(user.id);
+    setBusyLabel(nextSuspended ? "Suspending user..." : "Reactivating user...");
     try {
       await api.setUserSuspended(user.id, nextSuspended);
       setUsers((prev) =>
@@ -129,6 +144,7 @@ export const AdminDashboard = () => {
       });
     } finally {
       setSuspendingId(null);
+      setBusyLabel(null);
     }
   };
 
@@ -178,6 +194,9 @@ export const AdminDashboard = () => {
   }, []);
 
   const handlePaymentVerification = async (paymentId, decision) => {
+    setBusyLabel(
+      decision === "approved" ? "Approving payment..." : "Rejecting payment...",
+    );
     try {
       const updated = await apiUpdatePaymentStatus(paymentId, decision);
       setPayments((prev) =>
@@ -212,6 +231,8 @@ export const AdminDashboard = () => {
         text: err.message || "Couldn't update this payment. Please try again.",
         type: "error",
       });
+    } finally {
+      setBusyLabel(null);
     }
   };
 
@@ -798,7 +819,11 @@ export const AdminDashboard = () => {
                         <>
                           <button
                             onClick={() =>
-                              updateListingStatus(item.id, "verified")
+                              handleListingAction(
+                                item.id,
+                                "verified",
+                                "Approving listing...",
+                              )
                             }
                             className="btn btn-secondary btn-sm flex gap-1"
                           >
@@ -806,7 +831,11 @@ export const AdminDashboard = () => {
                           </button>
                           <button
                             onClick={() =>
-                              updateListingStatus(item.id, "flagged")
+                              handleListingAction(
+                                item.id,
+                                "flagged",
+                                "Flagging listing...",
+                              )
                             }
                             className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
                           >
@@ -817,7 +846,11 @@ export const AdminDashboard = () => {
                       {isLive && (
                         <button
                           onClick={() =>
-                            updateListingStatus(item.id, "flagged")
+                            handleListingAction(
+                              item.id,
+                              "flagged",
+                              "Flagging listing...",
+                            )
                           }
                           className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
                         >
@@ -827,7 +860,11 @@ export const AdminDashboard = () => {
                       {isExpired && (
                         <button
                           onClick={() =>
-                            updateListingStatus(item.id, "verified")
+                            handleListingAction(
+                              item.id,
+                              "verified",
+                              "Renewing listing...",
+                            )
                           }
                           className="btn btn-secondary btn-sm flex gap-1"
                           title="Re-verify to restart the 7-day visibility window"
@@ -891,13 +928,25 @@ export const AdminDashboard = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-2">
                     <button
-                      onClick={() => updateListingStatus(item.id, "verified")}
+                      onClick={() =>
+                        handleListingAction(
+                          item.id,
+                          "verified",
+                          "Clearing flag...",
+                        )
+                      }
                       className="btn btn-outline btn-sm flex gap-1"
                     >
                       <CheckCircle size={14} /> Clear Flag (Approve)
                     </button>
                     <button
-                      onClick={() => updateListingStatus(item.id, "pending")}
+                      onClick={() =>
+                        handleListingAction(
+                          item.id,
+                          "pending",
+                          "Updating listing...",
+                        )
+                      }
                       className="btn btn-primary btn-sm flex gap-1 bg-(--danger)"
                     >
                       <Trash2 size={14} /> Ban & Delete Listing
@@ -1046,6 +1095,24 @@ export const AdminDashboard = () => {
           onClose={() => setReviewingUser(null)}
           onReviewed={handleKycReviewed}
         />
+      )}
+
+      {/* Blocking overlay for any in-flight admin action */}
+      {busyLabel && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 100000,
+            backgroundColor: "rgba(15, 23, 42, 0.35)",
+            backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <LoadingScreen label={busyLabel} fullScreen={false} />
+        </div>
       )}
 
       {/* Payment Proof Modal Preview */}

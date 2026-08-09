@@ -164,6 +164,11 @@ export const PaymentPage = () => {
           label="Checking for an existing payment submission..."
           fullScreen={false}
         />
+      ) : isSubmitting ? (
+        <LoadingScreen
+          label="Uploading your payment proof and submitting for verification..."
+          fullScreen={false}
+        />
       ) : submittedPayment ? (
         <PaymentSuccess paymentDetails={submittedPayment} />
       ) : errorMsg ? (
@@ -186,10 +191,7 @@ export const PaymentPage = () => {
           />
 
           {/* Right Column: Screenshot Proof Upload Form */}
-          <PaymentForm
-            onSubmit={handleFormSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <PaymentForm onSubmit={handleFormSubmit} />
         </div>
       )}
     </div>

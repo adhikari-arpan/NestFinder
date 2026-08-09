@@ -205,6 +205,8 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
 
         {loading ? (
           <LoadingScreen label="Loading submission..." fullScreen={false} />
+        ) : submitting ? (
+          <LoadingScreen label="Submitting your review..." fullScreen={false} />
         ) : loadError ? (
           <p style={{ color: "var(--danger, #dc2626)" }}>{loadError}</p>
         ) : !kyc ? (
