@@ -13,7 +13,7 @@ const BREAKDOWN_FIELDS = [
 
 export const ResultCard = ({ item, reasons }) => {
   return (
-    <div className="card rounded-lg) overflow-hidden bg-(--bg-card) p-0 shadow-lg transition-all duration-300 hover:border-(--primary) hover:shadow-xl">
+    <div className="card overflow-hidden rounded-lg bg-(--bg-card) p-0 shadow-lg transition-all duration-300 hover:border-(--primary) hover:shadow-xl">
       <div className="grid h-full grid-cols-1 md:grid-cols-[350px_1fr]">
         {/* Image side */}
         <div className="relative h-62.5 overflow-hidden md:h-full">
@@ -54,7 +54,7 @@ export const ResultCard = ({ item, reasons }) => {
 
             {/* Match Reasons - Rule Based Fallback Only */}
             {!item.breakdown && (
-              <div className="rounded-md)] mt-4 flex flex-col gap-3 border border-[rgba(16,185,129,0.15)] bg-[rgba(16,185,129,0.05)] p-4">
+              <div className="mt-4 flex flex-col gap-3 rounded-md border border-[rgba(16,185,129,0.15)] bg-[rgba(16,185,129,0.05)] p-4">
                 <strong className="text-[0.85rem] tracking-wider text-(--text-muted) uppercase">
                   Why it matches:
                 </strong>
@@ -79,7 +79,7 @@ export const ResultCard = ({ item, reasons }) => {
 
           {/* AI factor breakdown — only present when results came from Flask */}
           {item.breakdown && (
-            <div className="rounded-md) mt-4 border border-[rgba(99,102,241,0.15)] bg-[rgba(99,102,241,0.05)] p-4">
+            <div className="mt-4 rounded-md border border-[rgba(99,102,241,0.15)] bg-[rgba(99,102,241,0.05)] p-4">
               <strong className="text-[0.85rem] tracking-wider text-(--text-muted) uppercase">
                 AI Score Breakdown:
               </strong>

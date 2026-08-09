@@ -49,12 +49,23 @@ export const AppContextProvider = ({ children }) => {
     Promise.resolve().then(() => refreshUserPaidAccess(currentUser));
   }, [currentUser, refreshUserPaidAccess]);
 
+  // Treats two points as "the same location" if they're within ~11m of each
+  // other, which absorbs float round-tripping through JSON/the DB without
+  // letting a genuinely different point pass as paid-for.
+  const SAME_LOCATION_EPSILON_DEG = 0.0001;
+  const isSameLocation = (a, b) =>
+    !!a &&
+    !!b &&
+    Math.abs(a.lat - b.lat) < SAME_LOCATION_EPSILON_DEG &&
+    Math.abs(a.lng - b.lng) < SAME_LOCATION_EPSILON_DEG;
+
   const checkDistanceAccess = (location, radius) => {
     if (!currentUser || !paidRadiusAccess) return false;
     if (paidRadiusAccess.userId && paidRadiusAccess.userId !== currentUser.id)
       return false;
     if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now())
       return false;
+    if (!isSameLocation(location, paidRadiusAccess.location)) return false;
     if (radius > paidRadiusAccess.activeRadius) return false;
     return true;
   };

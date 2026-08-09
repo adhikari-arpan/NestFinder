@@ -131,7 +131,7 @@ export const AIRecommend = () => {
     >
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 style={{ marginBottom: '60px' }}>">
-        <div className="rounded-lg) from-(--primary)] flex size-16 -rotate-6 transform items-center justify-center bg-linear-to-br to-[#7c3aed] text-white shadow-lg">
+        <div className="flex size-16 -rotate-6 transform items-center justify-center rounded-lg bg-linear-to-br from-(--primary) to-[#7c3aed] text-white shadow-lg">
           <Brain size={42} />
         </div>
         <div>

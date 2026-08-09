@@ -37,7 +37,7 @@ export const AllRooms = () => {
   } = useContext(AppContext);
 
   const navigate = useNavigate();
-  const [now] = useState(() => Date.now());
+  const now = useState(() => Date.now());
 
   const isAccessPaid =
     paidRadiusAccess &&

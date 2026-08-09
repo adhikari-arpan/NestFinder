@@ -19,9 +19,10 @@ verify landlord KYC submissions.
 ## ✨ Features
 
 ### ⭐ Highlight Features
-| Feature | Description |
-|---|---|
-| 🗺️ Map-Based Room Finding | Browse available rooms directly on an interactive map with nearby POIs |
+
+| Feature                     | Description                                                                                                                |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 🗺️ Map-Based Room Finding   | Browse available rooms directly on an interactive map with nearby POIs                                                     |
 | 🤖 AI Recommendation System | Get personalized room suggestions combining semantic matching, budget/location/amenity fit, and your saved-listing history |
 
 ### ✅ Core Features
@@ -58,13 +59,13 @@ NestFinder is two independently runnable services, not a monolith:
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite, React Router 7, Tailwind CSS v4, Leaflet + react-leaflet |
-| Backend / Data | Supabase (Postgres, Auth, Storage) |
-| AI Service | Python, Flask, Sentence Transformers (`all-MiniLM-L6-v2`), MMR re-ranking |
-| Maps | Leaflet.js + OpenStreetMap (no billing required) |
-| Tooling | ESLint, Prettier (`prettier-plugin-tailwindcss`) |
+| Layer          | Technology                                                                |
+| -------------- | ------------------------------------------------------------------------- |
+| Frontend       | React 19, Vite, React Router 7, Tailwind CSS v4, Leaflet + react-leaflet  |
+| Backend / Data | Supabase (Postgres, Auth, Storage)                                        |
+| AI Service     | Python, Flask, Sentence Transformers (`all-MiniLM-L6-v2`), MMR re-ranking |
+| Maps           | Leaflet.js + OpenStreetMap (no billing required)                          |
+| Tooling        | ESLint, Prettier (`prettier-plugin-tailwindcss`)                          |
 
 ---
 
@@ -72,7 +73,7 @@ NestFinder is two independently runnable services, not a monolith:
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20.19+
 - Python 3.12 (3.9+ likely works, untested)
 - A Supabase project (URL + anon key)
 
@@ -134,6 +135,7 @@ NestFinder/
 ## 👥 Team
 
 The project is developed by
+
 1. Arpan Adhikari
 2. Purnima Bhattrai
 

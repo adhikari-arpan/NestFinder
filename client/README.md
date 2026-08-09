@@ -23,7 +23,7 @@ recommendations.
 
 ## Requirements
 
-- Node.js 18+ and npm
+- Node.js 20.19+ and npm
 - A Supabase project (URL + anon key)
 - (Optional but needed for the AI Recommend page) the `ai-service` running
   locally on port 5001 — see [`../ai-service/README.md`](../ai-service/README.md)
