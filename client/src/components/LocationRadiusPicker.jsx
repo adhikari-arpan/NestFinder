@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { Lock, Clock, TrendingUp } from "lucide-react";
 import { MapContainer } from "./MapContainer";
 import { AppContext } from "../Context/AppContext";
-import { RADIUS_OPTIONS } from "../utils/paymentUtils";
+import { DISTANCE_TIER_PRICING } from "../utils/paymentUtils";
 import { PRESET_LOCATIONS } from "../utils/presetLocations";
 
 function radiusLabel(radius) {
@@ -15,8 +15,10 @@ function radiusLabel(radius) {
 // same UI. Owns: the preset-location dropdown <-> map sync (dropping a
 // custom pin clears the dropdown back to blank), the clear-selection
 // button, the radius slider + preset tier buttons (sourced from
-// paymentUtils.RADIUS_OPTIONS so prices can't drift out of sync with what's
-// actually charged), and the fee / paid-access status banner.
+// paymentUtils.DISTANCE_TIER_PRICING, each priced per-tier via
+// AppContext.getRadiusPaymentAmount so an already-paid user sees the
+// upgrade difference instead of the full tier price), and the fee /
+// paid-access status banner.
 //
 // location: { name, lat, lng } | null — name is null for a custom map pin.
 export const LocationRadiusPicker = ({
@@ -114,21 +116,31 @@ export const LocationRadiusPicker = ({
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {RADIUS_OPTIONS.map((opt) => (
-            <button
-              key={opt.val}
-              type="button"
-              onClick={() => onRadiusChange(opt.val)}
-              className="cursor-pointer rounded-lg border px-3 py-2 text-[0.78rem] font-semibold transition-all"
-              style={
-                radius === opt.val
-                  ? { background: "var(--primary)", color: "white", border: "1px solid var(--primary)" }
-                  : { background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-color)" }
-              }
-            >
-              {opt.label}
-            </button>
-          ))}
+          {Object.entries(DISTANCE_TIER_PRICING).map(([val, tier]) => {
+            const optVal = Number(val);
+            const optUnlocked = checkDistanceAccess(location, optVal);
+            const optUpgrade = isRadiusUpgrade(location, optVal);
+            const priceText = optUnlocked
+              ? "Unlocked"
+              : optUpgrade
+                ? `+Rs. ${getRadiusPaymentAmount(location, optVal)}`
+                : `Rs. ${tier.price}`;
+            return (
+              <button
+                key={val}
+                type="button"
+                onClick={() => onRadiusChange(optVal)}
+                className="cursor-pointer rounded-lg border px-3 py-2 text-[0.78rem] font-semibold transition-all"
+                style={
+                  radius === optVal
+                    ? { background: "var(--primary)", color: "white", border: "1px solid var(--primary)" }
+                    : { background: "transparent", color: "var(--text-muted)", border: "1px solid var(--border-color)" }
+                }
+              >
+                {tier.icon} {tier.label} — {priceText}
+              </button>
+            );
+          })}
         </div>
 
         {/* Fee / Paid Access Status Banner */}
