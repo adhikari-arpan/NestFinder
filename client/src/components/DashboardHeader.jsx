@@ -10,7 +10,7 @@ import {
   X,
   IdCard,
 } from "lucide-react";
-import { VerifiedBadge } from "./VerifiedBadge";
+import { VerifiedBadge } from "./ui/VerifiedBadge";
 import { EditProfileModal } from "./EditProfileModal";
 
 // Shared dashboard header: renders whatever left-side content is passed as

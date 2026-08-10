@@ -4,7 +4,7 @@ import { AppContext } from "../../Context/AppContext";
 import * as kycApi from "../../api/kycApi";
 import { MapContainer as LeafletMap, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { LoadingScreen } from "../LoadingScreen";
+import { LoadingScreen } from "../ui/LoadingScreen";
 import {
   X,
   CheckCircle,

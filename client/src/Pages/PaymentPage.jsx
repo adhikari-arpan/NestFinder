@@ -8,7 +8,7 @@ import { PaymentQR } from "../components/payment/PaymentQR";
 import { PaymentForm } from "../components/payment/PaymentForm";
 import { PaymentSuccess } from "../components/payment/PaymentSuccess";
 import { PaymentFailed } from "../components/payment/PaymentFailed";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { submitPaymentProof, fetchPendingPayment } from "../api/paymentAPI";
 import { getDistancePrice } from "../utils/paymentUtils";
 import { ArrowLeft, Sparkles } from "lucide-react";

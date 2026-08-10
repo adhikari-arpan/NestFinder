@@ -1,7 +1,7 @@
 import { useContext } from 'react';
-import { AppContext } from '../Context/AppContext';
-import whiteLogo from '../assets/White_NestFinderLogo.png';
-import darkLogo from '../assets/Dark_NestFinderLogo.png';
+import { AppContext } from '../../Context/AppContext';
+import whiteLogo from '../../assets/White_NestFinderLogo.png';
+import darkLogo from '../../assets/Dark_NestFinderLogo.png';
 
 // Single shared loading indicator used everywhere the app needs to show a
 // "please wait" state — page-level auth checks, data fetches inside cards,

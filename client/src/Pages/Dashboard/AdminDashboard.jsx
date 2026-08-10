@@ -16,7 +16,7 @@ import { StatTile } from "../../components/admin/StatTile";
 import { BarChartPanel } from "../../components/admin/BarChartPanel";
 import { SectionHeading } from "../../components/admin/SectionHeading";
 import { KycReviewModal } from "../../components/admin/KycReviewModal";
-import { LoadingScreen } from "../../components/LoadingScreen";
+import { LoadingScreen } from "../../components/ui/LoadingScreen";
 
 import {
   ShieldAlert,

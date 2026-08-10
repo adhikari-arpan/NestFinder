@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { RoomCard } from "../components/RoomCard";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock } from "lucide-react";
 import {
   MapContainer as LeafletMap,

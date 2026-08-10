@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppContext } from "../Context/AppContext";
-import { LoadingScreen } from "./LoadingScreen";
-import { CountryCodeSelect } from "./CountryCodeSelect";
+import { LoadingScreen } from "./ui/LoadingScreen";
+import { CountryCodeSelect } from "./ui/CountryCodeSelect";
 import { splitPhoneNumber, validatePhoneNumber } from "../utils/countryCodes";
 import { User, X, Save } from "lucide-react";
 

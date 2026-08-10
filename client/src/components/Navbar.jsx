@@ -4,7 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import whiteLogo from "../assets/White_NestFinderLogo.png";
 import darkLogo from "../assets/Dark_NestFinderLogo.png";
-import { VerifiedBadge } from "./VerifiedBadge";
+import { VerifiedBadge } from "./ui/VerifiedBadge";
 import {
   Sparkles,
   Bell,
