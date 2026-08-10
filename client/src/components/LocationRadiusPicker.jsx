@@ -1,9 +1,13 @@
 import { useContext } from "react";
-import { Lock, Clock } from "lucide-react";
+import { Lock, Clock, TrendingUp } from "lucide-react";
 import { MapContainer } from "./MapContainer";
 import { AppContext } from "../Context/AppContext";
 import { RADIUS_OPTIONS } from "../utils/paymentUtils";
 import { PRESET_LOCATIONS } from "../utils/presetLocations";
+
+function radiusLabel(radius) {
+  return radius >= 1000 ? `${(radius / 1000).toFixed(1)}km` : `${radius}m`;
+}
 
 // Shared "pick a target location + distance radius tier" control, used by
 // both the AI Recommend wizard (Step 4) and the /rooms distance-unlock
@@ -21,9 +25,11 @@ export const LocationRadiusPicker = ({
   radius,
   onRadiusChange,
 }) => {
-  const { getDistancePrice, checkDistanceAccess } = useContext(AppContext);
-  const currentPrice = getDistancePrice(radius);
+  const { checkDistanceAccess, isRadiusUpgrade, getRadiusPaymentAmount, paidRadiusAccess } =
+    useContext(AppContext);
+  const currentPrice = getRadiusPaymentAmount(location, radius);
   const hasPaidAccess = checkDistanceAccess(location, radius);
+  const isUpgrade = isRadiusUpgrade(location, radius);
 
   return (
     <div className="flex flex-col gap-6">
@@ -85,7 +91,7 @@ export const LocationRadiusPicker = ({
               {radius >= 1000 ? `${(radius / 1000).toFixed(1)} km` : `${radius} m`}
             </strong>
             <span className="rounded-full bg-(--primary) px-2.5 py-0.5 text-[0.8rem] font-extrabold text-white">
-              Rs. {currentPrice}
+              {isUpgrade ? `+Rs. ${currentPrice}` : `Rs. ${currentPrice}`}
             </span>
           </div>
         </div>
@@ -131,10 +137,14 @@ export const LocationRadiusPicker = ({
           style={{
             backgroundColor: hasPaidAccess
               ? "rgba(16, 185, 129, 0.1)"
-              : "color-mix(in srgb, var(--primary) 10%, transparent)",
+              : isUpgrade
+                ? "rgba(245, 158, 11, 0.1)"
+                : "color-mix(in srgb, var(--primary) 10%, transparent)",
             border: hasPaidAccess
               ? "1px solid rgba(16, 185, 129, 0.3)"
-              : "1px solid color-mix(in srgb, var(--primary) 30%, transparent)",
+              : isUpgrade
+                ? "1px solid rgba(245, 158, 11, 0.3)"
+                : "1px solid color-mix(in srgb, var(--primary) 30%, transparent)",
           }}
         >
           {hasPaidAccess ? (
@@ -142,6 +152,18 @@ export const LocationRadiusPicker = ({
               <Clock size={16} style={{ color: "#10b981" }} />
               <span style={{ color: "#10b981", fontWeight: 600 }}>
                 Active 48-Hour Paid Access Unlocked ({radius >= 1000 ? `${radius / 1000}km` : `${radius}m`})
+              </span>
+            </>
+          ) : isUpgrade ? (
+            <>
+              <TrendingUp size={16} style={{ color: "#f59e0b" }} />
+              <span>
+                Upgrade Fee: <strong>Rs. {currentPrice}</strong> — you already
+                have access up to{" "}
+                <strong>{radiusLabel(paidRadiusAccess.activeRadius)}</strong>,
+                so you only pay the difference to extend to{" "}
+                <strong>{radiusLabel(radius)}</strong> (refreshes your{" "}
+                <strong>48-hour</strong> access window)
               </span>
             </>
           ) : (

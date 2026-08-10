@@ -35,7 +35,8 @@ export const AllRooms = () => {
     currentUser,
     paidRadiusAccess,
     now,
-    getDistancePrice,
+    isRadiusUpgrade,
+    getRadiusPaymentAmount,
   } = useContext(AppContext);
 
   const navigate = useNavigate();
@@ -81,15 +82,20 @@ export const AllRooms = () => {
     ? [paidRadiusAccess.location.lat, paidRadiusAccess.location.lng]
     : [27.685, 85.32];
 
+  const isUpgrade = isRadiusUpgrade(selectedLocation, selectedRadius);
+
   const handleUnlockPayment = () => {
     const latStr = selectedLocation?.lat || 27.6644;
     const lngStr = selectedLocation?.lng || 85.3188;
     const nameStr = encodeURIComponent(
       selectedLocation?.name || "Selected Point",
     );
-    const price = getDistancePrice(selectedRadius);
+    const price = getRadiusPaymentAmount(selectedLocation, selectedRadius);
+    const upgradeParams = isUpgrade
+      ? `&upgrade=true&prevRadius=${paidRadiusAccess.activeRadius}`
+      : "";
     navigate(
-      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`,
+      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}${upgradeParams}`,
     );
   };
 
@@ -311,7 +317,9 @@ export const AllRooms = () => {
             }}
           >
             <Sparkles size={18} style={{ fill: "white" }} />
-            Pay & Unlock Radius Tier (Rs. {getDistancePrice(selectedRadius)})
+            {isUpgrade
+              ? `Upgrade Radius Tier (Rs. ${getRadiusPaymentAmount(selectedLocation, selectedRadius)})`
+              : `Pay & Unlock Radius Tier (Rs. ${getRadiusPaymentAmount(selectedLocation, selectedRadius)})`}
           </button>
         </div>
       )}

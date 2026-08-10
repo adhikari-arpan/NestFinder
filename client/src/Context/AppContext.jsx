@@ -3,7 +3,7 @@ import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
 import { fetchUserApprovedAccess } from "../api/paymentAPI";
-import { getDistancePrice } from "../utils/paymentUtils";
+import { getDistancePrice, getUpgradePrice } from "../utils/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -77,6 +77,27 @@ export const AppContextProvider = ({ children }) => {
     if (!isSameLocation(location, paidRadiusAccess.location)) return false;
     if (radius > paidRadiusAccess.activeRadius) return false;
     return true;
+  };
+
+  // True when the user already has active paid access to a smaller radius
+  // at this exact location and is now going for a bigger one — the case
+  // where they should be charged just the difference between tiers instead
+  // of the new tier's full price. Same location is required: a different
+  // point isn't a radius "upgrade", it's an unrelated new purchase.
+  const isRadiusUpgrade = (location, radius) => {
+    if (!currentUser || !paidRadiusAccess) return false;
+    if (paidRadiusAccess.userId !== currentUser.id) return false;
+    if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now())
+      return false;
+    if (!isSameLocation(location, paidRadiusAccess.location)) return false;
+    return Number(radius) > Number(paidRadiusAccess.activeRadius);
+  };
+
+  const getRadiusPaymentAmount = (location, radius) => {
+    if (isRadiusUpgrade(location, radius)) {
+      return getUpgradePrice(paidRadiusAccess.activeRadius, radius);
+    }
+    return getDistancePrice(radius);
   };
 
   const grantRadiusAccess = (
@@ -753,6 +774,8 @@ export const AppContextProvider = ({ children }) => {
         now,
         getDistancePrice,
         checkDistanceAccess,
+        isRadiusUpgrade,
+        getRadiusPaymentAmount,
         grantRadiusAccess,
       }}
     >

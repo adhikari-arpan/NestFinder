@@ -12,25 +12,25 @@ export const DISTANCE_TIER_PRICING = {
     price: 75,
     label: "Walking (500m)",
     desc: "Highest precision & prime proximity",
-    icon: "🚶",
+    icon: "🏠",
   },
   1000: {
-    price: 100,
+    price: 130,
     label: "Near (1km)",
     desc: "Standard proximity tier",
-    icon: "🏃",
+    icon: "📍",
   },
   3000: {
-    price: 150,
+    price: 200,
     label: "Cycling (3km)",
     desc: "Extended proximity tier",
     icon: "🚲",
   },
   5000: {
-    price: 200,
+    price: 250,
     label: "Extended (5km)",
     desc: "City-wide proximity tier",
-    icon: "🌐",
+    icon: "🗺️",
   },
 };
 
@@ -50,6 +50,16 @@ export function getDistancePrice(radiusMeters) {
   if (radiusMeters <= 1000) return DISTANCE_TIER_PRICING[1000].price;
   if (radiusMeters <= 3000) return DISTANCE_TIER_PRICING[3000].price;
   return DISTANCE_TIER_PRICING[5000].price;
+}
+
+// A user who already paid for a smaller radius and wants a bigger one only
+// owes the difference between the two tiers' full prices — e.g. 500m -> 1km
+// is Rs. 130 - Rs. 75 = Rs. 55, matching the "Upgrade From Previous" pricing.
+// Only meaningful when toRadius is actually a step up from fromRadius; the
+// caller (AppContext.isRadiusUpgrade) is what decides whether an upgrade
+// applies in the first place — this just does the arithmetic.
+export function getUpgradePrice(fromRadius, toRadius) {
+  return Math.max(0, getDistancePrice(toRadius) - getDistancePrice(fromRadius));
 }
 
 // ------------------------------------------------------------

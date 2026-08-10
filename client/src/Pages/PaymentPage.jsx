@@ -29,6 +29,10 @@ export const PaymentPage = () => {
   const amount = searchParams.get("amount")
     ? Number(searchParams.get("amount"))
     : getDistancePrice(radius);
+  const isUpgrade = searchParams.get("upgrade") === "true";
+  const previousRadius = searchParams.get("prevRadius")
+    ? Number(searchParams.get("prevRadius"))
+    : null;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedPayment, setSubmittedPayment] = useState(null);
@@ -188,6 +192,8 @@ export const PaymentPage = () => {
             targetLocation={targetLocation}
             radius={radius}
             paymentType={paymentType}
+            isUpgrade={isUpgrade}
+            previousRadius={previousRadius}
           />
 
           {/* Right Column: Screenshot Proof Upload Form */}
