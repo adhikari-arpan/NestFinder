@@ -7,10 +7,10 @@ import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { MapContainer as LeafletMap, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import ImageUploader from "../../components/ImageUploader";
+import ImageUploader from "../../components/ui/ImageUploader";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { KycStatusBanner } from "../../components/KycStatusBanner";
-import { LoadingScreen } from "../../components/LoadingScreen";
+import { LoadingScreen } from "../../components/ui/LoadingScreen";
 import {
   getListingFee,
   formatNPR,

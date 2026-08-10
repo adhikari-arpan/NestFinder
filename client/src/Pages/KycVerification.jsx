@@ -8,7 +8,7 @@ import { StepAddress } from "../components/kyc/StepAddress";
 import { StepLocation } from "../components/kyc/StepLocation";
 import { StepDocuments } from "../components/kyc/StepDocuments";
 import { StepReview } from "../components/kyc/StepReview";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { IdCard } from "lucide-react";
 import { splitPhoneNumber } from "../utils/countryCodes";
 

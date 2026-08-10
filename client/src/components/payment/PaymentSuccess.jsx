@@ -1,13 +1,7 @@
 // src/payment/PaymentSuccess.jsx
 // Rendered after tenant submits payment proof screenshot, displaying pending admin review status
 
-import {
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldCheck,
-  Home,
-} from "lucide-react";
+import { CheckCircle2, Clock, ShieldCheck, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
 
@@ -193,50 +187,21 @@ export const PaymentSuccess = ({ paymentDetails }) => {
 
       {/* Navigation Buttons */}
       <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        {isListingFee ? (
-          <button
-            onClick={() => navigate("/dashboard/landlord")}
-            className="btn btn-primary"
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.5rem",
-            }}
-          >
-            <Home size={16} /> Back to Dashboard
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={() => navigate("/rooms")}
-              className="btn btn-outline"
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-              }}
-            >
-              <Home size={16} /> View Rooms
-            </button>
-            <button
-              onClick={() => navigate("/ai-recommend")}
-              className="btn btn-secondary"
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
-              }}
-            >
-              AI Recommend <ArrowRight size={16} />
-            </button>
-          </>
-        )}
+        <button
+          onClick={() =>
+            navigate(isListingFee ? "/dashboard/landlord" : "/dashboard/tenant")
+          }
+          className="btn btn-primary"
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <Home size={16} /> Return to Dashboard
+        </button>
       </div>
     </div>
   );

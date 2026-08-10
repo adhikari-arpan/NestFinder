@@ -1,6 +1,6 @@
 import { ChevronRight } from "lucide-react";
 import { stepNavClass } from "./kycStepStyles";
-import { CountryCodeSelect } from "../CountryCodeSelect";
+import { CountryCodeSelect } from "../ui/CountryCodeSelect";
 import { validatePhoneNumber } from "../../utils/countryCodes";
 
 export const StepPersonal = ({

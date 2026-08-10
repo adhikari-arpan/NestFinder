@@ -4,7 +4,7 @@ import { AppContext } from "../../Context/AppContext";
 import * as kycApi from "../../api/kycApi";
 import { MapContainer as LeafletMap, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { LoadingScreen } from "../LoadingScreen";
+import { LoadingScreen } from "../ui/LoadingScreen";
 import {
   X,
   CheckCircle,
@@ -205,6 +205,8 @@ export const KycReviewModal = ({ userId, userName, onClose, onReviewed }) => {
 
         {loading ? (
           <LoadingScreen label="Loading submission..." fullScreen={false} />
+        ) : submitting ? (
+          <LoadingScreen label="Submitting your review..." fullScreen={false} />
         ) : loadError ? (
           <p style={{ color: "var(--danger, #dc2626)" }}>{loadError}</p>
         ) : !kyc ? (

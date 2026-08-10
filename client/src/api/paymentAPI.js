@@ -10,7 +10,7 @@ function getLocalPayments() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch (err) {
+  } catch {
     return [];
   }
 }
@@ -73,56 +73,44 @@ export async function submitPaymentProof({
 }) {
   const proofUrl = await uploadPaymentProofImage(proofFile, userId);
 
-  const payload = {
-    id: `pay_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
-    user_id: userId || null,
-    user_name: userName || "Anonymous Tenant",
-    user_email: userEmail || "",
-    user_phone: userPhone || "",
-    payment_type: paymentType,
-    amount: Number(amount),
-    target_location: targetLocation || null,
-    target_radius: Number(targetRadius || 1000),
-    proof_image_url: proofUrl,
-    transaction_code: transactionCode,
-    status: "pending",
-    created_at: new Date().toISOString(),
-    approved_at: null,
-    admin_notes: null,
-  };
+  // The `payments` row is the single source of truth admins read from —
+  // it must actually persist before we tell the tenant it succeeded or
+  // notify admins there's something to review. Previously a failed insert
+  // (e.g. an RLS rejection) was swallowed silently, so the tenant saw a
+  // success screen and the admin got a notification pointing at a payment
+  // that only ever existed in the tenant's own browser's localStorage.
+  const { data, error } = await supabase
+    .from("payments")
+    .insert({
+      user_id: userId || null,
+      user_name: userName || "Anonymous Tenant",
+      user_email: userEmail || "",
+      user_phone: userPhone || "",
+      payment_type: paymentType,
+      amount: Number(amount),
+      target_location: targetLocation || null,
+      target_radius: Number(targetRadius || 1000),
+      proof_image_url: proofUrl,
+      transaction_code: transactionCode,
+      status: "pending",
+    })
+    .select()
+    .single();
 
-  // 1. Save to Supabase `payments` table if table exists
-  try {
-    const { data, error } = await supabase
-      .from("payments")
-      .insert({
-        user_id: payload.user_id,
-        user_name: payload.user_name,
-        user_email: payload.user_email,
-        user_phone: payload.user_phone,
-        payment_type: payload.payment_type,
-        amount: payload.amount,
-        target_location: payload.target_location,
-        target_radius: payload.target_radius,
-        proof_image_url: payload.proof_image_url,
-        transaction_code: payload.transaction_code,
-        status: "pending",
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      payload.id = data.id;
-    }
-  } catch (err) {
-    console.warn("Supabase payments table query failed, using local cache:", err.message);
+  if (error || !data) {
+    throw new Error(
+      error?.message ||
+        "Could not save your payment submission. Please try again.",
+    );
   }
 
-  // 2. Also save to local storage cache for instant UI availability
+  // Read-through cache for this tenant's own device (e.g. PaymentHistory) —
+  // safe to store now since `data` is the actual persisted DB row.
   const currentLocal = getLocalPayments();
-  saveLocalPayments([payload, ...currentLocal]);
+  saveLocalPayments([data, ...currentLocal]);
 
-  // 3. Create Admin Notification
+  // Notify admins only now that the row is durably saved, so every
+  // notification has a matching entry on the payment verification page.
   try {
     const { data: adminUsers } = await supabase
       .from("profiles")
@@ -130,11 +118,15 @@ export async function submitPaymentProof({
       .eq("role", "admin");
 
     if (adminUsers?.length) {
+      const message =
+        data.payment_type === "landlord_listing"
+          ? `${data.user_name} submitted a listing fee payment of Rs. ${data.amount}.`
+          : `${data.user_name} submitted payment proof of Rs. ${data.amount} for ${data.target_radius >= 1000 ? data.target_radius / 1000 + "km" : data.target_radius + "m"} radius.`;
       for (const admin of adminUsers) {
         await supabase.from("notifications").insert({
           user_id: admin.id,
           title: "Payment Verification Needed",
-          message: `${payload.user_name} submitted payment proof of Rs. ${payload.amount} for ${payload.target_radius >= 1000 ? payload.target_radius/1000 + 'km' : payload.target_radius + 'm'} radius.`,
+          message,
           type: "admin",
         });
       }
@@ -143,40 +135,23 @@ export async function submitPaymentProof({
     console.warn("Could not notify admin via DB:", err.message);
   }
 
-  return payload;
+  return data;
 }
 
 // ------------------------------------------------------------
 // Fetch all payments (Admin dashboard view)
 // ------------------------------------------------------------
 export async function fetchAllPayments() {
-  let dbPayments = [];
-  try {
-    const { data, error } = await supabase
-      .from("payments")
-      .select("*")
-      .order("created_at", { ascending: false });
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*")
+    .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      dbPayments = data;
-    }
-  } catch (err) {
-    console.warn("Using local payments cache for admin:", err.message);
+  if (error) {
+    throw new Error(error.message || "Could not load payments.");
   }
 
-  const localPayments = getLocalPayments();
-  const mergedMap = new Map();
-
-  // Combine DB and local payments prioritizing DB
-  [...dbPayments, ...localPayments].forEach((item) => {
-    if (!mergedMap.has(item.id)) {
-      mergedMap.set(item.id, item);
-    }
-  });
-
-  return Array.from(mergedMap.values()).sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-  );
+  return data || [];
 }
 
 // ------------------------------------------------------------
@@ -185,40 +160,45 @@ export async function fetchAllPayments() {
 export async function updatePaymentStatus(paymentId, status, adminNotes = "") {
   const approvedAt = status === "approved" ? new Date().toISOString() : null;
 
-  // 1. Update in DB if available
-  try {
-    await supabase
-      .from("payments")
-      .update({
-        status,
-        admin_notes: adminNotes,
-        approved_at: approvedAt,
-      })
-      .eq("id", paymentId);
-  } catch (err) {
-    console.warn("Supabase payments status update skipped:", err.message);
+  // .select().single() returns the updated row so the caller (admin
+  // dashboard) gets the real target_location/target_radius/user_id to grant
+  // access with, instead of relying on the admin's own (almost always
+  // empty, since admins don't submit payments) local cache to look it up.
+  const { data, error } = await supabase
+    .from("payments")
+    .update({
+      status,
+      admin_notes: adminNotes,
+      approved_at: approvedAt,
+    })
+    .eq("id", paymentId)
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(
+      error?.message || "Could not update this payment. Please try again.",
+    );
   }
 
-  // 2. Update local cache
   const localPayments = getLocalPayments().map((p) =>
-    p.id === paymentId
-      ? { ...p, status, admin_notes: adminNotes, approved_at: approvedAt }
-      : p
+    p.id === paymentId ? data : p,
   );
   saveLocalPayments(localPayments);
 
-  // 3. Find payment details to send tenant notification & grant access if approved
-  const targetPayment = localPayments.find((p) => p.id === paymentId);
-
-  if (targetPayment && targetPayment.user_id) {
+  if (data.user_id) {
     try {
       const isApproved = status === "approved";
+      const isListingFee = data.payment_type === "landlord_listing";
+      const message = isApproved
+        ? isListingFee
+          ? `Your listing fee of Rs. ${data.amount} was verified — your listing is now live!`
+          : `Your payment of Rs. ${data.amount} for ${data.target_radius >= 1000 ? data.target_radius / 1000 + "km" : data.target_radius + "m"} room access was verified and approved! Access unlocked for 48 hours.`
+        : `Your payment proof was rejected. Reason: ${adminNotes || "Receipt unreadable or invalid."}`;
       await supabase.from("notifications").insert({
-        user_id: targetPayment.user_id,
+        user_id: data.user_id,
         title: isApproved ? "Payment Approved! 🎉" : "Payment Proof Rejected",
-        message: isApproved
-          ? `Your payment of Rs. ${targetPayment.amount} for ${targetPayment.target_radius >= 1000 ? targetPayment.target_radius/1000 + 'km' : targetPayment.target_radius + 'm'} room access was verified and approved!`
-          : `Your payment proof was rejected. Reason: ${adminNotes || "Receipt unreadable or invalid."}`,
+        message,
         type: isApproved ? "payment" : "warning",
       });
     } catch (err) {
@@ -226,16 +206,51 @@ export async function updatePaymentStatus(paymentId, status, adminNotes = "") {
     }
   }
 
-  return targetPayment;
+  return data;
 }
 
 // ------------------------------------------------------------
 // Fetch User Payment History
 // ------------------------------------------------------------
 export async function fetchUserPayments(userId) {
-  const all = await fetchAllPayments();
-  if (!userId) return all;
-  return all.filter((p) => p.user_id === userId);
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message || "Could not load your payment history.");
+  }
+
+  return data || [];
+}
+
+// ------------------------------------------------------------
+// Fetch the current user's most recent pending payment of a given type, if
+// any — used to block resubmission while an earlier proof is still under
+// admin review (submitting again would create a second competing request).
+// ------------------------------------------------------------
+export async function fetchPendingPayment(userId, paymentType) {
+  if (!userId) return null;
+
+  const { data, error } = await supabase
+    .from("payments")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("payment_type", paymentType)
+    .eq("status", "pending")
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    console.warn("Error checking for a pending payment:", error.message);
+    return null;
+  }
+
+  return data?.[0] || null;
 }
 
 // ------------------------------------------------------------

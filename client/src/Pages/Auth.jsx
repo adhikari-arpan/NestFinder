@@ -12,8 +12,8 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { LoadingScreen } from "../components/LoadingScreen";
-import { CountryCodeSelect } from "../components/CountryCodeSelect";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { CountryCodeSelect } from "../components/ui/CountryCodeSelect";
 import { validatePhoneNumber } from "../utils/countryCodes";
 
 // --- Animated Canvas Background ---

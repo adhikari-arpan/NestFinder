@@ -23,7 +23,7 @@ import {
   Linkedin,
   Instagram,
   Facebook,
-} from "../../components/icons/SocialIcons";
+} from "../../components/ui/icons/SocialIcons";
 import "./About.css";
 
 /* ============================================================

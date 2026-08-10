@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { COUNTRY_CODES, flagEmoji } from "../utils/countryCodes";
+import { COUNTRY_CODES, flagEmoji } from "../../utils/countryCodes";
 
 // Compact "+977 ▾" trigger that opens a searchable country list. Meant to
 // sit directly beside a phone number input.

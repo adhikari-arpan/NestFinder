@@ -18,6 +18,9 @@ export const AIRecommend = () => {
     getAIRecommendedListings,
     aiError,
     checkDistanceAccess,
+    isRadiusUpgrade,
+    getRadiusPaymentAmount,
+    paidRadiusAccess,
   } = useContext(AppContext);
 
   const [step, setStep] = useState(1);
@@ -70,8 +73,12 @@ export const AIRecommend = () => {
       const latStr = location?.lat || 27.6644;
       const lngStr = location?.lng || 85.3188;
       const nameStr = encodeURIComponent(location?.name || "Selected Point");
+      const price = getRadiusPaymentAmount(location, radius);
+      const upgradeParams = isRadiusUpgrade(location, radius)
+        ? `&upgrade=true&prevRadius=${paidRadiusAccess.activeRadius}`
+        : "";
       navigate(
-        `/payment?type=distance_radius&radius=${radius}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`,
+        `/payment?type=distance_radius&radius=${radius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}${upgradeParams}`,
       );
     } else {
       executeRecommendationFlow(prefs);
@@ -156,6 +163,7 @@ export const AIRecommend = () => {
           budget={budget}
           setBudget={setBudget}
           onNext={nextStep}
+          onBackToDashboard={() => navigate("/dashboard/tenant")}
         />
       )}
 

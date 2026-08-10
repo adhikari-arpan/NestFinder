@@ -5,6 +5,7 @@
 import supabase from '../../db/supabaseClient';
 
 const IMAGE_BUCKET = 'listing-images';
+const AVATAR_BUCKET = 'avatars';
 
 // ------------------------------------------------------------
 // Helpers: DB row -> UI shape (mirrors your original mock object)
@@ -369,4 +370,83 @@ export async function setUserSuspended(userId, suspended) {
     suspended,
   });
   if (error) throw error;
+}
+
+// ------------------------------------------------------------
+// Self-service profile edit — a plain update (not an RPC) is fine here
+// since profiles' RLS already allows a user to edit their own row.
+// Deliberately only accepts name/phone: role, is_verified, kyc_status, and
+// is_suspended must stay admin/server-controlled.
+// ------------------------------------------------------------
+export async function updateOwnProfile(userId, { name, phone }) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ name, phone })
+    .eq('id', userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ------------------------------------------------------------
+// Profile picture — always stored at a fixed path per user so re-uploading
+// simply overwrites (upsert), keeping storage from accumulating orphaned
+// files. A cache-busting query param is stamped onto the stored URL since
+// the path itself never changes and browsers/CDNs would otherwise keep
+// showing the old image after an overwrite.
+// ------------------------------------------------------------
+export async function uploadAvatar(userId, blob) {
+  const path = `${userId}/avatar.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrlData } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const avatar_url = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ avatar_url })
+    .eq('id', userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteAvatar(userId) {
+  try {
+    await supabase.storage.from(AVATAR_BUCKET).remove([`${userId}/avatar.jpg`]);
+  } catch (err) {
+    console.warn('Could not remove avatar from storage:', err.message);
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ avatar_url: null })
+    .eq('id', userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ------------------------------------------------------------
+// Signup helper: check whether a phone number is already registered.
+// supabase.auth.signUp() creates the profiles row via a server-side
+// trigger, so a unique_violation from profiles_phone_unique inside that
+// trigger surfaces as a generic GoTrue error ("Database error saving new
+// user"), not a specific "phone already in use" message — this pre-check
+// lets signupUser give a clear message in the common case instead.
+// ------------------------------------------------------------
+export async function checkPhoneExists(phone) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('phone', phone)
+    .limit(1);
+  if (error) throw error;
+  return (data?.length || 0) > 0;
 }

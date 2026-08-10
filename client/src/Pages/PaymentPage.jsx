@@ -1,14 +1,15 @@
 // src/payment/PaymentPage.jsx
 // Main reusable Payment Page container orchestrating QR payment, screenshot proof submission, and success screens
 
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { PaymentQR } from "../components/payment/PaymentQR";
 import { PaymentForm } from "../components/payment/PaymentForm";
 import { PaymentSuccess } from "../components/payment/PaymentSuccess";
 import { PaymentFailed } from "../components/payment/PaymentFailed";
-import { submitPaymentProof } from "../api/paymentAPI";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
+import { submitPaymentProof, fetchPendingPayment } from "../api/paymentAPI";
 import { getDistancePrice } from "../utils/paymentUtils";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
@@ -28,10 +29,44 @@ export const PaymentPage = () => {
   const amount = searchParams.get("amount")
     ? Number(searchParams.get("amount"))
     : getDistancePrice(radius);
+  const isUpgrade = searchParams.get("upgrade") === "true";
+  const previousRadius = searchParams.get("prevRadius")
+    ? Number(searchParams.get("prevRadius"))
+    : null;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedPayment, setSubmittedPayment] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+
+  // A signed-in user may have already submitted proof for this same type of
+  // payment and reloaded the page (or navigated back here) before the admin
+  // reviewed it. Re-entering the QR/form flow would let them submit a
+  // second, competing request, so check for an existing pending submission
+  // first and show that instead of letting them start over.
+  const [checkingPending, setCheckingPending] = useState(!!currentUser?.id);
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      Promise.resolve().then(() => setCheckingPending(false));
+      return;
+    }
+    let cancelled = false;
+    Promise.resolve().then(() => {
+      if (cancelled) return;
+      setCheckingPending(true);
+    });
+    fetchPendingPayment(currentUser.id, paymentType)
+      .then((pending) => {
+        if (cancelled) return;
+        if (pending) setSubmittedPayment(pending);
+      })
+      .finally(() => {
+        if (!cancelled) setCheckingPending(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser?.id, paymentType]);
 
   const handleFormSubmit = async ({ proofFile, transactionCode }) => {
     setIsSubmitting(true);
@@ -128,7 +163,17 @@ export const PaymentPage = () => {
       </div>
 
       {/* Main View rendering: Success, Error, or Two-Column Payment Flow */}
-      {submittedPayment ? (
+      {checkingPending ? (
+        <LoadingScreen
+          label="Checking for an existing payment submission..."
+          fullScreen={false}
+        />
+      ) : isSubmitting ? (
+        <LoadingScreen
+          label="Uploading your payment proof and submitting for verification..."
+          fullScreen={false}
+        />
+      ) : submittedPayment ? (
         <PaymentSuccess paymentDetails={submittedPayment} />
       ) : errorMsg ? (
         <PaymentFailed errorMsg={errorMsg} onRetry={() => setErrorMsg(null)} />
@@ -147,13 +192,12 @@ export const PaymentPage = () => {
             targetLocation={targetLocation}
             radius={radius}
             paymentType={paymentType}
+            isUpgrade={isUpgrade}
+            previousRadius={previousRadius}
           />
 
           {/* Right Column: Screenshot Proof Upload Form */}
-          <PaymentForm
-            onSubmit={handleFormSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <PaymentForm onSubmit={handleFormSubmit} />
         </div>
       )}
     </div>

@@ -3,7 +3,7 @@ import supabase from "../../db/supabaseClient";
 import * as api from "../api/listingsapi";
 import * as aiApi from "../api/aiApi";
 import { fetchUserApprovedAccess } from "../api/paymentAPI";
-import { getDistancePrice } from "../utils/paymentUtils";
+import { getDistancePrice, getUpgradePrice } from "../utils/paymentUtils";
 import { haversineDistance } from "../utils/geo";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -30,6 +30,15 @@ export const AppContextProvider = ({ children }) => {
   const [paidRadiusAccess, setPaidRadiusAccess] = useState(null);
   const [savedListings, setSavedListings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+
+  // Ticks on an interval so paid-radius-access countdowns (AllRooms,
+  // TenantDashboard) unlock/expire live instead of freezing at whatever
+  // Date.now() was on mount, without every consumer running its own timer.
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const refreshUserPaidAccess = useCallback(async (user) => {
     if (!user) {
@@ -68,6 +77,27 @@ export const AppContextProvider = ({ children }) => {
     if (!isSameLocation(location, paidRadiusAccess.location)) return false;
     if (radius > paidRadiusAccess.activeRadius) return false;
     return true;
+  };
+
+  // True when the user already has active paid access to a smaller radius
+  // at this exact location and is now going for a bigger one — the case
+  // where they should be charged just the difference between tiers instead
+  // of the new tier's full price. Same location is required: a different
+  // point isn't a radius "upgrade", it's an unrelated new purchase.
+  const isRadiusUpgrade = (location, radius) => {
+    if (!currentUser || !paidRadiusAccess) return false;
+    if (paidRadiusAccess.userId !== currentUser.id) return false;
+    if (!paidRadiusAccess.paidUntil || paidRadiusAccess.paidUntil <= Date.now())
+      return false;
+    if (!isSameLocation(location, paidRadiusAccess.location)) return false;
+    return Number(radius) > Number(paidRadiusAccess.activeRadius);
+  };
+
+  const getRadiusPaymentAmount = (location, radius) => {
+    if (isRadiusUpgrade(location, radius)) {
+      return getUpgradePrice(paidRadiusAccess.activeRadius, radius);
+    }
+    return getDistancePrice(radius);
   };
 
   const grantRadiusAccess = (
@@ -139,7 +169,7 @@ export const AppContextProvider = ({ children }) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, name, phone, email, is_verified, kyc_status, is_suspended")
+      .select("role, name, phone, email, avatar_url, is_verified, kyc_status, is_suspended")
       .eq("id", data.user.id)
       .single();
 
@@ -175,13 +205,85 @@ export const AppContextProvider = ({ children }) => {
     if (profile) setCurrentUser((prev) => ({ ...prev, ...profile }));
   };
 
+  // Self-service "Edit Profile" — name/phone only, see api.updateOwnProfile.
+  const updateOwnProfile = async ({ name, phone }) => {
+    if (!currentUser) throw new Error("You must be logged in.");
+    const updated = await api.updateOwnProfile(currentUser.id, { name, phone });
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    return updated;
+  };
+
+  // Profile picture — see api.uploadAvatar/deleteAvatar for storage details.
+  const updateAvatar = async (blob) => {
+    if (!currentUser) throw new Error("You must be logged in.");
+    const updated = await api.uploadAvatar(currentUser.id, blob);
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    return updated;
+  };
+
+  const removeAvatar = async () => {
+    if (!currentUser) throw new Error("You must be logged in.");
+    const updated = await api.deleteAvatar(currentUser.id);
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    return updated;
+  };
+
+  // "Change Password" step 1 — re-authenticate with the current password
+  // before allowing a change, same as re-login. signInWithPassword just
+  // refreshes the existing session on success; it doesn't sign the user out
+  // on failure, so a wrong password here only surfaces an error.
+  const verifyPassword = async (password) => {
+    if (!currentUser?.email) throw new Error("You must be logged in.");
+    const { error } = await supabase.auth.signInWithPassword({
+      email: currentUser.email,
+      password,
+    });
+    if (error) throw new Error("Incorrect password. Please try again.");
+  };
+
+  // "Change Password" step 2 — only reachable after verifyPassword succeeds.
+  const changePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  };
+
   const signupUser = async (email, password, name, phone, role) => {
+    const PHONE_TAKEN_MESSAGE =
+      "This phone number is already registered. Please sign in or use a different number.";
+
+    // profiles.phone has a unique constraint, but the profiles row is
+    // created by a server-side trigger inside auth.signUp() below — a
+    // violation there comes back as a generic GoTrue error, not one that
+    // names the actual problem. Check up front so the common case gets a
+    // clear message; the constraint remains the real enforcement for the
+    // rare race where two signups land at the same instant.
+    try {
+      if (await api.checkPhoneExists(phone)) {
+        return { success: false, message: PHONE_TAKEN_MESSAGE };
+      }
+    } catch (err) {
+      console.warn("Phone uniqueness pre-check failed, proceeding with signup:", err.message);
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name, phone, role } },
     });
-    if (error) return { success: false, message: error.message };
+    if (error) {
+      // The pre-check above already handles the common case by name; this
+      // generic GoTrue message can also mean some other trigger failure,
+      // so hedge rather than assert it's specifically the phone.
+      const looksLikeTriggerFailure = /database error saving new user/i.test(
+        error.message || "",
+      );
+      return {
+        success: false,
+        message: looksLikeTriggerFailure
+          ? "Could not create your account — this email or phone number may already be registered. Please try again or sign in."
+          : error.message,
+      };
+    }
     return {
       success: true,
       message: "Account created successfully! Please sign in.",
@@ -652,6 +754,11 @@ export const AppContextProvider = ({ children }) => {
         logoutUser,
         signupUser,
         refreshCurrentUser,
+        updateOwnProfile,
+        updateAvatar,
+        removeAvatar,
+        verifyPassword,
+        changePassword,
         theme,
         toggleTheme,
         createListing,
@@ -664,8 +771,11 @@ export const AppContextProvider = ({ children }) => {
         aiError,
         calculateRecommendationScore,
         paidRadiusAccess,
+        now,
         getDistancePrice,
         checkDistanceAccess,
+        isRadiusUpgrade,
+        getRadiusPaymentAmount,
         grantRadiusAccess,
       }}
     >

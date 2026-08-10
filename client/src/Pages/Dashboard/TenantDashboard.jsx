@@ -8,6 +8,7 @@ import whiteLogo from "../../assets/White_NestFinderLogo.png";
 import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { haversineDistance } from "../../utils/geo";
 import { isListingLive } from "../../utils/listingLifecycle";
+import { formatDuration } from "../../utils/paymentUtils";
 import {
   Heart,
   Sparkles,
@@ -17,31 +18,28 @@ import {
   Lock,
 } from "lucide-react";
 
-const RoomCarousel = ({ listings, locked = false }) => {
+// Static showcase images (public/mock_room_photos) — decorative preview
+// shown to every tenant regardless of payment status or how many real
+// listings currently exist, so this section is never empty. The caption
+// is what actually changes based on paid access.
+const CAROUSEL_IMAGES = [
+  "/mock_room_photos/roomimg1.jpeg",
+  "/mock_room_photos/roomimg2.jpeg",
+  "/mock_room_photos/roomimg3.jpeg",
+  "/mock_room_photos/roomimg4.jpeg",
+  "/mock_room_photos/roomimg5.jpeg",
+  "/mock_room_photos/roomimg6.jpeg",
+];
+
+const RoomCarousel = ({ locked = false }) => {
   const [current, setCurrent] = useState(0);
 
-  const images = listings
-    .filter((l) => l.images?.length > 0)
-    .flatMap((l) =>
-      l.images.map((img) => ({
-        url: img,
-        title: l.title,
-        location: l.location,
-        price: l.price,
-      })),
-    );
-
   useEffect(() => {
-    if (images.length === 0) return;
     const timer = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % images.length);
+      setCurrent((prev) => (prev + 1) % CAROUSEL_IMAGES.length);
     }, 3000);
     return () => clearInterval(timer);
-  }, [images.length]);
-
-  if (images.length === 0) return null;
-
-  const img = images[current];
+  }, []);
 
   return (
     <div
@@ -55,8 +53,8 @@ const RoomCarousel = ({ listings, locked = false }) => {
     >
       <img
         key={current}
-        src={img.url}
-        alt={img.title}
+        src={CAROUSEL_IMAGES[current]}
+        alt="Room preview"
         style={{
           width: "100%",
           height: "100%",
@@ -75,52 +73,20 @@ const RoomCarousel = ({ listings, locked = false }) => {
           background:
             "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)",
           color: "white",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-end",
         }}
       >
-        {locked ? (
-          <p
-            style={{
-              fontSize: "0.85rem",
-              fontWeight: 700,
-              margin: 0,
-              textShadow: "0 1px 4px rgba(0,0,0,0.5)",
-            }}
-          >
-            Complete payment to view rooms
-          </p>
-        ) : (
-          <>
-            <div>
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  fontWeight: 700,
-                  margin: 0,
-                  textShadow: "0 1px 4px rgba(0,0,0,0.5)",
-                }}
-              >
-                {img.title}
-              </p>
-              <p style={{ fontSize: "0.75rem", margin: 0, opacity: 0.85 }}>
-                📍 {img.location}
-              </p>
-            </div>
-            <span
-              style={{
-                fontSize: "0.8rem",
-                fontWeight: 800,
-                background: "rgba(99,102,241,0.9)",
-                padding: "0.2rem 0.6rem",
-                borderRadius: "6px",
-              }}
-            >
-              Rs. {img.price?.toLocaleString()}/mo
-            </span>
-          </>
-        )}
+        <p
+          style={{
+            fontSize: "0.85rem",
+            fontWeight: 700,
+            margin: 0,
+            textShadow: "0 1px 4px rgba(0,0,0,0.5)",
+          }}
+        >
+          {locked
+            ? "Complete payment to view rooms"
+            : "Click \"View Rooms\" to view rooms based on your location"}
+        </p>
       </div>
 
       <div
@@ -132,7 +98,7 @@ const RoomCarousel = ({ listings, locked = false }) => {
           gap: "5px",
         }}
       >
-        {images.map((_, i) => (
+        {CAROUSEL_IMAGES.map((_, i) => (
           <div
             key={i}
             onClick={() => setCurrent(i)}
@@ -167,6 +133,7 @@ export const TenantDashboard = () => {
     tenantPreferences,
     calculateRecommendationScore,
     paidRadiusAccess,
+    now: currentTime,
     theme,
   } = useContext(AppContext);
   const logo = theme === "dark" ? darkLogo : whiteLogo;
@@ -175,7 +142,6 @@ export const TenantDashboard = () => {
 
   const [activeListingId, setActiveListingId] = useState(null);
   const [highlightListingId] = useState(null);
-  const [currentTime] = useState(() => Date.now());
 
   useEffect(() => {
     if (!currentUser) {
@@ -190,6 +156,10 @@ export const TenantDashboard = () => {
     paidRadiusAccess.userId === currentUser?.id &&
     paidRadiusAccess.paidUntil > currentTime &&
     paidRadiusAccess.location;
+
+  const accessRemainingLabel = isAccessPaid
+    ? formatDuration(paidRadiusAccess.paidUntil - currentTime)
+    : null;
 
   const visibleListings = isAccessPaid
     ? listings.filter((l) => {
@@ -343,14 +313,28 @@ export const TenantDashboard = () => {
           <h3 className="flex items-center gap-2 text-[1.4rem] font-bold">
             🗺️ Unlocked Rooms in Map View
           </h3>
-          <span
-            className="badge badge-secondary"
-            style={{ textTransform: "none" }}
-          >
-            {isAccessPaid
-              ? `Showing ${visibleListings.length} rooms in radius`
-              : "Radius Access Locked"}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="badge badge-secondary"
+              style={{ textTransform: "none" }}
+            >
+              {isAccessPaid
+                ? `Showing ${visibleListings.length} rooms in radius`
+                : "Radius Access Locked"}
+            </span>
+            {isAccessPaid && (
+              <span
+                className="badge flex items-center gap-1"
+                style={{
+                  textTransform: "none",
+                  backgroundColor: "rgba(16, 185, 129, 0.1)",
+                  color: "#10b981",
+                }}
+              >
+                <Clock size={12} /> {accessRemainingLabel} remaining
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="map-section-full relative">
@@ -427,14 +411,7 @@ export const TenantDashboard = () => {
         <div className="carousel-section" style={{ marginTop: 0 }}>
           <div className="carousel-container">
             <div className="flex-1">
-              <RoomCarousel
-                listings={
-                  isAccessPaid
-                    ? visibleListings
-                    : listings.filter(isListingLive)
-                }
-                locked={!isAccessPaid}
-              />
+              <RoomCarousel locked={!isAccessPaid} />
             </div>
             <div className="glowing-arrow" onClick={() => navigate("/rooms")}>
               <ArrowRight size={24} />

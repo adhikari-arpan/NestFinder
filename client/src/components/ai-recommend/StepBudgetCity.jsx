@@ -1,4 +1,5 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
+import { stepNavClass } from "./stepStyles";
 
 const CITIES = ["Kathmandu", "Lalitpur", "Bhaktapur"];
 
@@ -8,6 +9,7 @@ export const StepBudgetCity = ({
   budget,
   setBudget,
   onNext,
+  onBackToDashboard,
 }) => {
   return (
     <div className="card animate-fade-in flex flex-col gap-10 rounded-lg border border-(--border-color) bg-(--bg-card) p-8 shadow-lg sm:p-12">
@@ -57,7 +59,10 @@ export const StepBudgetCity = ({
         </div>
       </div>
 
-      <div className="flex justify-end border-t border-(--border-color) pt-5">
+      <div className={stepNavClass}>
+        <button onClick={onBackToDashboard} className="btn btn-outline flex gap-1">
+          <ChevronLeft size={18} /> Back to Dashboard
+        </button>
         <button onClick={onNext} className="btn btn-primary flex gap-1">
           Next Step <ChevronRight size={18} />
         </button>

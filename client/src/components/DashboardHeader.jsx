@@ -9,18 +9,48 @@ import {
   LogOut,
   X,
   IdCard,
+  Lock,
 } from "lucide-react";
-import { VerifiedBadge } from "./VerifiedBadge";
+import { VerifiedBadge } from "./ui/VerifiedBadge";
+import { ModalLogo } from "./ui/ModalLogo";
+import { EditProfileModal } from "./EditProfileModal";
+import { AvatarPictureModal } from "./AvatarPictureModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 
 // Shared dashboard header: renders whatever left-side content is passed as
 // children, plus the profile trigger, profile overlay menu, and logout
 // confirmation popup that are identical across Tenant/Landlord/Admin dashboards.
 export const DashboardHeader = ({ children, className = "", style = {} }) => {
-  const { currentUser, logoutUser } = useContext(AppContext);
+  const { currentUser, logoutUser, removeAvatar } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
+
+  const handleDeleteAvatarClick = () => {
+    if (deletingAvatar || !currentUser?.avatar_url) return;
+    setProfileMenuOpen(false);
+    setShowDeleteAvatarConfirm(true);
+  };
+
+  const cancelDeleteAvatar = () => setShowDeleteAvatarConfirm(false);
+
+  const confirmDeleteAvatar = async () => {
+    setShowDeleteAvatarConfirm(false);
+    setDeletingAvatar(true);
+    try {
+      await removeAvatar();
+    } catch (err) {
+      console.error("Failed to delete profile picture:", err.message);
+    } finally {
+      setDeletingAvatar(false);
+    }
+  };
 
   const handleLogout = () => setShowLogoutConfirm(true);
 
@@ -44,8 +74,8 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
             onClick={() => setProfileMenuOpen(true)}
             title="Click to view profile menu"
           >
-            {currentUser?.profilePicture ? (
-              <img src={currentUser.profilePicture} alt="Profile" />
+            {currentUser?.avatar_url ? (
+              <img src={currentUser.avatar_url} alt="Profile" />
             ) : (
               <User size={40} className="text-primary" />
             )}
@@ -83,17 +113,30 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
             <div className="mb-8 flex flex-col gap-3">
               <div
                 className="profile-menu-item"
-                onClick={() => alert("Edit Profile functionality coming soon!")}
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  setEditProfileOpen(true);
+                }}
               >
                 <User size={18} /> Edit Profile
               </div>
               <div
                 className="profile-menu-item"
-                onClick={() =>
-                  alert("Change Profile Picture functionality coming soon!")
-                }
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  setAvatarModalOpen(true);
+                }}
               >
-                <ImageIcon size={18} /> Change Profile Picture
+                <ImageIcon size={18} /> Update Profile Picture
+              </div>
+              <div
+                className="profile-menu-item"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  setChangePasswordOpen(true);
+                }}
+              >
+                <Lock size={18} /> Change Password
               </div>
               {currentUser?.role === "landlord" && (
                 <div
@@ -107,12 +150,15 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                 </div>
               )}
               <div
-                className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
-                onClick={() =>
-                  alert("Delete Profile Picture functionality coming soon!")
-                }
+                className={`profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)] ${
+                  deletingAvatar || !currentUser?.avatar_url
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                }`}
+                onClick={handleDeleteAvatarClick}
               >
-                <Trash2 size={18} /> Delete Profile Picture
+                <Trash2 size={18} />{" "}
+                {deletingAvatar ? "Deleting..." : "Delete Profile Picture"}
               </div>
             </div>
 
@@ -127,6 +173,18 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
           </div>
         </>,
         document.body,
+      )}
+
+      {editProfileOpen && (
+        <EditProfileModal onClose={() => setEditProfileOpen(false)} />
+      )}
+
+      {avatarModalOpen && (
+        <AvatarPictureModal onClose={() => setAvatarModalOpen(false)} />
+      )}
+
+      {changePasswordOpen && (
+        <ChangePasswordModal onClose={() => setChangePasswordOpen(false)} />
       )}
 
       {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}
@@ -160,20 +218,7 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                 textAlign: "center",
               }}
             >
-              <div
-                style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "50%",
-                  background: "var(--primary-light)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 1.25rem",
-                }}
-              >
-                <LogOut size={22} style={{ color: "var(--primary)" }} />
-              </div>
+              <ModalLogo />
 
               <h3
                 style={{
@@ -224,6 +269,95 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                   }}
                 >
                   <LogOut size={15} /> Yes, Logout
+                </button>
+              </div>
+            </div>
+          </>,
+          document.body,
+        )}
+
+      {/* Delete Profile Picture Confirmation Popup */}
+      {showDeleteAvatarConfirm &&
+        createPortal(
+          <>
+            <div
+              onClick={cancelDeleteAvatar}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 2000,
+                background: "rgba(0,0,0,0.45)",
+                backdropFilter: "blur(4px)",
+              }}
+            />
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 2001,
+                width: "100%",
+                maxWidth: "380px",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-lg)",
+                padding: "2rem 2rem 1.75rem",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+                textAlign: "center",
+              }}
+            >
+              <ModalLogo />
+
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: 800,
+                  marginBottom: "0.5rem",
+                  color: "var(--text-main)",
+                }}
+              >
+                Delete your profile picture?
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.88rem",
+                  color: "var(--text-muted)",
+                  marginBottom: "1.75rem",
+                  lineHeight: 1.6,
+                }}
+              >
+                This will reset your profile picture to the default icon.
+              </p>
+
+              <div style={{ display: "flex", gap: "0.75rem" }}>
+                <button
+                  onClick={cancelDeleteAvatar}
+                  className="btn btn-outline"
+                  style={{ flex: 1, fontWeight: 700 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAvatar}
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.75rem",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "0.9rem",
+                    color: "white",
+                    background: "var(--danger, #dc2626)",
+                    boxShadow: "0 4px 12px rgba(220,38,38,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.4rem",
+                  }}
+                >
+                  <Trash2 size={15} /> Yes, Delete
                 </button>
               </div>
             </div>

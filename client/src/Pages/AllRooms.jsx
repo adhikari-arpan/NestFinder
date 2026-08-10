@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { RoomCard } from "../components/RoomCard";
-import { LoadingScreen } from "../components/LoadingScreen";
+import { LoadingScreen } from "../components/ui/LoadingScreen";
 import { ArrowLeft, Sparkles, Home, MapPin, Lock, Clock } from "lucide-react";
 import {
   MapContainer as LeafletMap,
@@ -14,6 +14,7 @@ import { LocationRadiusPicker } from "../components/LocationRadiusPicker";
 import { PRESET_LOCATIONS } from "../utils/presetLocations";
 import { haversineDistance } from "../utils/geo";
 import { isListingLive } from "../utils/listingLifecycle";
+import { formatDuration } from "../utils/paymentUtils";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Settings2 } from "lucide-react";
@@ -33,11 +34,12 @@ export const AllRooms = () => {
     listingsLoading,
     currentUser,
     paidRadiusAccess,
-    getDistancePrice,
+    now,
+    isRadiusUpgrade,
+    getRadiusPaymentAmount,
   } = useContext(AppContext);
 
   const navigate = useNavigate();
-  const now = useState(() => Date.now());
 
   const isAccessPaid =
     paidRadiusAccess &&
@@ -80,24 +82,26 @@ export const AllRooms = () => {
     ? [paidRadiusAccess.location.lat, paidRadiusAccess.location.lng]
     : [27.685, 85.32];
 
+  const isUpgrade = isRadiusUpgrade(selectedLocation, selectedRadius);
+
   const handleUnlockPayment = () => {
     const latStr = selectedLocation?.lat || 27.6644;
     const lngStr = selectedLocation?.lng || 85.3188;
     const nameStr = encodeURIComponent(
       selectedLocation?.name || "Selected Point",
     );
-    const price = getDistancePrice(selectedRadius);
+    const price = getRadiusPaymentAmount(selectedLocation, selectedRadius);
+    const upgradeParams = isUpgrade
+      ? `&upgrade=true&prevRadius=${paidRadiusAccess.activeRadius}`
+      : "";
     navigate(
-      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}`,
+      `/payment?type=distance_radius&radius=${selectedRadius}&amount=${price}&lat=${latStr}&lng=${lngStr}&name=${nameStr}${upgradeParams}`,
     );
   };
 
-  const remainingHours = isAccessPaid
-    ? Math.max(
-        0,
-        Math.ceil((paidRadiusAccess.paidUntil - now) / (1000 * 60 * 60)),
-      )
-    : 0;
+  const remainingLabel = isAccessPaid
+    ? formatDuration(paidRadiusAccess.paidUntil - now)
+    : null;
 
   return (
     <div
@@ -182,7 +186,7 @@ export const AllRooms = () => {
                     fontSize: "0.95rem",
                   }}
                 >
-                  Active Paid Radius Access Unlocked ({remainingHours}h
+                  Active Paid Radius Access Unlocked ({remainingLabel}{" "}
                   remaining)
                 </span>
                 <p
@@ -313,7 +317,9 @@ export const AllRooms = () => {
             }}
           >
             <Sparkles size={18} style={{ fill: "white" }} />
-            Pay & Unlock Radius Tier (Rs. {getDistancePrice(selectedRadius)})
+            {isUpgrade
+              ? `Upgrade Radius Tier (Rs. ${getRadiusPaymentAmount(selectedLocation, selectedRadius)})`
+              : `Pay & Unlock Radius Tier (Rs. ${getRadiusPaymentAmount(selectedLocation, selectedRadius)})`}
           </button>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
 import * as api from "../../api/listingsapi";
@@ -7,6 +8,7 @@ import {
   updatePaymentStatus as apiUpdatePaymentStatus,
 } from "../../api/paymentAPI";
 import { formatNPR, getStatusBadge } from "../../utils/paymentUtils";
+import { isListingLive, daysRemaining } from "../../utils/listingLifecycle";
 import whiteLogo from "../../assets/White_NestFinderLogo.png";
 import darkLogo from "../../assets/Dark_NestFinderLogo.png";
 import { DashboardHeader } from "../../components/DashboardHeader";
@@ -14,7 +16,7 @@ import { StatTile } from "../../components/admin/StatTile";
 import { BarChartPanel } from "../../components/admin/BarChartPanel";
 import { SectionHeading } from "../../components/admin/SectionHeading";
 import { KycReviewModal } from "../../components/admin/KycReviewModal";
-import { LoadingScreen } from "../../components/LoadingScreen";
+import { LoadingScreen } from "../../components/ui/LoadingScreen";
 
 import {
   ShieldAlert,
@@ -34,6 +36,8 @@ import {
   Check,
   XCircle,
   X,
+  Clock,
+  TrendingUp,
   Image as ImageIcon,
 } from "lucide-react";
 
@@ -68,11 +72,28 @@ export const AdminDashboard = () => {
 
   const [payments, setPayments] = useState([]);
   const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const [paymentsError, setPaymentsError] = useState(null);
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("pending");
+  const [listingStatusFilter, setListingStatusFilter] = useState("pending");
   const [previewProof, setPreviewProof] = useState(null);
 
   const [actionMessage, setActionMessage] = useState(null); // { text, type: 'success' | 'error' | 'info' }
   const [reviewingUser, setReviewingUser] = useState(null); // { id, name } | null
   const [suspendingId, setSuspendingId] = useState(null);
+  // Shown as a blocking overlay for any admin action that waits on a
+  // network round-trip (listing status changes, payment verification, user
+  // suspension) — previously these buttons gave zero visual feedback while
+  // in flight, which read as the page having frozen.
+  const [busyLabel, setBusyLabel] = useState(null);
+
+  const handleListingAction = async (id, status, label) => {
+    setBusyLabel(label);
+    try {
+      await updateListingStatus(id, status);
+    } finally {
+      setBusyLabel(null);
+    }
+  };
 
   const handleKycReviewed = (userId, decision) => {
     setUsers((prev) =>
@@ -102,6 +123,7 @@ export const AdminDashboard = () => {
     if (!confirmed) return;
 
     setSuspendingId(user.id);
+    setBusyLabel(nextSuspended ? "Suspending user..." : "Reactivating user...");
     try {
       await api.setUserSuspended(user.id, nextSuspended);
       setUsers((prev) =>
@@ -123,6 +145,7 @@ export const AdminDashboard = () => {
       });
     } finally {
       setSuspendingId(null);
+      setBusyLabel(null);
     }
   };
 
@@ -154,24 +177,34 @@ export const AdminDashboard = () => {
   // need to (and shouldn't) set it synchronously — only the fetch's own
   // async callbacks touch state.
   const loadPayments = () => {
+    setPaymentsError(null);
     fetchAllPayments()
       .then(setPayments)
-      .catch((err) => console.error("Failed to load payments:", err))
+      .catch((err) => {
+        console.error("Failed to load payments:", err);
+        setPaymentsError(
+          err.message ||
+            "Could not load payments. Check your connection or Supabase permissions.",
+        );
+      })
       .finally(() => setPaymentsLoading(false));
   };
 
   useEffect(() => {
-    loadPayments();
+    Promise.resolve().then(() => loadPayments());
   }, []);
 
   const handlePaymentVerification = async (paymentId, decision) => {
+    setBusyLabel(
+      decision === "approved" ? "Approving payment..." : "Rejecting payment...",
+    );
     try {
       const updated = await apiUpdatePaymentStatus(paymentId, decision);
       setPayments((prev) =>
-        prev.map((p) => (p.id === paymentId ? { ...p, status: decision } : p)),
+        prev.map((p) => (p.id === paymentId ? updated : p)),
       );
 
-      if (decision === "approved" && updated) {
+      if (decision === "approved") {
         const isListingFee = updated.payment_type === "landlord_listing";
         if (!isListingFee && updated.target_location && updated.target_radius) {
           grantRadiusAccess(
@@ -195,6 +228,12 @@ export const AdminDashboard = () => {
       }
     } catch (err) {
       console.error("Payment status update failed:", err);
+      setActionMessage({
+        text: err.message || "Couldn't update this payment. Please try again.",
+        type: "error",
+      });
+    } finally {
+      setBusyLabel(null);
     }
   };
 
@@ -214,6 +253,42 @@ export const AdminDashboard = () => {
 
   const pendingListings = listings.filter((l) => l.status === "pending");
   const flaggedListings = listings.filter((l) => l.status === "flagged");
+  // "Active" = verified and still within the 7-day post-verification
+  // visibility window; "Expired" = verified but that window has passed —
+  // the row/status is untouched, it's just dropped from tenant-facing
+  // search until re-verified (see utils/listingLifecycle.js).
+  const activeListings = listings.filter(
+    (l) => l.status === "verified" && isListingLive(l),
+  );
+  const expiredListings = listings.filter(
+    (l) => l.status === "verified" && !isListingLive(l),
+  );
+
+  const LISTING_FILTERS = [
+    { key: "pending", label: "Pending Review", list: pendingListings },
+    { key: "active", label: "Active", list: activeListings },
+    { key: "expired", label: "Expired", list: expiredListings },
+    { key: "flagged", label: "Flagged", list: flaggedListings },
+    { key: "all", label: "All", list: listings },
+  ];
+  const filteredListings =
+    LISTING_FILTERS.find((f) => f.key === listingStatusFilter)?.list ||
+    listings;
+
+  const listingBadge = (item) => {
+    if (item.status === "pending")
+      return { label: "PENDING REVIEW", className: "badge badge-accent" };
+    if (item.status === "flagged")
+      return { label: "FLAGGED", className: "badge badge-danger" };
+    if (item.status === "verified" && isListingLive(item))
+      return { label: "ACTIVE", className: "badge badge-secondary" };
+    if (item.status === "verified")
+      return { label: "EXPIRED", className: "badge badge-primary" };
+    return {
+      label: (item.status || "unknown").toUpperCase(),
+      className: "badge",
+    };
+  };
 
   const verifiedLandlordCount = users.filter(
     (u) => u.role === "landlord" && u.is_verified,
@@ -224,6 +299,48 @@ export const AdminDashboard = () => {
     { label: "Pending", value: pendingCount, colorVar: "--accent" },
     { label: "Flagged", value: flaggedCount, colorVar: "--danger" },
   ];
+
+  // ------------------------------------------------------------
+  // Revenue analytics (approved payments only — pending/rejected amounts
+  // aren't real revenue yet)
+  // ------------------------------------------------------------
+  const approvedPayments = payments.filter((p) => p.status === "approved");
+  const pendingPayments = payments.filter((p) => p.status === "pending");
+  const rejectedPayments = payments.filter((p) => p.status === "rejected");
+  const sumAmount = (list) =>
+    list.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+  const totalRevenue = sumAmount(approvedPayments);
+  const pendingRevenue = sumAmount(pendingPayments);
+  const radiusRevenue = sumAmount(
+    approvedPayments.filter((p) => p.payment_type !== "landlord_listing"),
+  );
+  const listingRevenue = sumAmount(
+    approvedPayments.filter((p) => p.payment_type === "landlord_listing"),
+  );
+
+  const revenueByTypeChartData = [
+    {
+      label: `Tenant Fees (${formatNPR(radiusRevenue)})`,
+      value: radiusRevenue,
+      colorVar: "--primary",
+    },
+    {
+      label: `Landlord Fees (${formatNPR(listingRevenue)})`,
+      value: listingRevenue,
+      colorVar: "--secondary",
+    },
+  ];
+
+  const PAYMENT_FILTERS = [
+    { key: "pending", label: "Pending Review", list: pendingPayments },
+    { key: "approved", label: "Approved History", list: approvedPayments },
+    { key: "rejected", label: "Rejected", list: rejectedPayments },
+    { key: "all", label: "All", list: payments },
+  ];
+  const filteredPayments =
+    PAYMENT_FILTERS.find((f) => f.key === paymentStatusFilter)?.list ||
+    payments;
 
   const roleChartData = [
     {
@@ -322,7 +439,33 @@ export const AdminDashboard = () => {
       {/* Analytics */}
       <section className="border-b border-(--border-color) py-6">
         <SectionHeading>Analytics</SectionHeading>
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile
+            label="Total Revenue"
+            value={paymentsLoading ? "—" : formatNPR(totalRevenue)}
+            colorVar="--secondary"
+            icon={TrendingUp}
+          />
+          <StatTile
+            label="Pending Verification"
+            value={paymentsLoading ? "—" : formatNPR(pendingRevenue)}
+            colorVar="--accent"
+            icon={Clock}
+          />
+          <StatTile
+            label="Approved Payments"
+            value={paymentsLoading ? "—" : approvedPayments.length}
+            colorVar="--primary"
+          />
+          <StatTile
+            label="Rejected Payments"
+            value={paymentsLoading ? "—" : rejectedPayments.length}
+            colorVar="--danger"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <BarChartPanel
             title="Listings by Status"
             icon={ShieldAlert}
@@ -334,25 +477,51 @@ export const AdminDashboard = () => {
             data={roleChartData}
             emptyLabel={usersLoading ? "Loading users..." : "No users yet."}
           />
+          <BarChartPanel
+            title="Revenue by Payment Type"
+            icon={CreditCard}
+            data={revenueByTypeChartData}
+            emptyLabel={
+              paymentsLoading
+                ? "Loading payments..."
+                : "No approved payments yet."
+            }
+          />
         </div>
       </section>
 
       {/* Management */}
       <section className="pt-6">
         <SectionHeading>Management</SectionHeading>
+
+        {actionMessage && (
+          <div
+            className={`mb-4 rounded-md border px-4 py-3 text-[0.85rem] font-medium ${
+              actionMessage.type === "success"
+                ? "border-(--secondary) bg-(--secondary-light) text-(--secondary)"
+                : actionMessage.type === "error"
+                  ? "border-(--danger) bg-(--danger-light) text-(--danger)"
+                  : "border-(--border-color) bg-(--bg-app) text-(--text-muted)"
+            }`}
+          >
+            {actionMessage.text}
+          </div>
+        )}
+
         <div className="mb-8 flex flex-wrap gap-6 border-b border-(--border-color)">
           <button
             onClick={() => setActiveTab("payments")}
             className={tabClass("payments")}
           >
             <CreditCard size={16} /> Payment Verifications (
-            {payments.filter((p) => p.status === "pending").length})
+            {pendingPayments.length})
           </button>
           <button
             onClick={() => setActiveTab("pending")}
             className={tabClass("pending")}
           >
-            <CheckCircle size={16} /> Room Approvals ({pendingListings.length})
+            <CheckCircle size={16} /> Room Listings ({pendingListings.length}{" "}
+            pending)
           </button>
           <button
             onClick={() => setActiveTab("flagged")}
@@ -371,6 +540,33 @@ export const AdminDashboard = () => {
         {/* 0. Payment Verifications Queue */}
         {activeTab === "payments" && (
           <div className="flex flex-col gap-4">
+            {/* Status filter chips */}
+            <div className="flex flex-wrap gap-2">
+              {PAYMENT_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setPaymentStatusFilter(f.key)}
+                  className="cursor-pointer rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold transition-colors"
+                  style={
+                    paymentStatusFilter === f.key
+                      ? {
+                          background: "var(--primary)",
+                          color: "white",
+                          border: "1px solid var(--primary)",
+                        }
+                      : {
+                          background: "transparent",
+                          color: "var(--text-muted)",
+                          border: "1px solid var(--border-color)",
+                        }
+                  }
+                >
+                  {f.label} ({f.list.length})
+                </button>
+              ))}
+            </div>
+
             {paymentsLoading ? (
               <div className="card p-6">
                 <LoadingScreen
@@ -378,16 +574,31 @@ export const AdminDashboard = () => {
                   fullScreen={false}
                 />
               </div>
-            ) : payments.length === 0 ? (
+            ) : paymentsError ? (
+              <div className="card border-(--danger) p-12 text-center text-(--danger)">
+                <ShieldAlert size={40} className="mx-auto mb-2" />
+                <p className="font-semibold">{paymentsError}</p>
+                <button
+                  onClick={loadPayments}
+                  className="btn btn-outline btn-sm mt-4"
+                >
+                  Retry
+                </button>
+              </div>
+            ) : filteredPayments.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
                 <CreditCard
                   size={40}
                   className="mx-auto mb-2 text-(--secondary)"
                 />
-                <p>No payment proof submissions in queue.</p>
+                <p>
+                  {paymentStatusFilter === "pending"
+                    ? "No payment proof submissions in queue."
+                    : `No ${paymentStatusFilter} payments yet.`}
+                </p>
               </div>
             ) : (
-              payments.map((p) => {
+              filteredPayments.map((p) => {
                 const badge = getStatusBadge(p.status);
                 const isListingFee = p.payment_type === "landlord_listing";
                 const radiusLabel =
@@ -500,70 +711,180 @@ export const AdminDashboard = () => {
           </div>
         )}
 
-        {/* 1. Pending Approvals */}
+        {/* 1. Room Listings — every room that's ever been submitted, filterable
+            by pending / active / expired / flagged / all */}
         {activeTab === "pending" && (
           <div className="flex flex-col gap-4">
-            {pendingListings.length === 0 ? (
+            {/* Status filter chips */}
+            <div className="flex flex-wrap gap-2">
+              {LISTING_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setListingStatusFilter(f.key)}
+                  className="cursor-pointer rounded-full border px-3 py-1.5 text-[0.78rem] font-semibold transition-colors"
+                  style={
+                    listingStatusFilter === f.key
+                      ? {
+                          background: "var(--primary)",
+                          color: "white",
+                          border: "1px solid var(--primary)",
+                        }
+                      : {
+                          background: "transparent",
+                          color: "var(--text-muted)",
+                          border: "1px solid var(--border-color)",
+                        }
+                  }
+                >
+                  {f.label} ({f.list.length})
+                </button>
+              ))}
+            </div>
+
+            {filteredListings.length === 0 ? (
               <div className="card p-12 text-center text-(--text-light)">
                 <CheckCircle
                   size={40}
                   className="mx-auto mb-2 text-(--secondary)"
                 />
-                <p>All room submissions have been reviewed. Clean queue!</p>
+                <p>
+                  {listingStatusFilter === "pending"
+                    ? "All room submissions have been reviewed. Clean queue!"
+                    : `No ${listingStatusFilter} listings.`}
+                </p>
               </div>
             ) : (
-              pendingListings.map((item) => (
-                <div
-                  key={item.id}
-                  className="card grid grid-cols-1 gap-8 p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
-                >
-                  {/* Details */}
-                  <div className="flex items-start gap-4 text-left">
-                    <img
-                      src={item.images[0]}
-                      className="h-15 w-20 rounded-sm object-cover"
-                      alt="preview"
-                    />
-                    <div>
-                      <span className="badge badge-accent text-[0.65rem]">
-                        PENDING REVIEW
-                      </span>
-                      <h3 className="mt-1 mb-0.5 text-[1.05rem]">
-                        <Link
-                          to={`/room/${item.id}`}
-                          className="text-(--text-main)"
-                        >
-                          {item.title}
-                        </Link>
-                      </h3>
-                      <div className="text-[0.8rem] text-(--text-muted)">
-                        📍 {item.location} • Rs. {item.price.toLocaleString()}{" "}
-                        /mo
-                      </div>
-                      <div className="mt-2 text-[0.78rem] text-(--text-light)">
-                        Landlord: <strong>{item.landlord.name}</strong> (
-                        {item.landlord.email})
+              filteredListings.map((item) => {
+                const badge = listingBadge(item);
+                const isLive =
+                  item.status === "verified" && isListingLive(item);
+                const isExpired = item.status === "verified" && !isLive;
+                const remaining = isLive ? daysRemaining(item) : null;
+                const expiredOn =
+                  isExpired && item.verifiedAt
+                    ? new Date(
+                        new Date(item.verifiedAt).getTime() +
+                          7 * 24 * 60 * 60 * 1000,
+                      ).toLocaleDateString()
+                    : null;
+
+                return (
+                  <div
+                    key={item.id}
+                    className="card grid grid-cols-1 gap-8 p-5 shadow-sm md:grid-cols-[1.2fr_0.8fr]"
+                  >
+                    {/* Details */}
+                    <div className="flex items-start gap-4 text-left">
+                      <img
+                        src={item.images[0]}
+                        className="h-15 w-20 rounded-sm object-cover"
+                        alt="preview"
+                      />
+                      <div>
+                        <span className={`${badge.className} text-[0.65rem]`}>
+                          {badge.label}
+                        </span>
+                        <h3 className="mt-1 mb-0.5 text-[1.05rem]">
+                          <Link
+                            to={`/room/${item.id}`}
+                            className="text-(--text-main)"
+                          >
+                            {item.title}
+                          </Link>
+                        </h3>
+                        <div className="text-[0.8rem] text-(--text-muted)">
+                          📍 {item.location} • Rs. {item.price.toLocaleString()}{" "}
+                          /mo
+                        </div>
+                        <div className="mt-2 text-[0.78rem] text-(--text-light)">
+                          Landlord: <strong>{item.landlord.name}</strong> (
+                          {item.landlord.email})
+                        </div>
+                        <div className="mt-1 text-[0.75rem] text-(--text-light)">
+                          {item.createdAt &&
+                            `Posted ${new Date(item.createdAt).toLocaleDateString()}`}
+                          {isLive &&
+                            remaining !== null &&
+                            ` • Expires in ${remaining} day${remaining === 1 ? "" : "s"}`}
+                          {isExpired &&
+                            expiredOn &&
+                            ` • Expired on ${expiredOn}`}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => updateListingStatus(item.id, "verified")}
-                      className="btn btn-secondary btn-sm flex gap-1"
-                    >
-                      <CheckCircle size={14} /> Approve listing
-                    </button>
-                    <button
-                      onClick={() => updateListingStatus(item.id, "flagged")}
-                      className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
-                    >
-                      <AlertTriangle size={14} /> Reject / Flag
-                    </button>
+                    {/* Actions */}
+                    <div className="flex items-center justify-end gap-2">
+                      {item.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() =>
+                              handleListingAction(
+                                item.id,
+                                "verified",
+                                "Approving listing...",
+                              )
+                            }
+                            className="btn btn-secondary btn-sm flex gap-1"
+                          >
+                            <CheckCircle size={14} /> Approve listing
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleListingAction(
+                                item.id,
+                                "flagged",
+                                "Flagging listing...",
+                              )
+                            }
+                            className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
+                          >
+                            <AlertTriangle size={14} /> Reject / Flag
+                          </button>
+                        </>
+                      )}
+                      {isLive && (
+                        <button
+                          onClick={() =>
+                            handleListingAction(
+                              item.id,
+                              "flagged",
+                              "Flagging listing...",
+                            )
+                          }
+                          className="btn btn-outline btn-sm flex gap-1 text-(--danger)"
+                        >
+                          <AlertTriangle size={14} /> Flag
+                        </button>
+                      )}
+                      {isExpired && (
+                        <button
+                          onClick={() =>
+                            handleListingAction(
+                              item.id,
+                              "verified",
+                              "Renewing listing...",
+                            )
+                          }
+                          className="btn btn-secondary btn-sm flex gap-1"
+                          title="Re-verify to restart the 7-day visibility window"
+                        >
+                          <CheckCircle size={14} /> Renew Listing
+                        </button>
+                      )}
+                      {item.status === "flagged" && (
+                        <Link
+                          to={`/room/${item.id}`}
+                          className="btn btn-outline btn-sm flex gap-1"
+                        >
+                          <Eye size={14} /> View Listing
+                        </Link>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
@@ -608,13 +929,25 @@ export const AdminDashboard = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-end gap-2">
                     <button
-                      onClick={() => updateListingStatus(item.id, "verified")}
+                      onClick={() =>
+                        handleListingAction(
+                          item.id,
+                          "verified",
+                          "Clearing flag...",
+                        )
+                      }
                       className="btn btn-outline btn-sm flex gap-1"
                     >
                       <CheckCircle size={14} /> Clear Flag (Approve)
                     </button>
                     <button
-                      onClick={() => updateListingStatus(item.id, "pending")}
+                      onClick={() =>
+                        handleListingAction(
+                          item.id,
+                          "pending",
+                          "Updating listing...",
+                        )
+                      }
                       className="btn btn-primary btn-sm flex gap-1 bg-(--danger)"
                     >
                       <Trash2 size={14} /> Ban & Delete Listing
@@ -629,20 +962,6 @@ export const AdminDashboard = () => {
         {/* 3. Platform Users */}
         {activeTab === "users" && (
           <div className="flex flex-col gap-4">
-            {actionMessage && (
-              <div
-                className={`rounded-md border px-4 py-3 text-[0.85rem] font-medium ${
-                  actionMessage.type === "success"
-                    ? "border-(--secondary) bg-(--secondary-light) text-(--secondary)"
-                    : actionMessage.type === "error"
-                      ? "border-(--danger) bg-(--danger-light) text-(--danger)"
-                      : "border-(--border-color) bg-(--bg-app) text-(--text-muted)"
-                }`}
-              >
-                {actionMessage.text}
-              </div>
-            )}
-
             <div className="relative">
               <Search
                 size={16}
@@ -779,63 +1098,90 @@ export const AdminDashboard = () => {
         />
       )}
 
-      {/* Payment Proof Modal Preview */}
-      {previewProof && (
-        <div
-          onClick={() => setPreviewProof(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 99999,
-            backgroundColor: "rgba(15, 23, 42, 0.85)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1rem",
-          }}
-        >
+      {/* Blocking overlay for any in-flight admin action — portaled to
+          document.body like KycReviewModal, since position: fixed inside
+          the page's .animate-fade-in container is broken by the transform
+          its fadeIn keyframes leave behind (translateY(0) still creates a
+          containing block), which otherwise traps "fixed" overlays inside
+          the page instead of covering the viewport. */}
+      {busyLabel &&
+        createPortal(
           <div
             style={{
-              position: "relative",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
+              position: "fixed",
+              inset: 0,
+              zIndex: 100000,
+              backgroundColor: "rgba(15, 23, 42, 0.35)",
+              backdropFilter: "blur(2px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <button
-              onClick={() => setPreviewProof(null)}
+            <LoadingScreen label={busyLabel} fullScreen={false} />
+          </div>,
+          document.body,
+        )}
+
+      {/* Payment Proof Modal Preview — also portaled, for the same reason */}
+      {previewProof &&
+        createPortal(
+          <div
+            onClick={() => setPreviewProof(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99999,
+              backgroundColor: "rgba(15, 23, 42, 0.85)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "1rem",
+            }}
+          >
+            <div
               style={{
-                position: "absolute",
-                top: "-15px",
-                right: "-15px",
-                backgroundColor: "white",
-                color: "black",
-                border: "none",
-                borderRadius: "50%",
-                width: "32px",
-                height: "32px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: "bold",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                position: "relative",
+                maxWidth: "90vw",
+                maxHeight: "90vh",
               }}
             >
-              <X size={18} />
-            </button>
-            <img
-              src={previewProof}
-              alt="Payment screenshot proof"
-              style={{
-                maxHeight: "85vh",
-                maxWidth: "85vw",
-                borderRadius: "12px",
-              }}
-            />
-          </div>
-        </div>
-      )}
+              <button
+                onClick={() => setPreviewProof(null)}
+                style={{
+                  position: "absolute",
+                  top: "-15px",
+                  right: "-15px",
+                  backgroundColor: "white",
+                  color: "black",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "32px",
+                  height: "32px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontWeight: "bold",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                }}
+              >
+                <X size={18} />
+              </button>
+              <img
+                src={previewProof}
+                alt="Payment screenshot proof"
+                style={{
+                  maxHeight: "85vh",
+                  maxWidth: "85vw",
+                  borderRadius: "12px",
+                }}
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   Upload,
   CheckCircle2,
+  TrendingUp,
 } from "lucide-react";
 import {
   LISTING_FEE_RATE,
@@ -249,40 +250,86 @@ export const AboutPayment = () => {
                 }}
               >
                 <th style={{ padding: "0.6rem 0.5rem" }}>Radius Tier</th>
-                <th style={{ padding: "0.6rem 0.5rem" }}>Description</th>
-                <th style={{ padding: "0.6rem 0.5rem" }}>Fee</th>
+                <th style={{ padding: "0.6rem 0.5rem" }}>Total Access Price</th>
+                <th style={{ padding: "0.6rem 0.5rem" }}>
+                  Upgrade From Previous
+                </th>
               </tr>
             </thead>
             <tbody>
-              {Object.entries(DISTANCE_TIER_PRICING).map(([radius, tier]) => (
-                <tr
-                  key={radius}
-                  style={{ borderBottom: "1px solid var(--border-color)" }}
-                >
-                  <td style={{ padding: "0.6rem 0.5rem" }}>
-                    {tier.icon} {tier.label}
-                  </td>
-                  <td
-                    style={{
-                      padding: "0.6rem 0.5rem",
-                      color: "var(--text-light)",
-                    }}
-                  >
-                    {tier.desc}
-                  </td>
-                  <td
-                    style={{
-                      padding: "0.6rem 0.5rem",
-                      fontWeight: 700,
-                      color: "var(--secondary)",
-                    }}
-                  >
-                    {formatNPR(tier.price)}
-                  </td>
-                </tr>
-              ))}
+              {(() => {
+                const tiers = Object.entries(DISTANCE_TIER_PRICING);
+                return tiers.map(([radius, tier], i) => {
+                  const previousPrice = i > 0 ? tiers[i - 1][1].price : null;
+                  return (
+                    <tr
+                      key={radius}
+                      style={{ borderBottom: "1px solid var(--border-color)" }}
+                    >
+                      <td style={{ padding: "0.6rem 0.5rem" }}>
+                        {tier.icon} {tier.label}
+                      </td>
+                      <td
+                        style={{
+                          padding: "0.6rem 0.5rem",
+                          fontWeight: 700,
+                          color: "var(--secondary)",
+                        }}
+                      >
+                        {formatNPR(tier.price)}
+                      </td>
+                      <td
+                        style={{
+                          padding: "0.6rem 0.5rem",
+                          color: "var(--text-light)",
+                        }}
+                      >
+                        {previousPrice === null
+                          ? "—"
+                          : `+ ${formatNPR(tier.price - previousPrice)}`}
+                      </td>
+                    </tr>
+                  );
+                });
+              })()}
             </tbody>
           </table>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: "0.6rem",
+            backgroundColor: "rgba(245, 158, 11, 0.08)",
+            border: "1px solid rgba(245, 158, 11, 0.25)",
+            borderRadius: "var(--radius-md)",
+            padding: "1rem 1.25rem",
+            marginTop: "1.25rem",
+          }}
+        >
+          <TrendingUp
+            size={18}
+            style={{ color: "#f59e0b", flexShrink: 0, marginTop: "0.1rem" }}
+          />
+          <p
+            style={{
+              fontSize: "0.85rem",
+              color: "var(--text-muted)",
+              margin: 0,
+              lineHeight: 1.7,
+            }}
+          >
+            <strong style={{ color: "var(--text-main)" }}>
+              Already paid for a smaller radius?
+            </strong>{" "}
+            As long as you keep the same target location, upgrading to a
+            wider radius only charges the difference shown in the "Upgrade
+            From Previous" column above — not the full price again. For
+            example, going from 500m to 1km access costs just{" "}
+            <strong>Rs. 55</strong> instead of the full Rs. 130. Approving the
+            upgrade also refreshes your access to a fresh 48-hour window.
+          </p>
         </div>
       </div>
 

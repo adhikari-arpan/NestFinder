@@ -1,11 +1,18 @@
 // src/payment/PaymentQR.jsx
 // Displays eSewa / Fonepay payment QR code, merchant account details, and payment instructions
 
-import { ShieldCheck, Copy, Check } from "lucide-react";
+import { ShieldCheck, Copy, Check, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { formatNPR } from "../../utils/paymentUtils";
 
-export const PaymentQR = ({ amount, targetLocation, radius, paymentType }) => {
+export const PaymentQR = ({
+  amount,
+  targetLocation,
+  radius,
+  paymentType,
+  isUpgrade = false,
+  previousRadius = null,
+}) => {
   const [copied, setCopied] = useState(false);
   const esewaNumber = "9841000000";
   const isListingFee = paymentType === "landlord_listing";
@@ -18,6 +25,10 @@ export const PaymentQR = ({ amount, targetLocation, radius, paymentType }) => {
 
   const radiusLabel =
     radius >= 1000 ? `${(radius / 1000).toFixed(1)} km` : `${radius} m`;
+  const previousRadiusLabel =
+    previousRadius >= 1000
+      ? `${(previousRadius / 1000).toFixed(1)} km`
+      : `${previousRadius} m`;
   const locationName =
     targetLocation?.name ||
     (targetLocation
@@ -188,6 +199,25 @@ export const PaymentQR = ({ amount, targetLocation, radius, paymentType }) => {
           )}{" "}
           ({locationName})
         </div>
+
+        {isUpgrade && (
+          <div
+            style={{
+              marginTop: "0.6rem",
+              fontSize: "0.75rem",
+              backgroundColor: "rgba(245, 158, 11, 0.2)",
+              padding: "0.4rem 0.8rem",
+              borderRadius: "20px",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.3rem",
+            }}
+          >
+            <TrendingUp size={12} />
+            Upgrade from {previousRadiusLabel} — you're only paying the
+            difference
+          </div>
+        )}
       </div>
 
       {/* Account Info Box */}
