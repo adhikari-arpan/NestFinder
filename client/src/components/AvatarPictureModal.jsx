@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import Cropper from "react-easy-crop";
 import { AppContext } from "../Context/AppContext";
 import { LoadingScreen } from "./ui/LoadingScreen";
+import { ModalLogo } from "./ui/ModalLogo";
 import { getCroppedImageBlob } from "../utils/cropImage";
 import { Image as ImageIcon, X, Save } from "lucide-react";
 
@@ -102,6 +103,8 @@ export const AvatarPictureModal = ({ onClose }) => {
           boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
         }}
       >
+        <ModalLogo />
+
         <div className="mb-6 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
             <ImageIcon size={20} className="text-primary" /> Update Profile Picture

@@ -2,6 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { AppContext } from "../Context/AppContext";
 import { LoadingScreen } from "./ui/LoadingScreen";
+import { ModalLogo } from "./ui/ModalLogo";
 import { Lock, X, Eye, EyeOff, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 const MIN_PASSWORD_LENGTH = 6;
@@ -100,6 +101,8 @@ export const ChangePasswordModal = ({ onClose }) => {
           boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
         }}
       >
+        <ModalLogo />
+
         <div className="mb-6 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
             <Lock size={20} className="text-primary" />{" "}

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { AppContext } from "../Context/AppContext";
 import { LoadingScreen } from "./ui/LoadingScreen";
 import { CountryCodeSelect } from "./ui/CountryCodeSelect";
+import { ModalLogo } from "./ui/ModalLogo";
 import { splitPhoneNumber, validatePhoneNumber } from "../utils/countryCodes";
 import { User, X, Save } from "lucide-react";
 
@@ -90,6 +91,8 @@ export const EditProfileModal = ({ onClose }) => {
           boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
         }}
       >
+        <ModalLogo />
+
         <div className="mb-6 flex items-center justify-between">
           <h3 className="flex items-center gap-2 text-[1.2rem] font-extrabold">
             <User size={20} className="text-primary" /> Edit Profile

@@ -12,6 +12,7 @@ import {
   Lock,
 } from "lucide-react";
 import { VerifiedBadge } from "./ui/VerifiedBadge";
+import { ModalLogo } from "./ui/ModalLogo";
 import { EditProfileModal } from "./EditProfileModal";
 import { AvatarPictureModal } from "./AvatarPictureModal";
 import { ChangePasswordModal } from "./ChangePasswordModal";
@@ -217,20 +218,7 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                 textAlign: "center",
               }}
             >
-              <div
-                style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "50%",
-                  background: "var(--primary-light)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 1.25rem",
-                }}
-              >
-                <LogOut size={22} style={{ color: "var(--primary)" }} />
-              </div>
+              <ModalLogo />
 
               <h3
                 style={{
@@ -319,20 +307,7 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                 textAlign: "center",
               }}
             >
-              <div
-                style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "50%",
-                  background: "var(--danger-light, rgba(239,68,68,0.12))",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 1.25rem",
-                }}
-              >
-                <Trash2 size={22} style={{ color: "var(--danger, #dc2626)" }} />
-              </div>
+              <ModalLogo />
 
               <h3
                 style={{
