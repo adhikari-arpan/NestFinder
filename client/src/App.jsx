@@ -6,6 +6,10 @@ import { RequireAuth } from "./components/RequireAuth";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { AllRooms } from "./Pages/AllRooms";
 
+// Deployment Analytics
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
+
 // Pages
 import { Home } from "./Pages/Home";
 import { RoomDetails } from "./Pages/RoomDetails";
@@ -70,6 +74,9 @@ function App() {
 
         {/* Global Footer */}
         <Footer />
+
+        <SpeedInsights />
+        <Analytics />
       </Router>
     </AppContextProvider>
   );
