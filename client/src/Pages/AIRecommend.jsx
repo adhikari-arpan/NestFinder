@@ -163,6 +163,7 @@ export const AIRecommend = () => {
           budget={budget}
           setBudget={setBudget}
           onNext={nextStep}
+          onBackToDashboard={() => navigate("/dashboard/tenant")}
         />
       )}
 
