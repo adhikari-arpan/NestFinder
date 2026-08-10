@@ -9,10 +9,12 @@ import {
   LogOut,
   X,
   IdCard,
+  Lock,
 } from "lucide-react";
 import { VerifiedBadge } from "./ui/VerifiedBadge";
 import { EditProfileModal } from "./EditProfileModal";
 import { AvatarPictureModal } from "./AvatarPictureModal";
+import { ChangePasswordModal } from "./ChangePasswordModal";
 
 // Shared dashboard header: renders whatever left-side content is passed as
 // children, plus the profile trigger, profile overlay menu, and logout
@@ -25,6 +27,7 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
   const [deletingAvatar, setDeletingAvatar] = useState(false);
 
@@ -125,6 +128,15 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
               >
                 <ImageIcon size={18} /> Update Profile Picture
               </div>
+              <div
+                className="profile-menu-item"
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  setChangePasswordOpen(true);
+                }}
+              >
+                <Lock size={18} /> Change Password
+              </div>
               {currentUser?.role === "landlord" && (
                 <div
                   className="profile-menu-item"
@@ -168,6 +180,10 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
 
       {avatarModalOpen && (
         <AvatarPictureModal onClose={() => setAvatarModalOpen(false)} />
+      )}
+
+      {changePasswordOpen && (
+        <ChangePasswordModal onClose={() => setChangePasswordOpen(false)} />
       )}
 
       {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}

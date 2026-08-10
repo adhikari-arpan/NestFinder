@@ -207,6 +207,25 @@ export const AppContextProvider = ({ children }) => {
     return updated;
   };
 
+  // "Change Password" step 1 — re-authenticate with the current password
+  // before allowing a change, same as re-login. signInWithPassword just
+  // refreshes the existing session on success; it doesn't sign the user out
+  // on failure, so a wrong password here only surfaces an error.
+  const verifyPassword = async (password) => {
+    if (!currentUser?.email) throw new Error("You must be logged in.");
+    const { error } = await supabase.auth.signInWithPassword({
+      email: currentUser.email,
+      password,
+    });
+    if (error) throw new Error("Incorrect password. Please try again.");
+  };
+
+  // "Change Password" step 2 — only reachable after verifyPassword succeeds.
+  const changePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  };
+
   const signupUser = async (email, password, name, phone, role) => {
     const PHONE_TAKEN_MESSAGE =
       "This phone number is already registered. Please sign in or use a different number.";
@@ -717,6 +736,8 @@ export const AppContextProvider = ({ children }) => {
         updateOwnProfile,
         updateAvatar,
         removeAvatar,
+        verifyPassword,
+        changePassword,
         theme,
         toggleTheme,
         createListing,
