@@ -25,10 +25,19 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [showDeleteAvatarConfirm, setShowDeleteAvatarConfirm] = useState(false);
   const [deletingAvatar, setDeletingAvatar] = useState(false);
 
-  const handleDeleteAvatar = async () => {
+  const handleDeleteAvatarClick = () => {
     if (deletingAvatar || !currentUser?.avatar_url) return;
+    setProfileMenuOpen(false);
+    setShowDeleteAvatarConfirm(true);
+  };
+
+  const cancelDeleteAvatar = () => setShowDeleteAvatarConfirm(false);
+
+  const confirmDeleteAvatar = async () => {
+    setShowDeleteAvatarConfirm(false);
     setDeletingAvatar(true);
     try {
       await removeAvatar();
@@ -133,7 +142,7 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                     ? "cursor-not-allowed opacity-50"
                     : ""
                 }`}
-                onClick={handleDeleteAvatar}
+                onClick={handleDeleteAvatarClick}
               >
                 <Trash2 size={18} />{" "}
                 {deletingAvatar ? "Deleting..." : "Delete Profile Picture"}
@@ -256,6 +265,108 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                   }}
                 >
                   <LogOut size={15} /> Yes, Logout
+                </button>
+              </div>
+            </div>
+          </>,
+          document.body,
+        )}
+
+      {/* Delete Profile Picture Confirmation Popup */}
+      {showDeleteAvatarConfirm &&
+        createPortal(
+          <>
+            <div
+              onClick={cancelDeleteAvatar}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 2000,
+                background: "rgba(0,0,0,0.45)",
+                backdropFilter: "blur(4px)",
+              }}
+            />
+            <div
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 2001,
+                width: "100%",
+                maxWidth: "380px",
+                background: "var(--bg-card)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-lg)",
+                padding: "2rem 2rem 1.75rem",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.25)",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: "52px",
+                  height: "52px",
+                  borderRadius: "50%",
+                  background: "var(--danger-light, rgba(239,68,68,0.12))",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 1.25rem",
+                }}
+              >
+                <Trash2 size={22} style={{ color: "var(--danger, #dc2626)" }} />
+              </div>
+
+              <h3
+                style={{
+                  fontSize: "1.2rem",
+                  fontWeight: 800,
+                  marginBottom: "0.5rem",
+                  color: "var(--text-main)",
+                }}
+              >
+                Delete your profile picture?
+              </h3>
+              <p
+                style={{
+                  fontSize: "0.88rem",
+                  color: "var(--text-muted)",
+                  marginBottom: "1.75rem",
+                  lineHeight: 1.6,
+                }}
+              >
+                This will reset your profile picture to the default icon.
+              </p>
+
+              <div style={{ display: "flex", gap: "0.75rem" }}>
+                <button
+                  onClick={cancelDeleteAvatar}
+                  className="btn btn-outline"
+                  style={{ flex: 1, fontWeight: 700 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAvatar}
+                  style={{
+                    flex: 1,
+                    border: "none",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.75rem",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "0.9rem",
+                    color: "white",
+                    background: "var(--danger, #dc2626)",
+                    boxShadow: "0 4px 12px rgba(220,38,38,0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.4rem",
+                  }}
+                >
+                  <Trash2 size={15} /> Yes, Delete
                 </button>
               </div>
             </div>
