@@ -193,12 +193,42 @@ export const AppContextProvider = ({ children }) => {
   };
 
   const signupUser = async (email, password, name, phone, role) => {
+    const PHONE_TAKEN_MESSAGE =
+      "This phone number is already registered. Please sign in or use a different number.";
+
+    // profiles.phone has a unique constraint, but the profiles row is
+    // created by a server-side trigger inside auth.signUp() below — a
+    // violation there comes back as a generic GoTrue error, not one that
+    // names the actual problem. Check up front so the common case gets a
+    // clear message; the constraint remains the real enforcement for the
+    // rare race where two signups land at the same instant.
+    try {
+      if (await api.checkPhoneExists(phone)) {
+        return { success: false, message: PHONE_TAKEN_MESSAGE };
+      }
+    } catch (err) {
+      console.warn("Phone uniqueness pre-check failed, proceeding with signup:", err.message);
+    }
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name, phone, role } },
     });
-    if (error) return { success: false, message: error.message };
+    if (error) {
+      // The pre-check above already handles the common case by name; this
+      // generic GoTrue message can also mean some other trigger failure,
+      // so hedge rather than assert it's specifically the phone.
+      const looksLikeTriggerFailure = /database error saving new user/i.test(
+        error.message || "",
+      );
+      return {
+        success: false,
+        message: looksLikeTriggerFailure
+          ? "Could not create your account — this email or phone number may already be registered. Please try again or sign in."
+          : error.message,
+      };
+    }
     return {
       success: true,
       message: "Account created successfully! Please sign in.",

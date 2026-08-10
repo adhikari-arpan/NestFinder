@@ -387,3 +387,21 @@ export async function updateOwnProfile(userId, { name, phone }) {
   if (error) throw error;
   return data;
 }
+
+// ------------------------------------------------------------
+// Signup helper: check whether a phone number is already registered.
+// supabase.auth.signUp() creates the profiles row via a server-side
+// trigger, so a unique_violation from profiles_phone_unique inside that
+// trigger surfaces as a generic GoTrue error ("Database error saving new
+// user"), not a specific "phone already in use" message — this pre-check
+// lets signupUser give a clear message in the common case instead.
+// ------------------------------------------------------------
+export async function checkPhoneExists(phone) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('phone', phone)
+    .limit(1);
+  if (error) throw error;
+  return (data?.length || 0) > 0;
+}
