@@ -54,9 +54,9 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
 
   const handleLogout = () => setShowLogoutConfirm(true);
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
     setShowLogoutConfirm(false);
-    logoutUser();
+    await logoutUser();
     navigate("/");
   };
 
