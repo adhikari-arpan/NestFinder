@@ -191,7 +191,16 @@ export const AppContextProvider = ({ children }) => {
     return { success: true, message: "" };
   };
 
-  const logoutUser = () => setCurrentUser(null);
+  // setCurrentUser(null) alone only cleared local React state — Supabase's
+  // session was never actually revoked, so it stayed valid in localStorage.
+  // On the next reload, the auth-restore effect below would find that still
+  // -live session, silently log the same user back in, and Home's
+  // role-based redirect would send them straight back to their dashboard,
+  // making "logout" look like it didn't do anything.
+  const logoutUser = async () => {
+    await supabase.auth.signOut();
+    setCurrentUser(null);
+  };
 
   // Re-fetch the profile row for the logged-in user, e.g. after a KYC
   // submission or admin review changes kyc_status/is_verified mid-session.
