@@ -148,7 +148,7 @@ export const AppContextProvider = ({ children }) => {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, name, phone, email, is_verified, kyc_status, is_suspended")
+      .select("role, name, phone, email, avatar_url, is_verified, kyc_status, is_suspended")
       .eq("id", data.user.id)
       .single();
 
@@ -188,6 +188,21 @@ export const AppContextProvider = ({ children }) => {
   const updateOwnProfile = async ({ name, phone }) => {
     if (!currentUser) throw new Error("You must be logged in.");
     const updated = await api.updateOwnProfile(currentUser.id, { name, phone });
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    return updated;
+  };
+
+  // Profile picture — see api.uploadAvatar/deleteAvatar for storage details.
+  const updateAvatar = async (blob) => {
+    if (!currentUser) throw new Error("You must be logged in.");
+    const updated = await api.uploadAvatar(currentUser.id, blob);
+    setCurrentUser((prev) => ({ ...prev, ...updated }));
+    return updated;
+  };
+
+  const removeAvatar = async () => {
+    if (!currentUser) throw new Error("You must be logged in.");
+    const updated = await api.deleteAvatar(currentUser.id);
     setCurrentUser((prev) => ({ ...prev, ...updated }));
     return updated;
   };
@@ -700,6 +715,8 @@ export const AppContextProvider = ({ children }) => {
         signupUser,
         refreshCurrentUser,
         updateOwnProfile,
+        updateAvatar,
+        removeAvatar,
         theme,
         toggleTheme,
         createListing,

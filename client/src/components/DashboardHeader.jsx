@@ -12,17 +12,32 @@ import {
 } from "lucide-react";
 import { VerifiedBadge } from "./ui/VerifiedBadge";
 import { EditProfileModal } from "./EditProfileModal";
+import { AvatarPictureModal } from "./AvatarPictureModal";
 
 // Shared dashboard header: renders whatever left-side content is passed as
 // children, plus the profile trigger, profile overlay menu, and logout
 // confirmation popup that are identical across Tenant/Landlord/Admin dashboards.
 export const DashboardHeader = ({ children, className = "", style = {} }) => {
-  const { currentUser, logoutUser } = useContext(AppContext);
+  const { currentUser, logoutUser, removeAvatar } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [deletingAvatar, setDeletingAvatar] = useState(false);
+
+  const handleDeleteAvatar = async () => {
+    if (deletingAvatar || !currentUser?.avatar_url) return;
+    setDeletingAvatar(true);
+    try {
+      await removeAvatar();
+    } catch (err) {
+      console.error("Failed to delete profile picture:", err.message);
+    } finally {
+      setDeletingAvatar(false);
+    }
+  };
 
   const handleLogout = () => setShowLogoutConfirm(true);
 
@@ -46,8 +61,8 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
             onClick={() => setProfileMenuOpen(true)}
             title="Click to view profile menu"
           >
-            {currentUser?.profilePicture ? (
-              <img src={currentUser.profilePicture} alt="Profile" />
+            {currentUser?.avatar_url ? (
+              <img src={currentUser.avatar_url} alt="Profile" />
             ) : (
               <User size={40} className="text-primary" />
             )}
@@ -94,11 +109,12 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
               </div>
               <div
                 className="profile-menu-item"
-                onClick={() =>
-                  alert("Change Profile Picture functionality coming soon!")
-                }
+                onClick={() => {
+                  setProfileMenuOpen(false);
+                  setAvatarModalOpen(true);
+                }}
               >
-                <ImageIcon size={18} /> Change Profile Picture
+                <ImageIcon size={18} /> Update Profile Picture
               </div>
               {currentUser?.role === "landlord" && (
                 <div
@@ -112,12 +128,15 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
                 </div>
               )}
               <div
-                className="profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)]"
-                onClick={() =>
-                  alert("Delete Profile Picture functionality coming soon!")
-                }
+                className={`profile-menu-item text-danger hover:bg-danger-light hover:border-danger hover:text-danger border-[rgba(239,68,68,0.2)] ${
+                  deletingAvatar || !currentUser?.avatar_url
+                    ? "cursor-not-allowed opacity-50"
+                    : ""
+                }`}
+                onClick={handleDeleteAvatar}
               >
-                <Trash2 size={18} /> Delete Profile Picture
+                <Trash2 size={18} />{" "}
+                {deletingAvatar ? "Deleting..." : "Delete Profile Picture"}
               </div>
             </div>
 
@@ -136,6 +155,10 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
 
       {editProfileOpen && (
         <EditProfileModal onClose={() => setEditProfileOpen(false)} />
+      )}
+
+      {avatarModalOpen && (
+        <AvatarPictureModal onClose={() => setAvatarModalOpen(false)} />
       )}
 
       {/* Logout Confirmation Popup - portaled to body, project-wide overlay pattern */}

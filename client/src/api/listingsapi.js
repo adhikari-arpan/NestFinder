@@ -5,6 +5,7 @@
 import supabase from '../../db/supabaseClient';
 
 const IMAGE_BUCKET = 'listing-images';
+const AVATAR_BUCKET = 'avatars';
 
 // ------------------------------------------------------------
 // Helpers: DB row -> UI shape (mirrors your original mock object)
@@ -381,6 +382,50 @@ export async function updateOwnProfile(userId, { name, phone }) {
   const { data, error } = await supabase
     .from('profiles')
     .update({ name, phone })
+    .eq('id', userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+// ------------------------------------------------------------
+// Profile picture — always stored at a fixed path per user so re-uploading
+// simply overwrites (upsert), keeping storage from accumulating orphaned
+// files. A cache-busting query param is stamped onto the stored URL since
+// the path itself never changes and browsers/CDNs would otherwise keep
+// showing the old image after an overwrite.
+// ------------------------------------------------------------
+export async function uploadAvatar(userId, blob) {
+  const path = `${userId}/avatar.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, blob, { upsert: true, contentType: 'image/jpeg' });
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrlData } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const avatar_url = `${publicUrlData.publicUrl}?v=${Date.now()}`;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ avatar_url })
+    .eq('id', userId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteAvatar(userId) {
+  try {
+    await supabase.storage.from(AVATAR_BUCKET).remove([`${userId}/avatar.jpg`]);
+  } catch (err) {
+    console.warn('Could not remove avatar from storage:', err.message);
+  }
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ avatar_url: null })
     .eq('id', userId)
     .select()
     .single();
