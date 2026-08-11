@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Globe,
@@ -9,6 +9,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { AppContext } from "../Context/AppContext";
+import { SupportHubModal } from "./SupportHubModal";
 import whiteLogo from "../assets/White_NestFinderLogo.png";
 import darkLogo from "../assets/Dark_NestFinderLogo.png";
 
@@ -18,6 +19,7 @@ export const Footer = () => {
   const linkClass =
     "text-[var(--text-muted)] text-[0.85rem] transition-colors hover:text-[var(--primary)]";
   const role = currentUser?.role;
+  const [supportHubOpen, setSupportHubOpen] = useState(false);
 
   return (
     <footer
@@ -125,12 +127,20 @@ export const Footer = () => {
             Bhattrai and Arpan Adhikari.
           </span>
           <div className="flex gap-5">
-            <a href="#" className={linkClass}>
+            <button
+              type="button"
+              onClick={() => setSupportHubOpen(true)}
+              className={`${linkClass} cursor-pointer border-none bg-transparent p-0`}
+            >
               Support Hub
-            </a>
+            </button>
           </div>
         </div>
       </div>
+
+      {supportHubOpen && (
+        <SupportHubModal onClose={() => setSupportHubOpen(false)} />
+      )}
     </footer>
   );
 };
