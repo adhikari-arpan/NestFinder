@@ -179,11 +179,11 @@ export const Home = () => {
             <div className="hero-content-left animate-fade-in">
               <span className="hero-badge hero-badge-left">🏠 Nepal's Rental Network</span>
 
-              <h1 className="hero-headline text-left m-0" style={{ textAlign: "left" }}>
+              <h1 className="hero-headline m-0 text-left" style={{ textAlign: "left" }}>
                 Find your <span className="gradient-text">perfect Nest</span>
               </h1>
 
-              <p className="hero-sub text-left m-0" style={{ marginLeft: 0, textAlign: "left", color: isDark ? "#ffffff" : undefined }}>
+              <p className="hero-sub m-0 text-left" style={{ marginLeft: 0, textAlign: "left", color: isDark ? "#ffffff" : undefined }}>
                 Verified rooms across Kathmandu valley. AI-powered
                 recommendations. Map-based search &amp;.
               </p>
@@ -230,7 +230,7 @@ export const Home = () => {
                 <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=80" alt="Room 1" />
                 <div className="card-overlay-info">
                   <div>
-                    <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: "var(--primary-light)" }}>1 BHK • Koteshwor</span>
+                    <span className="text-[0.7rem] font-bold tracking-wider uppercase" style={{ color: "var(--primary-light)" }}>1 BHK • Koteshwor</span>
                   </div>
                 </div>
               </div>
@@ -239,7 +239,7 @@ export const Home = () => {
                 <img src="https://images.unsplash.com/photo-1502672260266-1c1de2d9d543?auto=format&fit=crop&w=400&q=80" alt="Room 2" />
                 <div className="card-overlay-info">
                   <div>
-                    <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: "var(--primary-light)" }}>Single Room • Baneshwor</span>
+                    <span className="text-[0.7rem] font-bold tracking-wider uppercase" style={{ color: "var(--primary-light)" }}>Single Room • Baneshwor</span>
                   </div>
                 </div>
               </div>
@@ -252,7 +252,7 @@ export const Home = () => {
                   </span>
                 </div>
                 <div className="card-overlay-info flex-col items-start gap-1">
-                  <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: "var(--primary-light)" }}>Flat • Patan</span>
+                  <span className="text-[0.7rem] font-bold tracking-wider uppercase" style={{ color: "var(--primary-light)" }}>Flat • Patan</span>
                   <div className="flex w-full items-center justify-between">
                     <span className="font-semibold text-white">Cozy Furnished Flat</span>
                   </div>
