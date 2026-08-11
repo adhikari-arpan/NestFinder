@@ -936,14 +936,14 @@
 
   /* ── Hero headline ── */
   .hero-headline {
-    font-size: clamp(2.6rem, 6vw, 4.5rem);
+    font-size: clamp(1.8rem, 4vw, 3.1rem);
     font-weight: 900;
     line-height: 1.1;
     letter-spacing: -0.03em;
     color: #f8fafc;
     margin-bottom: 1.25rem;
     font-family: var(--font-display);
-    text-shadow: 0 2px 40px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
   }
 
   /* Gradient text span inside headline */
@@ -1127,7 +1127,7 @@
       gap: 1.5rem;
     }
     .hero-headline {
-      font-size: 2.2rem;
+      font-size: 1.5rem;
     }
     .hero-sub {
       font-size: 1rem;
@@ -1153,17 +1153,20 @@
    These rules switch hero text to rich dark colours when NOT in dark mode.
    ========================================================================== */
 
-  /* When body is NOT in dark theme, override hero text to dark colours */
-  body:not([data-theme="dark"]) .hero-headline {
+  /* When the root element is NOT in dark theme, override hero text to dark
+     colours. NOTE: theme is set via document.documentElement.setAttribute
+     ("data-theme", ...) — i.e. on <html>, not <body> — so these must be
+     html-scoped or they silently always match (body never carries the
+     attribute), which is what was happening before. */
+  html:not([data-theme="dark"]) .hero-headline {
     color: #0f172a; /* deep slate instead of pure indigo */
-    text-shadow: 0 1px 20px rgba(248, 250, 252, 0.7);
   }
 
-  body:not([data-theme="dark"]) .hero-sub {
+  html:not([data-theme="dark"]) .hero-sub {
     color: rgba(51, 65, 85, 0.9); /* slate-700 for clean readability */
   }
 
-  body:not([data-theme="dark"]) .hero-badge {
+  html:not([data-theme="dark"]) .hero-badge {
     background: rgba(99, 102, 241, 0.1);
     border-color: rgba(99, 102, 241, 0.35);
     color: #4338ca;
@@ -1171,11 +1174,11 @@
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.08);
   }
 
-  body:not([data-theme="dark"]) .scroll-hint {
+  html:not([data-theme="dark"]) .scroll-hint {
     color: #000000;
   }
 
-  body:not([data-theme="dark"]) .hero-cta-btn {
+  html:not([data-theme="dark"]) .hero-cta-btn {
     box-shadow:
       0 4px 25px rgba(99, 102, 241, 0.35),
       0 0 0 0 rgba(99, 102, 241, 0.25);
@@ -1832,11 +1835,17 @@
   transition: background-color 0.4s ease;
 }
 
-body[data-theme="dark"] .skyline-mask {
-  background-color: #1e1b4b; /* muted indigo */
+/* Same html-vs-body scoping fix as the hero text rules above — this never
+   matched before, so the skyline was always rendered with the light-mode
+   colour/opacity below, even in dark mode. */
+html[data-theme="dark"] .skyline-mask {
+  background-color: #4f46e5; /* brighter indigo — the earlier muted #1e1b4b was
+    nearly the same darkness as the hero's near-black background, so it read
+    as invisible instead of dimmed */
+  opacity: 0.28; /* still subtle, but enough contrast to actually read as a silhouette */
 }
 
-body:not([data-theme="dark"]) .skyline-mask {
+html:not([data-theme="dark"]) .skyline-mask {
   background-color: #fbcfe8; /* warm terracotta/blush base */
   opacity: 0.4;
 }
