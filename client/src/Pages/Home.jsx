@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import {
@@ -8,8 +8,49 @@ import {
   Map,
   ChevronDown,
   CheckCircle,
+  SlidersHorizontal,
+  MessageCircle,
+  HelpCircle,
 } from "lucide-react";
 import pagodaSkyline from "../assets/pagoda.png";
+
+// ─── Scroll-reveal wrapper ────────────────────────────────────────────────────
+// Fades + slides content in the first time it scrolls into view, instead of
+// everything below the hero just sitting there statically fully-rendered.
+const Reveal = ({ children, delay = 0, className = "" }) => {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(28px)",
+        transition: `opacity 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}s, transform 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}s`,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
 
 // ─── Animated Canvas ──────────────────────────────────────────────────────────
 const NetworkBackground = ({ theme }) => {
@@ -106,6 +147,217 @@ const NetworkBackground = ({ theme }) => {
       ref={canvasRef}
       className="pointer-events-none absolute inset-0 z-0 size-full"
     />
+  );
+};
+
+// ─── How It Works ─────────────────────────────────────────────────────────────
+const HOW_IT_WORKS_STEPS = [
+  {
+    icon: <SlidersHorizontal size={22} />,
+    color: "var(--primary)",
+    bg: "var(--primary-light)",
+    title: "Set Your Preferences",
+    desc: "Tell us your budget, room type, sharing preference, and the location you care about — like your college or workplace.",
+  },
+  {
+    icon: <Sparkles size={22} />,
+    color: "var(--accent)",
+    bg: "var(--accent-light)",
+    title: "Get AI-Matched Rooms",
+    desc: "Our recommendation engine scores every verified listing against what you're looking for, so the best matches rise to the top.",
+  },
+  {
+    icon: <MessageCircle size={22} />,
+    color: "var(--secondary)",
+    bg: "var(--secondary-light)",
+    title: "Contact & Move In",
+    desc: "Reach out directly to the verified landlord — no brokers, no commissions, no middlemen.",
+  },
+];
+
+const HowItWorks = ({ isDark }) => (
+  <section
+    className="relative overflow-hidden py-16"
+    style={{
+      background: isDark
+        ? "linear-gradient(180deg,#090d16 0%,#0d1222 100%)"
+        : "linear-gradient(180deg,#f8faff 0%,#ffffff 100%)",
+      borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.08)"}`,
+    }}
+  >
+    <NetworkBackground theme={isDark ? "dark" : "light"} />
+    <div className="relative z-1 container">
+      <Reveal className="mx-auto mb-10 max-w-160 text-center">
+        <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-(--primary) uppercase">
+          HOW IT WORKS
+        </p>
+        <h2
+          className="text-[clamp(1.9rem,4vw,2.8rem)] leading-tight font-extrabold"
+          style={{
+            color: isDark ? "#f1f5f9" : "#0f172a",
+            fontFamily: "var(--font-display)",
+          }}
+        >
+          Three steps to your next room
+        </h2>
+      </Reveal>
+
+      <div className="how-it-works-row">
+        {HOW_IT_WORKS_STEPS.map((step, i) => (
+          <Reveal key={step.title} delay={i * 0.12} className="how-it-works-step">
+            <div
+              className="how-it-works-number"
+              style={{
+                background: step.bg,
+                color: step.color,
+                animationDelay: `${i * 0.3}s`,
+              }}
+            >
+              {i + 1}
+            </div>
+            <div
+              className="feature-icon-wrapper"
+              style={{
+                backgroundColor: step.bg,
+                color: step.color,
+                "--icon-delay": `${i * 0.3}s`,
+              }}
+            >
+              {step.icon}
+            </div>
+            <h3
+              className="m-0 text-[1.1rem] font-bold"
+              style={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+            >
+              {step.title}
+            </h3>
+            <p
+              className="m-0 text-[0.93rem] leading-[1.7]"
+              style={{ color: isDark ? "#94a3b8" : "#475569" }}
+            >
+              {step.desc}
+            </p>
+          </Reveal>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+// ─── FAQ ───────────────────────────────────────────────────────────────────────
+const FAQ_ITEMS = [
+  {
+    q: "Is NestFinder free to use?",
+    a: "Creating an account and browsing listings is free. Unlocking precise distance-based search around a specific location (like your college) requires a small one-time radius access fee, valid for 48 hours.",
+  },
+  {
+    q: "How are landlords verified?",
+    a: "Every landlord completes a KYC verification process — submitting identity documents and address details — before they're allowed to post a room listing.",
+  },
+  {
+    q: "How does the AI recommendation work?",
+    a: "You set your budget, room type, and amenity preferences, and our matching model scores every verified listing by how closely it fits what you're looking for.",
+  },
+  {
+    q: "How do payments work, and are they safe?",
+    a: "Payments are made via eSewa/Fonepay QR code. You upload a screenshot as proof, and an admin manually verifies it before access is granted — no card details are ever stored.",
+  },
+  {
+    q: "Can I contact landlords directly?",
+    a: "Yes — once you find a room you like, you can reach out to the verified landlord directly, with zero broker commissions or hidden fees.",
+  },
+  {
+    q: "What if I need help or run into an issue?",
+    a: "Use the Support Hub link in the footer any time — it opens a pre-drafted email to our tech support team.",
+  },
+];
+
+const FAQItem = ({ item, isOpen, onToggle, isDark }) => (
+  <div
+    className="faq-item"
+    style={{
+      borderColor: isDark ? "rgba(255,255,255,0.08)" : "var(--border-color)",
+    }}
+  >
+    <button
+      type="button"
+      onClick={onToggle}
+      className="faq-question"
+      style={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+    >
+      <span>{item.q}</span>
+      <ChevronDown
+        size={18}
+        style={{
+          color: "var(--primary)",
+          flexShrink: 0,
+          transition: "transform 0.3s ease",
+          transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+        }}
+      />
+    </button>
+    {isOpen && (
+      <p
+        className="animate-fade-in m-0 pb-5 text-[0.93rem] leading-[1.7]"
+        style={{ color: isDark ? "#94a3b8" : "#475569" }}
+      >
+        {item.a}
+      </p>
+    )}
+  </div>
+);
+
+const FAQSection = ({ isDark }) => {
+  const [openIndex, setOpenIndex] = useState(-1);
+
+  return (
+    <section
+      className="relative overflow-hidden py-16"
+      style={{
+        background: isDark
+          ? "linear-gradient(180deg,#0d1222 0%,#090d16 100%)"
+          : "linear-gradient(180deg,#ffffff 0%,#f8faff 100%)",
+        borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.08)"}`,
+      }}
+    >
+      <NetworkBackground theme={isDark ? "dark" : "light"} />
+      <div className="relative z-1 container">
+        <Reveal className="mx-auto mb-10 max-w-160 text-center">
+          <div
+            className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full"
+            style={{ background: "var(--primary-light)", color: "var(--primary)" }}
+          >
+            <HelpCircle size={22} />
+          </div>
+          <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-(--primary) uppercase">
+            GOT QUESTIONS?
+          </p>
+          <h2
+            className="text-[clamp(1.9rem,4vw,2.8rem)] leading-tight font-extrabold"
+            style={{
+              color: isDark ? "#f1f5f9" : "#0f172a",
+              fontFamily: "var(--font-display)",
+            }}
+          >
+            Frequently Asked Questions
+          </h2>
+        </Reveal>
+
+        <Reveal delay={0.1} className="mx-auto max-w-160">
+          <div className="faq-list">
+            {FAQ_ITEMS.map((item, i) => (
+              <FAQItem
+                key={item.q}
+                item={item}
+                isDark={isDark}
+                isOpen={openIndex === i}
+                onToggle={() => setOpenIndex(openIndex === i ? -1 : i)}
+              />
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 };
 
@@ -327,12 +579,9 @@ export const Home = () => {
           </div>
         </section>
 
-        {/* Spacer to guarantee visible gap regardless of external CSS on stats-row */}
-        <div className="w-full bg-transparent" style={{ height: "32px" }} />
-
         {/* ── FEATURES SECTION ── */}
         <section
-          className="relative py-36"
+          className="relative overflow-hidden py-16"
           style={{
             background: isDark
               ? "linear-gradient(180deg,#0d1222 0%,#090d16 100%)"
@@ -340,6 +589,8 @@ export const Home = () => {
             borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.05)" : "rgba(99,102,241,0.08)"}`,
           }}
         >
+          <NetworkBackground theme={theme} />
+
           {/* Orbs */}
           <div
             className="pointer-events-none absolute -top-20 left-[10%] size-95 rounded-full"
@@ -361,45 +612,49 @@ export const Home = () => {
             style={{ marginLeft: "auto", marginRight: "auto" }}
           >
             {/* Section header */}
-            <div
+            <Reveal
               className="text-center"
-              style={{
-                marginBottom: "60px",
-                marginLeft: "auto",
-                marginRight: "auto",
-                maxWidth: "640px",
-                width: "100%",
-                textAlign: "center",
-              }}
+              delay={0}
             >
-              <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-(--primary) uppercase">
-                WHY NESTFINDER?
-              </p>
-              <h2
-                className="text-[clamp(1.9rem,4vw,2.8rem)] leading-tight font-extrabold"
+              <div
                 style={{
-                  color: isDark ? "#f1f5f9" : "#0f172a",
-                  fontFamily: "var(--font-display)",
-                  marginBottom: "36px",
+                  marginBottom: "32px",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  maxWidth: "640px",
+                  width: "100%",
+                  textAlign: "center",
                 }}
               >
-                Everything you need to find
-                <br />
-                your ideal room
-              </h2>
-              <p
-                className="mx-auto max-w-130 text-center text-[1.05rem]"
-                style={{
-                  color: isDark ? "#94a3b8" : "#475569",
-                  lineHeight: "1.9",
-                  marginTop: "0px",
-                }}
-              >
-                NestFinder combines interactive maps, AI recommendations and
-                verified listings so you can find your perfect place —
-                efficiently and safely.
-              </p>
-            </div>
+                <p className="mb-4 text-[0.78rem] font-bold tracking-[0.14em] text-(--primary) uppercase">
+                  WHY NESTFINDER?
+                </p>
+                <h2
+                  className="text-[clamp(1.9rem,4vw,2.8rem)] leading-tight font-extrabold"
+                  style={{
+                    color: isDark ? "#f1f5f9" : "#0f172a",
+                    fontFamily: "var(--font-display)",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Everything you need to find
+                  <br />
+                  your ideal room
+                </h2>
+                <p
+                  className="mx-auto max-w-130 text-center text-[1.05rem]"
+                  style={{
+                    color: isDark ? "#94a3b8" : "#475569",
+                    lineHeight: "1.9",
+                    marginTop: "0px",
+                  }}
+                >
+                  NestFinder combines interactive maps, AI recommendations and
+                  verified listings so you can find your perfect place —
+                  efficiently and safely.
+                </p>
+              </div>
+            </Reveal>
 
             {/* Feature cards */}
             <div className="features-grid-layout">
@@ -431,43 +686,45 @@ export const Home = () => {
                   title: "Verified Direct Contact",
                   desc: "Every landlord undergoes verification. Reach out directly via telephone or messages with zero broker commissions and no hidden fees whatsoever.",
                 },
-              ].map(({ icon, color, bg, border, shadow, title, desc }) => (
-                <div
-                  key={title}
-                  className="feature-redesign-card glass"
-                  style={{
-                    borderLeft: `4px solid ${border}`,
-                    boxShadow: `0 8px 30px ${shadow}`,
-                  }}
-                >
+              ].map(({ icon, color, bg, border, shadow, title, desc }, i) => (
+                <Reveal key={title} delay={i * 0.12}>
                   <div
-                    className="feature-icon-wrapper"
+                    className="feature-redesign-card glass"
                     style={{
-                      backgroundColor: bg,
-                      color,
-                      boxShadow: `0 0 15px ${shadow}`,
+                      borderLeft: `4px solid ${border}`,
+                      boxShadow: `0 8px 30px ${shadow}`,
                     }}
                   >
-                    {icon}
+                    <div
+                      className="feature-icon-wrapper"
+                      style={{
+                        backgroundColor: bg,
+                        color,
+                        boxShadow: `0 0 15px ${shadow}`,
+                        "--icon-delay": `${i * 0.3}s`,
+                      }}
+                    >
+                      {icon}
+                    </div>
+                    <h3
+                      className="m-0 text-[1.15rem] font-bold"
+                      style={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
+                    >
+                      {title}
+                    </h3>
+                    <p
+                      className="m-0 text-[0.93rem] leading-[1.7]"
+                      style={{ color: isDark ? "#94a3b8" : "#475569" }}
+                    >
+                      {desc}
+                    </p>
                   </div>
-                  <h3
-                    className="m-0 text-[1.15rem] font-bold"
-                    style={{ color: isDark ? "#f1f5f9" : "#0f172a" }}
-                  >
-                    {title}
-                  </h3>
-                  <p
-                    className="m-0 text-[0.93rem] leading-[1.7]"
-                    style={{ color: isDark ? "#94a3b8" : "#475569" }}
-                  >
-                    {desc}
-                  </p>
-                </div>
+                </Reveal>
               ))}
             </div>
 
             {/* Bottom CTA */}
-            <div className="mt-20 text-center">
+            <Reveal delay={0.15} className="mt-10 text-center">
               <Link
                 to="/auth"
                 className="hero-cta-btn"
@@ -479,9 +736,12 @@ export const Home = () => {
               >
                 Start Finding Rooms <ArrowRight size={18} />
               </Link>
-            </div>
+            </Reveal>
           </div>
         </section>
+
+        <HowItWorks isDark={isDark} />
+        <FAQSection isDark={isDark} />
       </div>
     );
 

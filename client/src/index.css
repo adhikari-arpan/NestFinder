@@ -806,7 +806,7 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
-    margin-bottom: 5rem;
+    margin-bottom: 2rem;
   }
 
   .feature-redesign-card {
@@ -822,7 +822,7 @@
   }
 
   .feature-redesign-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px) scale(1.015);
     border-color: var(--primary-light);
     box-shadow: var(--shadow-lg);
   }
@@ -835,6 +835,120 @@
     align-items: center;
     justify-content: center;
     margin-bottom: 0.5rem;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Icons drift gently on their own, independent of the wrapper's hover
+     transform below — animating a different element avoids the two
+     transforms fighting each other. */
+  .feature-icon-wrapper svg {
+    animation: icon-float 3s ease-in-out infinite;
+    animation-delay: var(--icon-delay, 0s);
+  }
+
+  @keyframes icon-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-4px);
+    }
+  }
+
+  .feature-redesign-card:hover .feature-icon-wrapper,
+  .how-it-works-step:hover .feature-icon-wrapper {
+    transform: scale(1.15) rotate(-8deg);
+  }
+
+  /* ── How It Works ── */
+  .how-it-works-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+  }
+
+  .how-it-works-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.6rem;
+    padding: 1.5rem 1rem;
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-normal);
+  }
+
+  .how-it-works-step:hover {
+    transform: translateY(-6px);
+    background: color-mix(in srgb, var(--primary) 5%, transparent);
+  }
+
+  .how-it-works-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    animation: number-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes number-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 35%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 0%, transparent);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .how-it-works-row {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+  }
+
+  /* ── FAQ ── */
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .faq-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    padding: 0 1.5rem;
+    transition: all var(--transition-normal);
+  }
+
+  .faq-item:hover {
+    border-color: var(--primary-light);
+    box-shadow: var(--shadow-md);
+    transform: translateX(4px);
+  }
+
+  .faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 1.25rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: left;
+    font-family: var(--font-sans);
   }
 
   /* 3. SVG Abstract Art Keyframe Animations (Creating smooth motion representing features) */
