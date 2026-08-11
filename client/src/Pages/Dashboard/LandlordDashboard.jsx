@@ -118,7 +118,12 @@ export const LandlordDashboard = () => {
   const [confirmedAction, setConfirmedAction] = useState("created"); // 'created' | 'updated'
   const [editingListing, setEditingListing] = useState(null);
 
-  // Check URL query parameters to open modal by default
+  // Check URL query parameters to open modal by default. This used to skip
+  // the KYC-address sync that the "Post New Room" button gets (openCreateModal
+  // calls syncKycLocationToForm), leaving formLocation stuck empty for this
+  // entry point and blocking submission even though every visible field was
+  // filled. Now covered by the reactive sync effect below instead, which
+  // fires for any path that sets isPostModalOpen true.
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("action") === "post") {
@@ -184,6 +189,19 @@ export const LandlordDashboard = () => {
     setFormCity(myKyc.district);
   };
 
+  // syncKycLocationToForm() is called when the modal opens, but myKyc is
+  // fetched asynchronously and may still be null at that exact moment
+  // (it's a no-op then) — leaving formLocation empty for the rest of the
+  // session with no visible field for the user to fix it themselves, since
+  // location is derived from KYC rather than typed in. This re-syncs as
+  // soon as myKyc actually arrives, covering that race.
+  useEffect(() => {
+    if (isPostModalOpen && myKyc) {
+      Promise.resolve().then(() => syncKycLocationToForm());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myKyc, isPostModalOpen]);
+
   // Location fields (formLocation/formCity/formLat/formLng) are not reset
   // here — they're always kept in sync with the landlord's verified KYC
   // address by the effect below, for as long as the modal is open.
@@ -218,15 +236,19 @@ export const LandlordDashboard = () => {
     setSubmitError("");
 
     if (!formTitle || !formDesc || !formPrice || !formLocation) {
-      alert("Please fill in all required fields.");
+      setSubmitError(
+        !formLocation
+          ? "Your KYC address is still loading — wait a moment and try again."
+          : "Please fill in all required fields.",
+      );
       return;
     }
     if (!formLat || !formLng) {
-      alert("Please pin the location on the map.");
+      setSubmitError("Please pin the location on the map.");
       return;
     }
     if (formImages.length === 0) {
-      alert("Please add at least one photo.");
+      setSubmitError("Please add at least one photo.");
       return;
     }
 
