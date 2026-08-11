@@ -244,10 +244,14 @@ export const Auth = () => {
     { icon: "🤖", text: "AI-powered recommendations for your budget" },
     { icon: "🗺️", text: "Map-based search" },
   ];
+  // Describes what the system actually does rather than claiming specific
+  // usage numbers (listing counts, city counts, etc.) that would need live
+  // data to back up and could be challenged as fabricated in a project
+  // defense otherwise.
   const stats = [
-    { num: "10+", label: "Active Listings" },
-    { num: "3", label: "Cities Covered" },
-    { num: "98%", label: "Verified Landlords" },
+    { num: "AI", label: "Smart Recommendations" },
+    { num: "GPS", label: "Map-Based Search" },
+    { num: "KYC", label: "Landlord Verification" },
   ];
 
   // Switching between dark and white modes
