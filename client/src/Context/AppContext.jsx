@@ -160,10 +160,11 @@ export const AppContextProvider = ({ children }) => {
   // ------------------------------------------------------------
   // Auth
   // ------------------------------------------------------------
-  const loginUser = async (email, password) => {
+  const loginUser = async (email, password, captchaToken) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken },
     });
     if (error) return { success: false, message: error.message };
 
@@ -256,7 +257,7 @@ export const AppContextProvider = ({ children }) => {
     if (error) throw error;
   };
 
-  const signupUser = async (email, password, name, phone, role) => {
+  const signupUser = async (email, password, name, phone, role, captchaToken) => {
     const PHONE_TAKEN_MESSAGE =
       "This phone number is already registered. Please sign in or use a different number.";
 
@@ -277,7 +278,7 @@ export const AppContextProvider = ({ children }) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, phone, role } },
+      options: { data: { name, phone, role }, captchaToken },
     });
     if (error) {
       // The pre-check above already handles the common case by name; this
