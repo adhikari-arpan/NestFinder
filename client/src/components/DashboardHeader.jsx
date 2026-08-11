@@ -52,7 +52,10 @@ export const DashboardHeader = ({ children, className = "", style = {} }) => {
     }
   };
 
-  const handleLogout = () => setShowLogoutConfirm(true);
+  const handleLogout = () => {
+    setProfileMenuOpen(false);
+    setShowLogoutConfirm(true);
+  };
 
   const confirmLogout = async () => {
     setShowLogoutConfirm(false);
