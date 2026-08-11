@@ -253,10 +253,12 @@ export const Auth = () => {
     }
   };
 
+  // Admin accounts are deliberately not self-serve — only tenant/landlord
+  // can be created from this public signup form. Admins are provisioned
+  // directly in the database.
   const roles = [
     { val: "tenant", label: "🙋 Tenant" },
     { val: "landlord", label: "🏢 Landlord" },
-    { val: "admin", label: "🛡️ Admin" },
   ];
   const features = [
     { icon: "🏠", text: "Verified room listings across Kathmandu valley" },
