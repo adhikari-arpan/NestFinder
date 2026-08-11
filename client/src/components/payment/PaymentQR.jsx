@@ -4,6 +4,7 @@
 import { ShieldCheck, Copy, Check, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { formatNPR } from "../../utils/paymentUtils";
+import { PAYMENT_QR_IMAGE, MERCHANT_NUMBER } from "./paymentConfig";
 
 export const PaymentQR = ({
   amount,
@@ -14,7 +15,7 @@ export const PaymentQR = ({
   previousRadius = null,
 }) => {
   const [copied, setCopied] = useState(false);
-  const esewaNumber = "9841000000";
+  const esewaNumber = MERCHANT_NUMBER;
   const isListingFee = paymentType === "landlord_listing";
 
   const handleCopy = () => {
@@ -129,48 +130,13 @@ export const PaymentQR = ({
             marginBottom: "0.75rem",
           }}
         >
-          {/* Simulated HD Payment QR SVG */}
-          <svg
-            width="180"
-            height="180"
-            viewBox="0 0 200 200"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect width="200" height="200" fill="white" />
-            <path d="M20 20H80V80H20V20ZM35 35V65H65V35H35Z" fill="#15803d" />
-            <path d="M45 45H55V55H45V45Z" fill="#15803d" />
-            <path
-              d="M120 20H180V80H120V20ZM135 35V65H165V35H135Z"
-              fill="#15803d"
-            />
-            <path d="M145 45H155V55H145V45Z" fill="#15803d" />
-            <path
-              d="M20 120H80V180H20V120ZM35 135V165H65V135H35Z"
-              fill="#15803d"
-            />
-            <path d="M45 145H55V155H45V145Z" fill="#15803d" />
-            <path d="M90 20H110V50H90V20Z" fill="#60bb46" />
-            <path d="M90 70H110V110H90V70Z" fill="#15803d" />
-            <path d="M120 90H180V110H120V90Z" fill="#15803d" />
-            <path d="M120 120H140V150H120V120Z" fill="#60bb46" />
-            <path
-              d="M150 120H180V180H150V120ZM162 135V165H168V135H162Z"
-              fill="#15803d"
-            />
-            <path d="M90 130H110V180H90V130Z" fill="#15803d" />
-            <circle cx="100" cy="100" r="16" fill="#60bb46" />
-            <text
-              x="100"
-              y="104"
-              fontSize="10"
-              fontWeight="bold"
-              fill="white"
-              textAnchor="middle"
-            >
-              eSewa
-            </text>
-          </svg>
+          <img
+            src={PAYMENT_QR_IMAGE}
+            alt="eSewa / Fonepay payment QR code"
+            width={180}
+            height={180}
+            style={{ display: "block", objectFit: "contain" }}
+          />
         </div>
 
         <span
