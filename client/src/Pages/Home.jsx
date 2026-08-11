@@ -1,7 +1,9 @@
 import { useContext, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
-import { Sparkles, Shield, ArrowRight, Map, ChevronDown } from "lucide-react";
+import { Sparkles, Shield, ArrowRight, Map, ChevronDown, CheckCircle } from "lucide-react";
+import { RoomCard } from "../Components/RoomCard";
+import pagodaSkyline from "../assets/pagoda.png";
 
 // ─── Animated Canvas ──────────────────────────────────────────────────────────
 const NetworkBackground = ({ theme }) => {
@@ -57,9 +59,9 @@ const NetworkBackground = ({ theme }) => {
         if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
         if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
       });
-      houses.forEach((h) => {
+      houses.forEach((h, index) => {
         h.x += h.vx;
-        h.y += h.vy;
+        h.y += h.vy + Math.sin(Date.now() / 800 + index) * 0.4;
         if (h.x < 0 || h.x > canvas.width) h.vx *= -1;
         if (h.y < 0 || h.y > canvas.height) h.vy *= -1;
       });
@@ -121,14 +123,36 @@ export const Home = () => {
         {/* ── HERO SECTION ── */}
         <section
           className={[
-            "relative flex min-h-[calc(100vh-70px)] flex-col items-center justify-center",
-            "px-6 pt-20 pb-32 text-center",
+            "relative min-h-[calc(100vh-70px)] flex flex-col justify-center",
+            "px-6 pt-16 pb-20",
             isDark
               ? "bg-[linear-gradient(135deg,#090d16_0%,#0d1222_60%,#0a1a12_100%)]"
               : "bg-[linear-gradient(135deg,#f0f4ff_0%,#fafbff_100%)]",
           ].join(" ")}
         >
           <NetworkBackground theme={theme} />
+
+          {/* Skyline Silhouette */}
+          <div className="skyline-svg-container" style={{ transform: "scaleX(-1) scaleY(0.8)", transformOrigin: "bottom center" }}>
+            <div
+              className="skyline-fill skyline-mask"
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                WebkitMaskImage: `url(${pagodaSkyline})`,
+                WebkitMaskSize: "100% auto",
+                WebkitMaskPosition: "bottom center",
+                WebkitMaskRepeat: "no-repeat",
+                maskImage: `url(${pagodaSkyline})`,
+                maskSize: "100% auto",
+                maskPosition: "bottom center",
+                maskRepeat: "no-repeat"
+              }}
+            ></div>
+          </div>
 
           {/* Ambient orbs */}
           <div
@@ -150,58 +174,98 @@ export const Home = () => {
             }}
           />
 
-          {/* Hero content */}
-          <div className="animate-fade-in relative z-5 flex max-w-185 flex-col items-center gap-7">
-            <span className="hero-badge">🏠 Nepal's Rental Network</span>
+          {/* Hero content Grid */}
+          <div className="hero-grid relative z-5">
+            {/* Left Column */}
+            <div className="hero-content-left animate-fade-in">
+              <span className="hero-badge hero-badge-left">🏠 Nepal's Rental Network</span>
 
-            <h1 className="hero-headline">
-              Find your <span className="gradient-text">perfect Nest</span>
-            </h1>
+              <h1 className="hero-headline text-left m-0" style={{ textAlign: "left" }}>
+                Find your <span className="gradient-text">perfect Nest</span>
+              </h1>
 
-            <p className="hero-sub">
-              Verified rooms across Kathmandu valley. AI-powered
-              recommendations. Map-based search near colleges, hospitals &amp;
-              transit — zero broker fees.
-            </p>
+              <p className="hero-sub text-left m-0" style={{ marginLeft: 0, textAlign: "left", color: isDark ? "#ffffff" : undefined }}>
+                Verified rooms across Kathmandu valley. AI-powered
+                recommendations. Map-based search near colleges, hospitals &amp;
+                transit — zero broker fees.
+              </p>
 
-            {/* Feature pills */}
-            <div className="flex flex-wrap justify-center gap-[0.6rem]">
-              {[
-                "✅ Verified listings",
-                "🤖 AI match scoring",
-                "🗺️ Map-based search",
-                "🚫 Zero broker fees",
-              ].map((f, i) => (
-                <span
-                  key={i}
-                  className="rounded-full px-4 py-[0.4rem] text-[0.8rem] font-semibold"
-                  style={{
-                    background: isDark
-                      ? "rgba(255,255,255,0.06)"
-                      : "rgba(99,102,241,0.07)",
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(99,102,241,0.15)"}`,
-                    color: isDark ? "#cbd5e1" : "#4338ca",
-                  }}
-                >
-                  {f}
-                </span>
-              ))}
+              {/* Feature pills */}
+              <div className="pills-container-left">
+                {[
+                  "✅ Verified listings",
+                  "🤖 AI match scoring",
+                  "🗺️ Map-based search",
+                  "🚫 Zero broker fees",
+                ].map((f, i) => (
+                  <span
+                    key={i}
+                    className="feature-pill-card"
+                    style={{
+                      background: isDark
+                        ? "rgba(255,255,255,0.06)"
+                        : "rgba(99,102,241,0.07)",
+                      border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(99,102,241,0.15)"}`,
+                      color: isDark ? "#ffffff" : "#4338ca",
+                    }}
+                  >
+                    {f}
+                  </span>
+                ))}
+              </div>
+
+              {/* CTA */}
+              <Link
+                to="/auth"
+                className="hero-cta-btn mt-4"
+                style={{ textDecoration: "none" }}
+              >
+                Get Started • Sign In <ArrowRight size={18} />
+              </Link>
             </div>
 
-            {/* CTA */}
-            <Link
-              to="/auth"
-              className="hero-cta-btn mt-2"
-              style={{ textDecoration: "none" }}
-            >
-              Get Started • Sign In <ArrowRight size={18} />
-            </Link>
-
-            {/* Scroll hint */}
-            <div className="scroll-hint">
-              <ChevronDown size={20} />
-              <span>Scroll to explore features</span>
+            {/* Right Column: Photo Stack */}
+            <div className="photo-stack-container animate-fade-in">
+              {/* Card 1 */}
+              <div className="stacked-card stacked-card-1">
+                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=400&q=80" alt="Room 1" />
+                <div className="card-overlay-info">
+                  <div>
+                    <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: "var(--primary-light)" }}>1 BHK • Koteshwor</span>
+                  </div>
+                </div>
+              </div>
+              {/* Card 2 */}
+              <div className="stacked-card stacked-card-2">
+                <img src="https://images.unsplash.com/photo-1502672260266-1c1de2d9d543?auto=format&fit=crop&w=400&q=80" alt="Room 2" />
+                <div className="card-overlay-info">
+                  <div>
+                    <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: "var(--primary-light)" }}>Single Room • Baneshwor</span>
+                  </div>
+                </div>
+              </div>
+              {/* Card 3 (Front) */}
+              <div className="stacked-card stacked-card-3">
+                <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=400&q=80" alt="Room 3" />
+                <div className="absolute top-3 left-3 flex gap-1">
+                  <span className="flex items-center gap-1 rounded-full px-2 py-1 text-[0.65rem] font-bold text-white backdrop-blur-sm" style={{ background: "rgba(16,185,129,0.9)" }}>
+                    <CheckCircle size={10} /> Verified
+                  </span>
+                </div>
+                <div className="card-overlay-info flex-col items-start gap-1">
+                  <span className="text-[0.7rem] font-bold uppercase tracking-wider" style={{ color: "var(--primary-light)" }}>Flat • Patan</span>
+                  <div className="flex w-full items-center justify-between">
+                    <span className="font-semibold text-white">Cozy Furnished Flat</span>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          {/* Scroll hint */}
+          <div className="scroll-hint relative z-5" style={{ marginTop: "1rem", color: isDark ? "#ffffff" : "#000000" }}>
+            <ChevronDown size={20} />
+            <span>Scroll to explore features</span>
           </div>
 
           {/* Stats bar */}
