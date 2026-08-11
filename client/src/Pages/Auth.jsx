@@ -1,5 +1,6 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 import { AppContext } from "../Context/AppContext";
 import whiteLogo from "../assets/White_NestFinderLogo.png";
 import darkLogo from "../assets/Dark_NestFinderLogo.png";
@@ -175,6 +176,8 @@ export const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formMsg, setFormMsg] = useState({ text: "", type: "" });
   const [submitting, setSubmitting] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const captchaRef = useRef(null);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -183,9 +186,22 @@ export const Auth = () => {
     if (currentUser.role === "admin") navigate("/dashboard/admin");
   }, [currentUser, navigate]);
 
+  // hCaptcha tokens are single-use and expire quickly, so the widget must be
+  // reset after every submit attempt — success or failure — otherwise the
+  // next attempt would silently be sent with a stale/already-spent token.
+  const resetCaptcha = () => {
+    captchaRef.current?.resetCaptcha();
+    setCaptchaToken(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormMsg({ text: "", type: "" }); // clear previous message
+
+    if (!captchaToken) {
+      setFormMsg({ text: "Please complete the CAPTCHA.", type: "error" });
+      return;
+    }
 
     if (activeTab === "login") {
       if (!email || !password) {
@@ -197,12 +213,13 @@ export const Auth = () => {
       }
       setSubmitting(true);
       try {
-        const result = await loginUser(email, password);
+        const result = await loginUser(email, password, captchaToken);
         if (result && !result.success) {
           setFormMsg({ text: result.message, type: "error" });
         }
       } finally {
         setSubmitting(false);
+        resetCaptcha();
       }
     } else {
       if (!name || !email || !password || !phone) {
@@ -223,6 +240,7 @@ export const Auth = () => {
           name,
           fullPhone,
           selectedRole,
+          captchaToken,
         );
         setFormMsg({
           text: result.message,
@@ -230,14 +248,17 @@ export const Auth = () => {
         });
       } finally {
         setSubmitting(false);
+        resetCaptcha();
       }
     }
   };
 
+  // Admin accounts are deliberately not self-serve — only tenant/landlord
+  // can be created from this public signup form. Admins are provisioned
+  // directly in the database.
   const roles = [
     { val: "tenant", label: "🙋 Tenant" },
     { val: "landlord", label: "🏢 Landlord" },
-    { val: "admin", label: "🛡️ Admin" },
   ];
   const features = [
     { icon: "🏠", text: "Verified room listings across Kathmandu valley" },
@@ -536,6 +557,17 @@ export const Auth = () => {
             }
           />
 
+          {/* CAPTCHA */}
+          <div className="flex justify-center">
+            <HCaptcha
+              ref={captchaRef}
+              sitekey={import.meta.env.VITE_HCAPTCHA_SITE_KEY}
+              theme={isDark ? "dark" : "light"}
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+            />
+          </div>
+
           {/* Success Failure Message */}
           {formMsg.text && (
             <div
@@ -563,7 +595,7 @@ export const Auth = () => {
           {/* Submit */}
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !captchaToken}
             style={{ marginTop: "0.5rem" }}
             className="flex h-13.5 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-none bg-linear-to-r from-indigo-500 to-emerald-500 text-[0.93rem] font-bold text-white shadow-[0_4px_22px_rgba(99,102,241,0.32)] transition-all duration-200 hover:opacity-90 hover:shadow-[0_6px_28px_rgba(99,102,241,0.42)] disabled:cursor-not-allowed disabled:opacity-60"
           >
