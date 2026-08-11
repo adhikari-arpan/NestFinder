@@ -242,7 +242,7 @@ export const Auth = () => {
   const features = [
     { icon: "🏠", text: "Verified room listings across Kathmandu valley" },
     { icon: "🤖", text: "AI-powered recommendations for your budget" },
-    { icon: "🗺️", text: "Map-based search with nearby colleges & hospitals" },
+    { icon: "🗺️", text: "Map-based search" },
   ];
   const stats = [
     { num: "10+", label: "Active Listings" },
