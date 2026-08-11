@@ -36,7 +36,7 @@ export const SupportHubModal = ({ onClose }) => {
           transform: "translate(-50%, -50%)",
           zIndex: 2001,
           width: "100%",
-          maxWidth: "380px",
+          maxWidth: "440px",
           background: "var(--bg-card)",
           border: "1px solid var(--border-color)",
           borderRadius: "var(--radius-lg)",
@@ -75,9 +75,8 @@ export const SupportHubModal = ({ onClose }) => {
             lineHeight: 1.6,
           }}
         >
-          You'll be redirected to your email app to reach our support team at{" "}
-          <strong>{SUPPORT_EMAIL}</strong>, with a message already drafted for
-          you.
+          You'll be redirected to your email app to reach out to our tech
+          support team, with a message already drafted for you.
         </p>
 
         <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -105,6 +104,7 @@ export const SupportHubModal = ({ onClose }) => {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.4rem",
+              whiteSpace: "nowrap",
             }}
           >
             <Mail size={15} /> Open Mail App
