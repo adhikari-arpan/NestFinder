@@ -2,7 +2,6 @@ import { useContext, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AppContext } from "../Context/AppContext";
 import { Sparkles, Shield, ArrowRight, Map, ChevronDown, CheckCircle } from "lucide-react";
-import { RoomCard } from "../Components/RoomCard";
 import pagodaSkyline from "../assets/pagoda.png";
 
 // ─── Animated Canvas ──────────────────────────────────────────────────────────
@@ -186,8 +185,7 @@ export const Home = () => {
 
               <p className="hero-sub text-left m-0" style={{ marginLeft: 0, textAlign: "left", color: isDark ? "#ffffff" : undefined }}>
                 Verified rooms across Kathmandu valley. AI-powered
-                recommendations. Map-based search near colleges, hospitals &amp;
-                transit — zero broker fees.
+                recommendations. Map-based search &amp;.
               </p>
 
               {/* Feature pills */}
@@ -196,7 +194,8 @@ export const Home = () => {
                   "✅ Verified listings",
                   "🤖 AI match scoring",
                   "🗺️ Map-based search",
-                  "🚫 Zero broker fees",
+                  "📞 Direct landlord contact",
+
                 ].map((f, i) => (
                   <span
                     key={i}
