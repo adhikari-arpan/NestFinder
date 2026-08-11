@@ -126,12 +126,6 @@ export const Footer = () => {
           </span>
           <div className="flex gap-5">
             <a href="#" className={linkClass}>
-              Terms of Service
-            </a>
-            <a href="#" className={linkClass}>
-              Privacy Policy
-            </a>
-            <a href="#" className={linkClass}>
               Support Hub
             </a>
           </div>
