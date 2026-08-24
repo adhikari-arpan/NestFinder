@@ -179,11 +179,26 @@ export const Auth = () => {
   const [captchaToken, setCaptchaToken] = useState(null);
   const captchaRef = useRef(null);
 
+  const justSignedUpRef = useRef(false);
+
   useEffect(() => {
     if (!currentUser) return;
-    if (currentUser.role === "tenant") navigate("/dashboard/tenant");
-    if (currentUser.role === "landlord") navigate("/dashboard/landlord");
-    if (currentUser.role === "admin") navigate("/dashboard/admin");
+    const dest =
+      currentUser.role === "tenant"
+        ? "/dashboard/tenant"
+        : currentUser.role === "landlord"
+          ? "/dashboard/landlord"
+          : currentUser.role === "admin"
+            ? "/dashboard/admin"
+            : null;
+    if (!dest) return;
+
+    if (justSignedUpRef.current) {
+      justSignedUpRef.current = false;
+      const timer = setTimeout(() => navigate(dest), 1200);
+      return () => clearTimeout(timer);
+    }
+    navigate(dest);
   }, [currentUser, navigate]);
 
   // hCaptcha tokens are single-use and expire quickly, so the widget must be
@@ -242,6 +257,7 @@ export const Auth = () => {
           selectedRole,
           captchaToken,
         );
+        justSignedUpRef.current = !!result.loggedIn;
         setFormMsg({
           text: result.message,
           type: result.success ? "success" : "error",
