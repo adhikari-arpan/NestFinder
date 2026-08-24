@@ -275,7 +275,7 @@ export const AppContextProvider = ({ children }) => {
       console.warn("Phone uniqueness pre-check failed, proceeding with signup:", err.message);
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { name, phone, role }, captchaToken },
@@ -294,9 +294,37 @@ export const AppContextProvider = ({ children }) => {
           : error.message,
       };
     }
+
+    // When email confirmation is disabled in Supabase, signUp() already
+    // returns a live session — sign the user in immediately instead of
+    // making them submit the login form again with the credentials they
+    // just typed. If confirmation IS required, session is null and they
+    // genuinely can't be logged in yet.
+    if (data.session) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role, name, phone, email, avatar_url, is_verified, kyc_status, is_suspended")
+        .eq("id", data.user.id)
+        .single();
+
+      setCurrentUser({ ...data.user, ...profile });
+      pushNotification(
+        data.user.id,
+        "Account created",
+        `Welcome to NestFinder, ${name}!`,
+        "auth",
+      );
+      return {
+        success: true,
+        loggedIn: true,
+        message: "Registration successful! Logging you in...",
+      };
+    }
+
     return {
       success: true,
-      message: "Account created successfully! Please sign in.",
+      loggedIn: false,
+      message: "Account created! Please check your email to verify your account before signing in.",
     };
   };
 
